@@ -1,4 +1,4 @@
-from llm_integration import LLMIntegration
+from langchain_llm_toolkit.llm_integration import LLMIntegration
 
 
 class ConversationManager:

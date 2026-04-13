@@ -3,9 +3,9 @@
 
 import typer
 from typing import Optional
-from llm_integration import LLMIntegration
-from conversation import ConversationManager
-from config.settings import settings
+from langchain_llm_toolkit.llm_integration import LLMIntegration
+from langchain_llm_toolkit.conversation import ConversationManager
+from langchain_llm_toolkit.config.settings import settings
 
 app = typer.Typer(help="LangChain LLM Toolkit 命令行工具")
 model_app = typer.Typer(help="模型管理")

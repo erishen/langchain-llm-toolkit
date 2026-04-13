@@ -6,7 +6,7 @@ import time
 import tempfile
 import os
 
-from models.schemas import (
+from langchain_llm_toolkit.models.schemas import (
     GenerateRequest,
     GenerateResponse,
     ChatRequest,
@@ -19,17 +19,17 @@ from models.schemas import (
     ModelInfo,
     HealthResponse,
 )
-from llm_integration import LLMIntegration
-from rag import RAGSystem
-from logger import logger
-from exceptions import (
+from langchain_llm_toolkit.llm_integration import LLMIntegration
+from langchain_llm_toolkit.rag import RAGSystem
+from langchain_llm_toolkit.logger import logger
+from langchain_llm_toolkit.exceptions import (
     LLMToolkitError,
     APIKeyMissingError,
     APIConnectionError,
     APITimeoutError,
     RateLimitExceededError,
 )
-from rate_limiter import RateLimiter
+from langchain_llm_toolkit.rate_limiter import RateLimiter
 
 # 创建 FastAPI 应用
 app = FastAPI(

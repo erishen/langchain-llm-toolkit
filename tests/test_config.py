@@ -1,4 +1,4 @@
-from config import settings
+from langchain_llm_toolkit.config import settings
 
 print("Testing configuration module...")
 print(f"APP_NAME: {settings.APP_NAME}")

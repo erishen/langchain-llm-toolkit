@@ -3,7 +3,7 @@ import os
 import tempfile
 import shutil
 from unittest.mock import patch, Mock
-from rag import RAGSystem
+from langchain_llm_toolkit.rag import RAGSystem
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 import numpy as np
@@ -110,7 +110,7 @@ class TestRAGSystemQdrant(unittest.TestCase):
         self.assertIsInstance(doc, Document)
         self.assertIsInstance(score, (int, float))
 
-    @patch("llm_integration.LLMIntegration.generate")
+    @patch("langchain_llm_toolkit.llm_integration.LLMIntegration.generate")
     def test_generate_answer(self, mock_generate):
         """测试生成回答"""
         mock_generate.return_value = "测试回答"
@@ -249,7 +249,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
         self.assertIsInstance(doc, Document)
         self.assertIsInstance(float(score), (int, float))
 
-    @patch("rag.LLMIntegration")
+    @patch("langchain_llm_toolkit.rag.LLMIntegration")
     def test_generate_summary(self, mock_llm_class):
         """测试生成摘要"""
         mock_llm = Mock()
@@ -263,7 +263,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
         self.assertEqual(summary, "这是文档摘要")
         mock_llm.generate.assert_called_once()
 
-    @patch("rag.LLMIntegration")
+    @patch("langchain_llm_toolkit.rag.LLMIntegration")
     def test_extract_information(self, mock_llm_class):
         """测试信息提取"""
         mock_llm = Mock()
@@ -386,7 +386,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
         self.assertEqual(results[0].metadata["source"], "test.txt")
         self.assertEqual(results[0].metadata["author"], "测试作者")
 
-    @patch("rag.LLMIntegration")
+    @patch("langchain_llm_toolkit.rag.LLMIntegration")
     def test_generate_answer_with_different_k(self, mock_llm_class):
         """测试不同 k 值的答案生成"""
         mock_llm = Mock()

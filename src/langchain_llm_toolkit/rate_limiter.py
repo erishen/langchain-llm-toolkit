@@ -4,7 +4,7 @@ from collections import defaultdict
 from functools import wraps
 from typing import Callable, Optional, Dict, List
 
-from exceptions import RateLimitExceededError
+from langchain_llm_toolkit.exceptions import RateLimitExceededError
 
 
 class RateLimiter:

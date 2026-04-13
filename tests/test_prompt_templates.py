@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock
 
-from prompt_templates import (
+from langchain_llm_toolkit.prompt_templates import (
     PromptTemplateType,
     PromptTemplate,
     RAGPromptBuilder,
