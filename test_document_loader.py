@@ -383,12 +383,12 @@ code block
     def test_load_multiple_files_with_same_content(self):
         """测试加载多个相同内容的文件"""
         content = "相同的内容"
-        
+
         for i in range(3):
             file_path = os.path.join(self.temp_dir.name, f"same_{i}.txt")
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
-            
+
             documents = self.loader.load_document(file_path)
             self.assertEqual(documents[0].page_content, content)
             self.assertEqual(documents[0].metadata["source"], file_path)
@@ -397,7 +397,7 @@ code block
         """测试加载路径包含空格的文件"""
         space_dir = os.path.join(self.temp_dir.name, "path with spaces")
         os.makedirs(space_dir)
-        
+
         space_file = os.path.join(space_dir, "file with spaces.txt")
         with open(space_file, "w", encoding="utf-8") as f:
             f.write("内容测试")
@@ -410,7 +410,7 @@ code block
         """测试加载路径包含 Unicode 字符的文件"""
         unicode_dir = os.path.join(self.temp_dir.name, "中文目录")
         os.makedirs(unicode_dir)
-        
+
         unicode_file = os.path.join(unicode_dir, "中文文件.txt")
         with open(unicode_file, "w", encoding="utf-8") as f:
             f.write("中文内容")

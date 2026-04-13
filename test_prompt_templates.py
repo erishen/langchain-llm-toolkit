@@ -58,9 +58,7 @@ class TestPromptTemplate:
     def test_render_rag_qa(self):
         """测试渲染 RAG QA 模板"""
         template = PromptTemplate()
-        result = template.render(
-            PromptTemplateType.RAG_QA, context="这是测试上下文", query="这是测试问题"
-        )
+        result = template.render(PromptTemplateType.RAG_QA, context="这是测试上下文", query="这是测试问题")
         assert "这是测试上下文" in result
         assert "这是测试问题" in result
         assert "{context}" not in result
