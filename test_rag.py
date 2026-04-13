@@ -315,7 +315,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
         """测试设置 embeddings"""
         if not os.getenv("OPENAI_API_KEY"):
             self.skipTest("需要 OPENAI_API_KEY 环境变量")
-        
+
         rag_system = RAGSystem(vector_store_type="faiss")
         self.assertIsNone(rag_system.embeddings)
 

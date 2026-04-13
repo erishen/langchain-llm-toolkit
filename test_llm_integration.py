@@ -25,16 +25,16 @@ class TestLLMIntegration(unittest.TestCase):
 
     @patch("requests.post")
     def test_generate_error_ollama(self, mock_post):
-        """测试生成文本时出错（Ollama）"""
+        """测试生成文本时出错"""
+        from exceptions import APIConnectionError
+
         mock_post.side_effect = Exception("API 错误")
 
         self.llm.set_model("ollama/gemma3")
 
         prompt = "Hello, who are you?"
-        response = self.llm.generate(prompt)
-
-        self.assertIn("Error", response)
-        self.assertIn("API 错误", response)
+        with self.assertRaises(Exception):
+            self.llm.generate(prompt)
 
     @patch("litellm.completion")
     def test_generate_success_litellm(self, mock_completion):
@@ -53,16 +53,14 @@ class TestLLMIntegration(unittest.TestCase):
 
     @patch("litellm.completion")
     def test_generate_error_litellm(self, mock_completion):
-        """测试生成文本时出错（LiteLLM）"""
+        """测试生成文本时出错"""
         mock_completion.side_effect = Exception("API 错误")
 
         self.llm.set_model("gpt-4o")
 
         prompt = "Hello, who are you?"
-        response = self.llm.generate(prompt)
-
-        self.assertIn("Error", response)
-        self.assertIn("API 错误", response)
+        with self.assertRaises(Exception):
+            self.llm.generate(prompt)
 
     @patch("requests.post")
     def test_chat_success_ollama(self, mock_post):
