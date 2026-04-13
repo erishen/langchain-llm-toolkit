@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi import status
 import time
 import tempfile
@@ -22,11 +22,19 @@ from models.schemas import (
 from llm_integration import LLMIntegration
 from rag import RAGSystem
 from logger import logger
+from exceptions import (
+    LLMToolkitError,
+    APIKeyMissingError,
+    APIConnectionError,
+    APITimeoutError,
+    RateLimitExceededError,
+)
+from rate_limiter import RateLimiter
 
 # 创建 FastAPI 应用
 app = FastAPI(
-    title="LangChain API",
-    description="基于 LangChain 和 LiteLLM 的 LLM 应用 API",
+    title="LangChain LLM Toolkit API",
+    description="基于 LangChain 和 LiteLLM 的完整 LLM 工具集 API",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -40,6 +48,33 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 全局速率限制器
+rate_limiter = RateLimiter(max_requests=100, window_seconds=60)
+
+
+@app.exception_handler(LLMToolkitError)
+async def llm_toolkit_exception_handler(request: Request, exc: LLMToolkitError):
+    """自定义异常处理器"""
+    logger.error(f"LLM Toolkit error: {exc}")
+
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    if isinstance(exc, APIKeyMissingError):
+        status_code = status.HTTP_401_UNAUTHORIZED
+    elif isinstance(exc, RateLimitExceededError):
+        status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    elif isinstance(exc, (APIConnectionError, APITimeoutError)):
+        status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "error": exc.message,
+            "details": exc.details,
+            "type": type(exc).__name__,
+        },
+    )
 
 
 # 全局变量
@@ -69,7 +104,7 @@ async def health_check():
 
 # 文本生成端点
 @app.post("/api/v1/generate", response_model=GenerateResponse, tags=["Generation"])
-async def generate_text(request: GenerateRequest):
+async def generate_text(request: GenerateRequest, req: Request):
     """
     生成文本
 
@@ -78,6 +113,14 @@ async def generate_text(request: GenerateRequest):
     - **temperature**: 温度参数（默认: 0.7）
     - **timeout**: 超时时间（默认: 30秒）
     """
+    # 检查速率限制
+    client_ip = req.client.host if req.client else "unknown"
+    try:
+        rate_limiter.check_rate_limit(f"generate:{client_ip}")
+    except RateLimitExceededError as e:
+        logger.warning(f"Rate limit exceeded for {client_ip}: {e}")
+        raise
+
     start_time = time.time()
 
     try:

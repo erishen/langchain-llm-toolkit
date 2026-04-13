@@ -6,23 +6,51 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 from typing import Optional, Generator
 import time
 
+from exceptions import (
+    APIConnectionError,
+    APITimeoutError,
+    RateLimitExceededError,
+)
+from cache import ResponseCache
+from rate_limiter import RateLimiter
+
 
 class LLMIntegration:
-    def __init__(self, timeout: int = 30, max_retries: int = 3):
+    def __init__(
+        self,
+        timeout: int = 30,
+        max_retries: int = 3,
+        enable_cache: bool = True,
+        cache_ttl: int = 7200,
+        rate_limit_requests: int = 100,
+        rate_limit_window: int = 60,
+    ):
         """
         初始化 LLM 集成
 
         Args:
             timeout: 请求超时时间（秒）
             max_retries: 最大重试次数
+            enable_cache: 是否启用缓存
+            cache_ttl: 缓存过期时间（秒）
+            rate_limit_requests: 速率限制请求数
+            rate_limit_window: 速率限制时间窗口（秒）
         """
         self.model = settings.DEFAULT_MODEL
         self.temperature = settings.DEFAULT_TEMPERATURE
         self.ollama_base_url = settings.OLLAMA_BASE_URL or "http://localhost:11434"
         self.timeout = timeout
         self.max_retries = max_retries
+
+        self.enable_cache = enable_cache
+        self.cache = ResponseCache(ttl=cache_ttl) if enable_cache else None
+        self.rate_limiter = RateLimiter(
+            max_requests=rate_limit_requests, window_seconds=rate_limit_window
+        )
+
         logger.info(
-            f"Initialized LLMIntegration with model={self.model}, temperature={self.temperature}"
+            f"Initialized LLMIntegration with model={self.model}, temperature={self.temperature}, "
+            f"cache={enable_cache}, rate_limit={rate_limit_requests}/{rate_limit_window}s"
         )
 
     def _validate_prompt(self, prompt: str) -> None:
@@ -90,6 +118,20 @@ class LLMIntegration:
             # 验证输入
             self._validate_prompt(prompt)
 
+            # 检查速率限制
+            try:
+                self.rate_limiter.check_rate_limit("llm_generate")
+            except RateLimitExceededError as e:
+                logger.warning(f"Rate limit exceeded: {e}")
+                raise
+
+            # 检查缓存
+            if self.enable_cache and self.cache:
+                cached_response = self.cache.get_response(prompt, self.model, self.temperature)
+                if cached_response:
+                    logger.info(f"Cache hit for prompt: {prompt[:50]}...")
+                    return cached_response
+
             timeout = timeout or self.timeout
             logger.info(f"Generating response for prompt: {prompt[:50]}...")
 
@@ -99,6 +141,11 @@ class LLMIntegration:
             else:
                 result = self._generate_litellm(prompt, timeout)
 
+            # 缓存结果
+            if self.enable_cache and self.cache:
+                self.cache.set_response(prompt, self.model, self.temperature, result)
+                logger.debug("Response cached")
+
             elapsed = time.time() - start_time
             logger.info(f"Generated response in {elapsed:.2f}s")
             return result
@@ -106,10 +153,20 @@ class LLMIntegration:
         except ValueError as e:
             logger.error(f"Validation error: {e}")
             raise
+        except RateLimitExceededError:
+            raise
+        except requests.Timeout:
+            elapsed = time.time() - start_time
+            logger.error(f"Timeout after {elapsed:.2f}s")
+            raise APITimeoutError("LLM API", timeout or self.timeout)
+        except requests.ConnectionError as e:
+            elapsed = time.time() - start_time
+            logger.error(f"Connection error after {elapsed:.2f}s: {e}")
+            raise APIConnectionError("LLM API", str(e))
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(f"Error generating response after {elapsed:.2f}s: {e}")
-            return f"Error: {str(e)}"
+            raise
 
     def _generate_ollama(self, prompt: str, timeout: int) -> str:
         """使用 Ollama API 生成文本"""
