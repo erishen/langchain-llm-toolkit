@@ -119,4 +119,4 @@ make help
 
 ---
 
-详细文档: [OPENCLAW_GUIDE.md](./OPENCLAW_GUIDE.md) | 完整文档: [README.md](./README.md)
+详细文档: [OPENCLAW_GUIDE.md](OPENCLAW_GUIDE.md) | 完整文档: [README.md](../README.md)
