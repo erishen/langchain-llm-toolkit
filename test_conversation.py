@@ -281,7 +281,7 @@ def hello():
         mock_llm_class.return_value = mock_llm
 
         manager = ConversationManager()
-        
+
         manager.converse("问题1")
         manager.converse("问题2")
         assert len(manager.history) == 4
@@ -315,7 +315,7 @@ def hello():
         mock_llm_class.return_value = mock_llm
 
         manager = ConversationManager()
-        
+
         questions = ["问题1", "问题2", "问题3"]
         for q in questions:
             manager.converse(q)
@@ -334,15 +334,15 @@ def hello():
         mock_llm_class.return_value = mock_llm
 
         manager = ConversationManager()
-        
+
         manager.set_model("gpt-4o")
         manager.converse("问题1")
-        
+
         mock_llm.set_model.assert_called_with("gpt-4o")
-        
+
         manager.set_model("gpt-3.5-turbo")
         manager.converse("问题2")
-        
+
         mock_llm.set_model.assert_called_with("gpt-3.5-turbo")
 
     @patch("conversation.LLMIntegration")
@@ -353,15 +353,15 @@ def hello():
         mock_llm_class.return_value = mock_llm
 
         manager = ConversationManager()
-        
+
         manager.set_temperature(0.5)
         manager.converse("问题1")
-        
+
         mock_llm.set_temperature.assert_called_with(0.5)
-        
+
         manager.set_temperature(1.0)
         manager.converse("问题2")
-        
+
         mock_llm.set_temperature.assert_called_with(1.0)
 
     @patch("conversation.LLMIntegration")

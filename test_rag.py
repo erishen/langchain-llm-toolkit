@@ -214,7 +214,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
         """测试在向量存储未初始化时添加文档"""
         rag_system = self._create_rag_system()
         test_doc = Document(page_content="测试", metadata={"source": "test.txt"})
-        
+
         with self.assertRaises(ValueError) as context:
             rag_system.add_documents([test_doc])
         self.assertIn("向量存储未初始化", str(context.exception))
@@ -232,7 +232,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
     def test_retrieve_documents_without_vector_store(self):
         """测试在向量存储未初始化时检索文档"""
         rag_system = self._create_rag_system()
-        
+
         with self.assertRaises(ValueError) as context:
             rag_system.retrieve_documents("测试")
         self.assertIn("向量存储未初始化", str(context.exception))
@@ -258,7 +258,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
 
         rag_system = self._create_rag_system()
         test_doc = Document(page_content="长文档内容" * 100, metadata={"source": "test.txt"})
-        
+
         summary = rag_system.generate_summary([test_doc])
         self.assertEqual(summary, "这是文档摘要")
         mock_llm.generate.assert_called_once()
@@ -272,7 +272,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
 
         rag_system = self._create_rag_system()
         test_doc = Document(page_content="包含关键信息的文档", metadata={"source": "test.txt"})
-        
+
         result = rag_system.extract_information([test_doc], "关键信息")
         self.assertEqual(result, "提取的关键信息")
         mock_llm.generate.assert_called_once()
@@ -296,16 +296,16 @@ class TestRAGSystemFAISS(unittest.TestCase):
         """测试在未设置 embeddings 时加载向量存储会自动初始化"""
         rag_system = self._create_rag_system()
         save_path = os.path.join(self.temp_dir, "faiss_store")
-        
+
         # 先创建并保存一个向量存储
         test_doc = Document(page_content="测试文档", metadata={"source": "test.txt"})
         rag_system.create_vector_store([test_doc])
         rag_system.save_vector_store(save_path)
-        
+
         # 创建新的 RAG 系统，不设置 embeddings
         rag_system2 = RAGSystem(vector_store_type="faiss")
         self.assertIsNone(rag_system2.embeddings)
-        
+
         # 使用 MockEmbeddings 加载向量存储
         rag_system2.embeddings = MockEmbeddings()
         rag_system2.load_vector_store(save_path)
@@ -313,6 +313,9 @@ class TestRAGSystemFAISS(unittest.TestCase):
 
     def test_setup_embeddings(self):
         """测试设置 embeddings"""
+        if not os.getenv("OPENAI_API_KEY"):
+            self.skipTest("需要 OPENAI_API_KEY 环境变量")
+        
         rag_system = RAGSystem(vector_store_type="faiss")
         self.assertIsNone(rag_system.embeddings)
 
@@ -334,13 +337,13 @@ class TestRAGSystemFAISS(unittest.TestCase):
     def test_multiple_documents(self):
         """测试处理多个文档"""
         rag_system = self._create_rag_system()
-        
+
         docs = [
             Document(page_content="文档1：Python 编程", metadata={"source": "doc1.txt"}),
             Document(page_content="文档2：Java 编程", metadata={"source": "doc2.txt"}),
             Document(page_content="文档3：JavaScript 编程", metadata={"source": "doc3.txt"}),
         ]
-        
+
         rag_system.create_vector_store(docs)
         results = rag_system.retrieve_documents("编程", k=3)
         self.assertEqual(len(results), 3)
@@ -348,37 +351,37 @@ class TestRAGSystemFAISS(unittest.TestCase):
     def test_empty_documents(self):
         """测试空文档列表"""
         rag_system = self._create_rag_system()
-        
+
         with self.assertRaises(Exception):
             rag_system.create_vector_store([])
 
     def test_large_document(self):
         """测试大文档处理"""
         rag_system = self._create_rag_system()
-        
+
         large_content = "测试内容 " * 10000
         test_doc = Document(page_content=large_content, metadata={"source": "large.txt"})
-        
+
         vector_store = rag_system.create_vector_store([test_doc])
         self.assertIsNotNone(vector_store)
 
     def test_metadata_preservation(self):
         """测试元数据保留"""
         rag_system = self._create_rag_system()
-        
+
         test_doc = Document(
             page_content="测试内容",
             metadata={
                 "source": "test.txt",
                 "author": "测试作者",
                 "date": "2024-01-01",
-                "category": "测试"
-            }
+                "category": "测试",
+            },
         )
-        
+
         rag_system.create_vector_store([test_doc])
         results = rag_system.retrieve_documents("测试", k=1)
-        
+
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].metadata["source"], "test.txt")
         self.assertEqual(results[0].metadata["author"], "测试作者")
@@ -391,14 +394,13 @@ class TestRAGSystemFAISS(unittest.TestCase):
         mock_llm_class.return_value = mock_llm
 
         rag_system = self._create_rag_system()
-        
+
         docs = [
-            Document(page_content=f"文档{i}", metadata={"source": f"doc{i}.txt"})
-            for i in range(5)
+            Document(page_content=f"文档{i}", metadata={"source": f"doc{i}.txt"}) for i in range(5)
         ]
-        
+
         rag_system.create_vector_store(docs)
-        
+
         for k in [1, 3, 5]:
             answer, relevant_docs = rag_system.generate_answer("测试", k=k)
             self.assertEqual(answer, "测试回答")

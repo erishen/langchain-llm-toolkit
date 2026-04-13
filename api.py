@@ -281,9 +281,7 @@ async def rag_upload(file: UploadFile = File(...)):
 async def list_models():
     """获取支持的模型列表"""
     models = [
-        ModelInfo(
-            name="ollama/gemma3", type="local", description="Ollama - gemma3 模型（本地运行）"
-        ),
+        ModelInfo(name="ollama/gemma3", type="local", description="Ollama - gemma3 模型（本地运行）"),
         ModelInfo(
             name="ollama/llama3.1:8b",
             type="local",

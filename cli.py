@@ -136,17 +136,13 @@ def set_temperature(temperature: float):
     """设置温度参数"""
     global current_temperature
     current_temperature = temperature
-    typer.echo(
-        f"温度参数已设置为: {typer.style(str(temperature), fg=typer.colors.GREEN, bold=True)}"
-    )
+    typer.echo(f"温度参数已设置为: {typer.style(str(temperature), fg=typer.colors.GREEN, bold=True)}")
 
 
 @temperature_app.command("get")
 def get_temperature():
     """获取当前温度参数"""
-    typer.echo(
-        f"当前温度参数: {typer.style(str(current_temperature), fg=typer.colors.GREEN, bold=True)}"
-    )
+    typer.echo(f"当前温度参数: {typer.style(str(current_temperature), fg=typer.colors.GREEN, bold=True)}")
 
 
 if __name__ == "__main__":

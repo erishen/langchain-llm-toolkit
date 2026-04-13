@@ -90,8 +90,9 @@ with st.sidebar:
 
     selected_model = st.selectbox("选择模型", list(model_options.keys()), index=0)
 
-    model = model_options[selected_model]
-    st.session_state.conversation_manager.set_model(model)
+    if selected_model:
+        model = model_options[selected_model]
+        st.session_state.conversation_manager.set_model(model)
 
     # 温度参数
     temperature = st.slider(
@@ -117,7 +118,10 @@ with st.sidebar:
             index=0,
             help="Qdrant 支持持久化和更好的性能，FAISS 更轻量",
         )
-        st.session_state.vector_store_type = "qdrant" if "Qdrant" in vector_store_type else "faiss"
+        if vector_store_type:
+            st.session_state.vector_store_type = (
+                "qdrant" if "Qdrant" in vector_store_type else "faiss"
+            )
 
         # 文件上传
         uploaded_files = st.file_uploader(
@@ -239,6 +243,8 @@ st.markdown(
 <div style='text-align: center; color: #666;'>
     <p>Powered by LangChain + Streamlit | 当前模型: {}</p>
 </div>
-""".format(selected_model),
+""".format(
+        selected_model
+    ),
     unsafe_allow_html=True,
 )

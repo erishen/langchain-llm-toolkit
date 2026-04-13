@@ -120,9 +120,7 @@ class TestGenerateEndpoints:
 
     def test_generate_stream_non_ollama_model(self, client):
         """测试非 Ollama 模型的流式生成"""
-        response = client.post(
-            "/api/v1/generate/stream", json={"prompt": "测试", "model": "gpt-4o"}
-        )
+        response = client.post("/api/v1/generate/stream", json={"prompt": "测试", "model": "gpt-4o"})
 
         assert response.status_code == 400
         assert "Streaming only supported for Ollama models" in response.json()["detail"]

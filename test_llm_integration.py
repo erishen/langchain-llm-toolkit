@@ -172,9 +172,9 @@ class TestLLMIntegration(unittest.TestCase):
     def test_generate_stream_non_ollama(self, mock_generate):
         """测试非 Ollama 模型的流式生成（应回退到普通生成）"""
         mock_generate.return_value = "普通响应"
-        
+
         self.llm.set_model("gpt-4o")
-        
+
         chunks = list(self.llm.generate_stream("Test"))
         self.assertEqual(chunks, ["普通响应"])
 
@@ -182,9 +182,9 @@ class TestLLMIntegration(unittest.TestCase):
     def test_generate_stream_error(self, mock_post):
         """测试流式生成时出错"""
         mock_post.side_effect = Exception("Stream Error")
-        
+
         self.llm.set_model("ollama/gemma3")
-        
+
         chunks = list(self.llm.generate_stream("Test"))
         self.assertEqual(len(chunks), 1)
         self.assertIn("Error", chunks[0])
