@@ -1,0 +1,146 @@
+[project]
+name = "langchain-llm-toolkit"
+version = "0.1.0"
+description = "一个基于 LangChain 和 LiteLLM 的完整 LLM 工具集，支持文本生成、聊天对话和 RAG 文档问答"
+authors = [
+    { name = "Your Name", email = "your.email@example.com" }
+]
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["langchain", "llm", "rag", "ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "aiohappyeyeballs==2.6.1",
+    "aiohttp==3.13.5",
+    "aiosignal==1.4.0",
+    "annotated-doc==0.0.4",
+    "annotated-types==0.7.0",
+    "anyio==4.13.0",
+    "attrs==26.1.0",
+    "certifi==2026.2.25",
+    "charset-normalizer==3.4.7",
+    "click==8.1.8",
+    "distro==1.9.0",
+    "fastuuid==0.14.0",
+    "filelock==3.25.2",
+    "frozenlist==1.8.0",
+    "fsspec==2026.3.0",
+    "h11==0.16.0",
+    "hf-xet==1.4.3",
+    "httpcore==1.0.9",
+    "httpx==0.28.1",
+    "huggingface_hub==1.9.2",
+    "idna==3.11",
+    "importlib_metadata==8.5.0",
+    "Jinja2==3.1.6",
+    "jiter==0.13.0",
+    "jsonpatch==1.33",
+    "jsonpointer==3.1.1",
+    "jsonschema==4.23.0",
+    "jsonschema-specifications==2025.9.1",
+    "langchain==1.2.15",
+    "langchain-core==1.2.28",
+    "langgraph==1.1.6",
+    "langgraph-checkpoint==4.0.1",
+    "langgraph-prebuilt==1.0.9",
+    "langgraph-sdk==0.3.13",
+    "langsmith==0.7.29",
+    "litellm==1.83.4",
+    "markdown-it-py==4.0.0",
+    "MarkupSafe==3.0.3",
+    "mdurl==0.1.2",
+    "multidict==6.7.1",
+    "openai==2.30.0",
+    "orjson==3.11.8",
+    "ormsgpack==1.12.2",
+    "packaging==26.0",
+    "propcache==0.4.1",
+    "pydantic==2.12.5",
+    "pydantic_core==2.41.5",
+    "Pygments==2.20.0",
+    "python-dotenv==1.0.1",
+    "PyYAML==6.0.3",
+    "referencing==0.37.0",
+    "regex==2026.4.4",
+    "requests==2.33.1",
+    "requests-toolbelt==1.0.0",
+    "rich==14.3.3",
+    "rpds-py==0.30.0",
+    "shellingham==1.5.4",
+    "sniffio==1.3.1",
+    "tenacity==9.1.4",
+    "tiktoken==0.12.0",
+    "tokenizers==0.22.2",
+    "tqdm==4.67.3",
+    "typer==0.23.1",
+    "typing-inspection==0.4.2",
+    "typing_extensions==4.15.0",
+    "urllib3==2.6.3",
+    "uuid_utils==0.14.1",
+    "xxhash==3.6.0",
+    "yarl==1.23.0",
+    "zipp==3.23.0",
+    "zstandard==0.25.0",
+    "pypdf>=5.0.0",
+    "python-docx==0.8.11",
+    "python-magic==0.4.27",
+    "faiss-cpu==1.13.2",
+    "langchain-openai==1.0.0",
+    "langchain-community==0.3.29",
+    "langchain-text-splitters>=1.1.1",
+    "streamlit>=1.56.0",
+    "qdrant-client>=1.17.1",
+    "fastapi>=0.135.3",
+    "uvicorn>=0.44.0",
+    "python-multipart>=0.0.24",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.scripts]
+langchain-cli = "cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["config"]
+
+[tool.uv]
+package = false
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pytest-cov>=7.1.0",
+    "types-requests>=2.33.0.20260408",
+    "bandit>=1.9.4",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py311', 'py312', 'py313']
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
