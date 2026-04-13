@@ -369,7 +369,7 @@ ollama list
 ## 🎓 学习资源
 
 ### 项目文档
-- [README.md](./README.md) - 完整项目文档
+- [README.md](../README.md) - 完整项目文档
 - [API 文档](http://localhost:8000/docs) - FastAPI 自动文档
 
 ### 外部资源
@@ -457,4 +457,4 @@ rag = RAGSystem(vector_store_type="faiss")
 **最后更新**: 2026-04-13  
 **维护者**: OpenClaw 龙虾助理团队
 
-如有任何问题，请参考 [README.md](./README.md) 或查看项目源码。
+如有任何问题，请参考 [README.md](../README.md) 或查看项目源码。

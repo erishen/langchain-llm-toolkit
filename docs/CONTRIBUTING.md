@@ -331,7 +331,7 @@ type: description
 ## 获取帮助
 
 - **GitHub Issues**: 提交问题或建议
-- **文档**: 查看 [README.md](README.md) 和其他文档
+- **文档**: 查看 [README.md](../README.md) 和其他文档
 - **讨论**: 在 GitHub Discussions 中参与讨论
 
 ## 许可证
