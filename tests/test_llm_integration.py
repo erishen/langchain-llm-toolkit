@@ -26,8 +26,6 @@ class TestLLMIntegration(unittest.TestCase):
     @patch("requests.post")
     def test_generate_error_ollama(self, mock_post):
         """测试生成文本时出错"""
-        from langchain_llm_toolkit.exceptions import APIConnectionError
-
         mock_post.side_effect = Exception("API 错误")
 
         self.llm.set_model("ollama/gemma3")
