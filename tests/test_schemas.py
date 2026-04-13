@@ -2,7 +2,7 @@ import pytest
 from pydantic import ValidationError
 from datetime import datetime
 
-from models.schemas import (
+from langchain_llm_toolkit.models.schemas import (
     GenerateRequest,
     GenerateResponse,
     ChatMessage,

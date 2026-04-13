@@ -4,11 +4,11 @@ from langchain_community.vectorstores import FAISS, Qdrant
 from langchain_openai import OpenAIEmbeddings
 from langchain_core.embeddings import Embeddings
 from qdrant_client import QdrantClient
-from document_loader import DocumentLoader
-from text_splitter import TextSplitter
-from llm_integration import LLMIntegration
-from prompt_templates import RAGPromptBuilder, PromptTemplateType
-from logger import logger
+from langchain_llm_toolkit.document_loader import DocumentLoader
+from langchain_llm_toolkit.text_splitter import TextSplitter
+from langchain_llm_toolkit.llm_integration import LLMIntegration
+from langchain_llm_toolkit.prompt_templates import RAGPromptBuilder, PromptTemplateType
+from langchain_llm_toolkit.logger import logger
 import os
 
 

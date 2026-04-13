@@ -2,7 +2,7 @@ import unittest
 import os
 import tempfile
 from unittest.mock import patch
-from document_loader import DocumentLoader
+from langchain_llm_toolkit.document_loader import DocumentLoader
 
 
 class TestDocumentLoader(unittest.TestCase):
@@ -80,7 +80,7 @@ class TestDocumentLoader(unittest.TestCase):
             f.write("test content")
 
         # 使用 mock 来模拟 ImportError
-        with patch("document_loader.DocumentLoader._load_docx") as mock_load:
+        with patch("langchain_llm_toolkit.document_loader.DocumentLoader._load_docx") as mock_load:
             mock_load.side_effect = ImportError("需要安装 python-docx 来处理 DOCX 文件")
 
             with self.assertRaises(ImportError):

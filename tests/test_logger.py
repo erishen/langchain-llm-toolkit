@@ -2,7 +2,7 @@ import logging
 import tempfile
 import os
 
-from logger import setup_logging, logger
+from langchain_llm_toolkit.logger import setup_logging, logger
 
 
 class TestSetupLogging:

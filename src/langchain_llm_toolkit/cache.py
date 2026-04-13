@@ -5,7 +5,7 @@ import time
 from functools import wraps
 from typing import Any, Callable, Optional, Dict
 
-from exceptions import CacheError
+from langchain_llm_toolkit.exceptions import CacheError
 
 
 class CacheManager:

@@ -1,7 +1,7 @@
 import os
 import tempfile
-from document_loader import DocumentLoader
-from text_splitter import TextSplitter
+from langchain_llm_toolkit.document_loader import DocumentLoader
+from langchain_llm_toolkit.text_splitter import TextSplitter
 
 
 def test_document_loader():

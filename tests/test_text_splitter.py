@@ -1,5 +1,5 @@
 import unittest
-from text_splitter import TextSplitter
+from langchain_llm_toolkit.text_splitter import TextSplitter
 from langchain_core.documents import Document
 
 

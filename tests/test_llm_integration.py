@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from llm_integration import LLMIntegration
+from langchain_llm_toolkit.llm_integration import LLMIntegration
 
 
 class TestLLMIntegration(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestLLMIntegration(unittest.TestCase):
     @patch("requests.post")
     def test_generate_error_ollama(self, mock_post):
         """测试生成文本时出错"""
-        from exceptions import APIConnectionError
+        from langchain_llm_toolkit.exceptions import APIConnectionError
 
         mock_post.side_effect = Exception("API 错误")
 
@@ -166,7 +166,7 @@ class TestLLMIntegration(unittest.TestCase):
         chunks = list(self.llm.generate_stream("Test"))
         self.assertEqual(chunks, ["Hello", " world", "!"])
 
-    @patch("llm_integration.LLMIntegration.generate")
+    @patch("langchain_llm_toolkit.llm_integration.LLMIntegration.generate")
     def test_generate_stream_non_ollama(self, mock_generate):
         """测试非 Ollama 模型的流式生成（应回退到普通生成）"""
         mock_generate.return_value = "普通响应"
