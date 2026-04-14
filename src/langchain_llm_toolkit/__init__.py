@@ -31,7 +31,41 @@ from langchain_llm_toolkit.exceptions import (
     CacheError,
 )
 
+# Agent 模块
+from langchain_llm_toolkit.agent import (
+    BaseAgent,
+    AgentResponse,
+    AgentStep,
+    AgentContext,
+    ReActAgent,
+    TaskPlanner,
+    TaskPlan,
+    SubTask,
+    TaskStatus,
+    Tool,
+    ToolRegistry,
+    ToolParameter,
+    ToolResult,
+    FunctionTool,
+    CalculatorTool,
+    WebSearchTool,
+    FileReadTool,
+    FileWriteTool,
+    ListDirectoryTool,
+    PythonExecuteTool,
+    DateTimeTool,
+    WikipediaTool,
+    WeatherTool,
+    get_all_builtin_tools,
+    get_global_registry,
+    register_tool,
+    register_function,
+    get_tool,
+    list_tools,
+)
+
 __all__ = [
+    # 核心功能
     "LLMIntegration",
     "ConversationManager",
     "RAGSystem",
@@ -46,6 +80,7 @@ __all__ = [
     "CacheManager",
     "ResponseCache",
     "RateLimiter",
+    # 异常
     "LLMToolkitError",
     "APIKeyMissingError",
     "APIConnectionError",
@@ -57,4 +92,39 @@ __all__ = [
     "ConfigurationError",
     "ValidationError",
     "CacheError",
+    # Agent 基础
+    "BaseAgent",
+    "AgentResponse",
+    "AgentStep",
+    "AgentContext",
+    # Agent 实现
+    "ReActAgent",
+    # 任务规划
+    "TaskPlanner",
+    "TaskPlan",
+    "SubTask",
+    "TaskStatus",
+    # 工具系统
+    "Tool",
+    "ToolRegistry",
+    "ToolParameter",
+    "ToolResult",
+    "FunctionTool",
+    # 工具函数
+    "get_global_registry",
+    "register_tool",
+    "register_function",
+    "get_tool",
+    "list_tools",
+    # 内置工具
+    "CalculatorTool",
+    "WebSearchTool",
+    "FileReadTool",
+    "FileWriteTool",
+    "ListDirectoryTool",
+    "PythonExecuteTool",
+    "DateTimeTool",
+    "WikipediaTool",
+    "WeatherTool",
+    "get_all_builtin_tools",
 ]

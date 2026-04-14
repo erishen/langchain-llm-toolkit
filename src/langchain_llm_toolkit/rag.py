@@ -14,7 +14,13 @@ import os
 
 
 class RAGSystem:
-    def __init__(self, vector_store_type: str = "qdrant", embedding_type: str = "ollama", embedding_model: str = "nomic-embed-text", llm_model: str = "ollama/gemma3"):
+    def __init__(
+        self,
+        vector_store_type: str = "qdrant",
+        embedding_type: str = "ollama",
+        embedding_model: str = "nomic-embed-text",
+        llm_model: str = "ollama/gemma3",
+    ):
         """
         初始化 RAG 系统
 
@@ -39,7 +45,10 @@ class RAGSystem:
         self.qdrant_collection_name = "langchain_documents"
         self.qdrant_persist_dir = "./qdrant_storage"
 
-        logger.info(f"Initialized RAG system with vector store type: {vector_store_type}, embedding type: {embedding_type}, llm model: {llm_model}")
+        logger.info(
+            f"Initialized RAG system with vector store type: {vector_store_type}, "
+            f"embedding type: {embedding_type}, llm model: {llm_model}"
+        )
 
     def setup_embeddings(self):
         """设置嵌入模型"""
