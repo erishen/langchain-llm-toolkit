@@ -2,6 +2,7 @@ from typing import List, Optional, Union
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS, Qdrant
 from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.embeddings import Embeddings
 from qdrant_client import QdrantClient
 from langchain_llm_toolkit.document_loader import DocumentLoader
@@ -13,30 +14,41 @@ import os
 
 
 class RAGSystem:
-    def __init__(self, vector_store_type: str = "qdrant"):
+    def __init__(self, vector_store_type: str = "qdrant", embedding_type: str = "ollama", embedding_model: str = "nomic-embed-text", llm_model: str = "ollama/gemma3"):
         """
         初始化 RAG 系统
 
         Args:
             vector_store_type: 向量存储类型，支持 "faiss" 或 "qdrant"
+            embedding_type: 嵌入模型类型，支持 "openai" 或 "ollama"
+            embedding_model: 嵌入模型名称（仅 Ollama）
+            llm_model: LLM 模型名称，支持 "ollama/*" 或 OpenAI 模型
         """
         self.document_loader = DocumentLoader()
         self.text_splitter = TextSplitter()
         self.llm_integration = LLMIntegration()
+        self.llm_integration.set_model(llm_model)
         self.vector_store: Optional[Union[FAISS, Qdrant]] = None
         self.embeddings: Optional[Embeddings] = None
         self.vector_store_type = vector_store_type.lower()
+        self.embedding_type = embedding_type.lower()
+        self.embedding_model = embedding_model
+        self.llm_model = llm_model
         self.prompt_builder = RAGPromptBuilder()
 
-        # Qdrant 配置
         self.qdrant_collection_name = "langchain_documents"
         self.qdrant_persist_dir = "./qdrant_storage"
 
-        logger.info(f"Initialized RAG system with vector store type: {vector_store_type}")
+        logger.info(f"Initialized RAG system with vector store type: {vector_store_type}, embedding type: {embedding_type}, llm model: {llm_model}")
 
     def setup_embeddings(self):
         """设置嵌入模型"""
-        self.embeddings = OpenAIEmbeddings()
+        if self.embedding_type == "ollama":
+            self.embeddings = OllamaEmbeddings(model=self.embedding_model)
+            logger.info(f"Using Ollama embeddings with model: {self.embedding_model}")
+        else:
+            self.embeddings = OpenAIEmbeddings()
+            logger.info("Using OpenAI embeddings")
         return self.embeddings
 
     def create_vector_store(self, documents: List[Document]):
