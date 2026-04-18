@@ -2,7 +2,6 @@ from typing import List, Optional, Union
 from langchain_core.documents import Document
 from langchain_community.vectorstores import FAISS, Qdrant
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.embeddings import OllamaEmbeddings
 from langchain_core.embeddings import Embeddings
 from qdrant_client import QdrantClient
 from langchain_llm_toolkit.document_loader import DocumentLoader
@@ -11,6 +10,32 @@ from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.prompt_templates import RAGPromptBuilder, PromptTemplateType
 from langchain_llm_toolkit.logger import logger
 import os
+
+
+class OllamaEmbeddingsWrapper(Embeddings):
+    """Ollama Embeddings 包装器 - 解决版本兼容问题"""
+
+    def __init__(self, model: str = "nomic-embed-text", base_url: str = "http://localhost:11434"):
+        self.model = model
+        self.base_url = base_url
+        try:
+            import ollama
+            self._client = ollama.Client(host=base_url)
+        except ImportError:
+            raise ImportError("请安装 ollama: pip install ollama")
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        """嵌入多个文档"""
+        embeddings = []
+        for text in texts:
+            response = self._client.embeddings(model=self.model, prompt=text)
+            embeddings.append(response["embedding"])
+        return embeddings
+
+    def embed_query(self, text: str) -> List[float]:
+        """嵌入查询"""
+        response = self._client.embeddings(model=self.model, prompt=text)
+        return response["embedding"]
 
 
 class RAGSystem:
@@ -70,7 +95,11 @@ class RAGSystem:
     def setup_embeddings(self):
         """设置嵌入模型"""
         if self.embedding_type == "ollama":
-            self.embeddings = OllamaEmbeddings(model=self.embedding_model)
+            ollama_base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+            self.embeddings = OllamaEmbeddingsWrapper(
+                model=self.embedding_model,
+                base_url=ollama_base_url
+            )
             logger.info(f"Using Ollama embeddings with model: {self.embedding_model}")
         else:
             self.embeddings = OpenAIEmbeddings()
@@ -105,16 +134,33 @@ class RAGSystem:
         os.makedirs(self.qdrant_persist_dir, exist_ok=True)
 
         # 创建 Qdrant 客户端（本地模式）
+        client = QdrantClient(path=self.qdrant_persist_dir)
 
         # 创建向量存储
-        vector_store = Qdrant.from_documents(
-            documents=documents,
-            embedding=self.embeddings,
-            url=None,  # 使用本地模式
-            path=self.qdrant_persist_dir,
+        from qdrant_client.http import models as rest
+        
+        # 先获取一个 embedding 来确定向量大小
+        sample_embedding = self.embeddings.embed_query("test")
+        vector_size = len(sample_embedding)
+        
+        # 创建集合
+        client.recreate_collection(
             collection_name=self.qdrant_collection_name,
-            force_recreate=True,
+            vectors_config=rest.VectorParams(
+                size=vector_size,
+                distance=rest.Distance.COSINE,
+            ),
         )
+        
+        # 创建向量存储
+        vector_store = Qdrant(
+            client=client,
+            collection_name=self.qdrant_collection_name,
+            embeddings=self.embeddings,
+        )
+
+        # 添加文档
+        vector_store.add_documents(documents)
 
         return vector_store
 

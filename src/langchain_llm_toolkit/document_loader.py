@@ -20,6 +20,8 @@ class DocumentLoader:
             return self._load_pdf(file_path)
         elif file_extension == ".txt":
             return self._load_txt(file_path)
+        elif file_extension == ".md":
+            return self._load_markdown(file_path)
         elif file_extension == ".docx":
             return self._load_docx(file_path)
         else:
@@ -54,6 +56,16 @@ class DocumentLoader:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as file:
             text = file.read()
             doc = Document(page_content=text, metadata={"source": file_path})
+            return [doc]
+
+    def _load_markdown(self, file_path: str) -> List[Document]:
+        """加载 Markdown 文档"""
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as file:
+            text = file.read()
+            doc = Document(
+                page_content=text,
+                metadata={"source": file_path, "type": "markdown"}
+            )
             return [doc]
 
     def _load_docx(self, file_path: str) -> List[Document]:
