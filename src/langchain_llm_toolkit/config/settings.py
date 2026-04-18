@@ -22,7 +22,13 @@ class Settings(BaseSettings):
     APP_NAME: str = "LangChain LLM Toolkit"
     DEBUG: bool = False
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    # RAG Settings
+    VECTOR_STORE_TYPE: str = "qdrant"
+    RAG_QDRANT_PATH: str = "./qdrant_storage"
+    RAG_FAISS_PATH: str = "./vector_store"
+    RAG_COLLECTION_NAME: str = "langchain_documents"
+
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
 
 
 settings = Settings()
