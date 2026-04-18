@@ -185,25 +185,91 @@ class RAGSystem:
 
         return self.vector_store
 
-    def retrieve_documents(self, query: str, k: int = 3):
-        """检索相关文档"""
+    def retrieve_documents(self, query: str, k: int = 3, score_threshold: float = 0.0):
+        """检索相关文档
+
+        Args:
+            query: 查询文本
+            k: 返回文档数量
+            score_threshold: 相似度阈值（0-1），低于此阈值的文档将被过滤
+
+        Returns:
+            相关文档列表
+        """
         if not self.vector_store:
             raise ValueError("向量存储未初始化，请先调用 create_vector_store")
 
-        # 相似度搜索
-        results = self.vector_store.similarity_search(query=query, k=k)
+        if score_threshold > 0:
+            results = self.vector_store.similarity_search_with_score(query=query, k=k * 2)
+            filtered = [(doc, score) for doc, score in results if score >= score_threshold]
+            return [doc for doc, _ in filtered[:k]]
+        else:
+            results = self.vector_store.similarity_search(query=query, k=k)
 
         return results
 
-    def retrieve_documents_with_scores(self, query: str, k: int = 3):
-        """检索相关文档并返回相似度分数"""
+    def retrieve_documents_with_scores(self, query: str, k: int = 3, score_threshold: float = 0.0):
+        """检索相关文档并返回相似度分数
+
+        Args:
+            query: 查询文本
+            k: 返回文档数量
+            score_threshold: 相似度阈值
+
+        Returns:
+            (文档, 分数) 列表
+        """
         if not self.vector_store:
             raise ValueError("向量存储未初始化，请先调用 create_vector_store")
 
-        # 相似度搜索（带分数）
-        results = self.vector_store.similarity_search_with_score(query=query, k=k)
+        results = self.vector_store.similarity_search_with_score(query=query, k=k * 2)
 
-        return results
+        if score_threshold > 0:
+            results = [(doc, score) for doc, score in results if score >= score_threshold]
+
+        return results[:k]
+
+    def rerank_documents(self, query: str, documents: List[Document], top_k: int = 3) -> List[Document]:
+        """重排序文档 - 使用 LLM 对检索结果进行重排序
+
+        Args:
+            query: 查询文本
+            documents: 待重排序的文档列表
+            top_k: 返回的文档数量
+
+        Returns:
+            重排序后的文档列表
+        """
+        if len(documents) <= top_k:
+            return documents
+
+        rerank_prompt = f"""请根据与问题的相关性，对以下文档片段进行排序。
+
+问题: {query}
+
+文档片段:
+"""
+        for i, doc in enumerate(documents[:10], 1):
+            content = doc.page_content[:200]
+            rerank_prompt += f"\n[文档{i}]: {content}..."
+
+        rerank_prompt += """
+
+请返回最相关的文档编号，按相关性从高到低排列，格式如: 3,1,5,2,4
+只返回编号，不要其他内容。"""
+
+        try:
+            response = self.llm_integration.generate(rerank_prompt)
+            indices = [int(x.strip()) - 1 for x in response.split(",") if x.strip().isdigit()]
+            indices = [i for i in indices if 0 <= i < len(documents)]
+            while len(indices) < top_k and len(indices) < len(documents):
+                for i in range(len(documents)):
+                    if i not in indices:
+                        indices.append(i)
+                        break
+            return [documents[i] for i in indices[:top_k]]
+        except Exception:
+            return documents[:top_k]
 
     def generate_answer(
         self,
@@ -211,6 +277,8 @@ class RAGSystem:
         k: int = 3,
         template_type: PromptTemplateType = PromptTemplateType.RAG_QA,
         max_context_length: int = 4000,
+        score_threshold: float = 0.0,
+        use_rerank: bool = False,
     ):
         """
         生成基于检索文档的回答
@@ -220,25 +288,27 @@ class RAGSystem:
             k: 检索文档数量
             template_type: 提示模板类型
             max_context_length: 最大上下文长度
+            score_threshold: 相似度阈值
+            use_rerank: 是否使用重排序
 
         Returns:
             (回答, 相关文档列表)
         """
         logger.info(f"Generating answer for query: {query[:50]}...")
 
-        # 检索相关文档
-        relevant_docs = self.retrieve_documents(query, k)
+        relevant_docs = self.retrieve_documents(query, k * 2 if use_rerank else k, score_threshold)
 
         if not relevant_docs:
             logger.warning("No relevant documents found")
             return "抱歉，没有找到相关的文档信息。", []
 
-        # 使用提示构建器构建提示
+        if use_rerank:
+            relevant_docs = self.rerank_documents(query, relevant_docs, k)
+
         prompt = self.prompt_builder.build_qa_prompt(
             query=query, documents=relevant_docs, max_context_length=max_context_length
         )
 
-        # 生成回答
         answer = self.llm_integration.generate(prompt)
 
         logger.info("Generated answer successfully")
