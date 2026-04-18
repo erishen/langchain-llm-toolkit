@@ -278,14 +278,41 @@ llm.set_temperature(0.1)
 
 ### 2. RAG 系统使用
 
+#### 环境变量配置
+
+在 `.env` 文件中配置存储路径：
+
+```bash
+# 向量存储类型（faiss, qdrant）
+VECTOR_STORE_TYPE=qdrant
+
+# Qdrant 存储路径（本地模式）
+RAG_QDRANT_PATH=./qdrant_storage
+
+# FAISS 存储路径
+RAG_FAISS_PATH=./vector_store
+
+# 集合名称
+RAG_COLLECTION_NAME=langchain_documents
+```
+
+#### 基本使用
+
 ```python
 from rag import RAGSystem
 
-# 初始化 RAG 系统（默认使用 Qdrant）
+# 初始化 RAG 系统（默认使用 Qdrant，路径从环境变量读取）
 rag_system = RAGSystem(vector_store_type="qdrant")
 
 # 或使用 FAISS
 # rag_system = RAGSystem(vector_store_type="faiss")
+
+# 或自定义存储路径
+# rag_system = RAGSystem(
+#     vector_store_type="qdrant",
+#     qdrant_persist_dir="/custom/path/qdrant",
+#     collection_name="my_documents"
+# )
 
 # 加载文档
 documents = rag_system.load_and_process_documents(["test_document.txt"])
@@ -293,11 +320,11 @@ documents = rag_system.load_and_process_documents(["test_document.txt"])
 # 创建向量存储
 rag_system.create_vector_store(documents)
 
-# 保存向量存储（Qdrant 自动持久化）
-rag_system.save_vector_store("vector_store")
+# 保存向量存储（Qdrant 自动持久化，FAISS 需要手动保存）
+rag_system.save_vector_store()
 
 # 加载向量存储
-# rag_system.load_vector_store("vector_store")
+rag_system.load_vector_store()
 
 # 获取向量存储信息（仅 Qdrant）
 info = rag_system.get_collection_info()

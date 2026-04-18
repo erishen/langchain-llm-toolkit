@@ -20,6 +20,9 @@ class RAGSystem:
         embedding_type: str = "ollama",
         embedding_model: str = "nomic-embed-text",
         llm_model: str = "ollama/gemma3",
+        qdrant_persist_dir: Optional[str] = None,
+        faiss_persist_dir: Optional[str] = None,
+        collection_name: Optional[str] = None,
     ):
         """
         初始化 RAG 系统
@@ -29,6 +32,9 @@ class RAGSystem:
             embedding_type: 嵌入模型类型，支持 "openai" 或 "ollama"
             embedding_model: 嵌入模型名称（仅 Ollama）
             llm_model: LLM 模型名称，支持 "ollama/*" 或 OpenAI 模型
+            qdrant_persist_dir: Qdrant 存储目录（默认从环境变量读取）
+            faiss_persist_dir: FAISS 存储目录（默认从环境变量读取）
+            collection_name: 集合名称（默认从环境变量读取）
         """
         self.document_loader = DocumentLoader()
         self.text_splitter = TextSplitter()
@@ -42,12 +48,23 @@ class RAGSystem:
         self.llm_model = llm_model
         self.prompt_builder = RAGPromptBuilder()
 
-        self.qdrant_collection_name = "langchain_documents"
-        self.qdrant_persist_dir = "./qdrant_storage"
+        # 从环境变量读取配置
+        self.qdrant_collection_name = collection_name or os.environ.get(
+            "RAG_COLLECTION_NAME", "langchain_documents"
+        )
+        self.qdrant_persist_dir = qdrant_persist_dir or os.environ.get(
+            "RAG_QDRANT_PATH", "./qdrant_storage"
+        )
+        self.faiss_persist_dir = faiss_persist_dir or os.environ.get(
+            "RAG_FAISS_PATH", "./vector_store"
+        )
 
         logger.info(
             f"Initialized RAG system with vector store type: {vector_store_type}, "
             f"embedding type: {embedding_type}, llm model: {llm_model}"
+        )
+        logger.info(
+            f"Storage paths - Qdrant: {self.qdrant_persist_dir}, FAISS: {self.faiss_persist_dir}"
         )
 
     def setup_embeddings(self):
@@ -236,22 +253,32 @@ class RAGSystem:
 
         return all_docs
 
-    def save_vector_store(self, file_path: str):
-        """保存向量存储"""
+    def save_vector_store(self, file_path: Optional[str] = None):
+        """保存向量存储
+
+        Args:
+            file_path: 保存路径（可选，默认使用配置的路径）
+        """
         if not self.vector_store:
             raise ValueError("向量存储未初始化，请先调用 create_vector_store")
 
         if self.vector_store_type == "faiss":
+            save_path = file_path or self.faiss_persist_dir
             if isinstance(self.vector_store, FAISS):
-                self.vector_store.save_local(file_path)
+                self.vector_store.save_local(save_path)
+                logger.info(f"FAISS 向量存储已保存到 {save_path}")
         else:
             # Qdrant 自动持久化，无需手动保存
-            print(f"Qdrant 向量存储已自动保存到 {self.qdrant_persist_dir}")
+            logger.info(f"Qdrant 向量存储已自动保存到 {self.qdrant_persist_dir}")
 
         return True
 
-    def load_vector_store(self, file_path: str):
-        """加载向量存储"""
+    def load_vector_store(self, file_path: Optional[str] = None):
+        """加载向量存储
+
+        Args:
+            file_path: 加载路径（可选，默认使用配置的路径）
+        """
         if not self.embeddings:
             self.setup_embeddings()
 
@@ -259,11 +286,13 @@ class RAGSystem:
         assert self.embeddings is not None, "Embeddings must be initialized"
 
         if self.vector_store_type == "faiss":
+            load_path = file_path or self.faiss_persist_dir
             self.vector_store = FAISS.load_local(
-                folder_path=file_path,
+                folder_path=load_path,
                 embeddings=self.embeddings,
                 allow_dangerous_deserialization=True,
             )
+            logger.info(f"FAISS 向量存储已从 {load_path} 加载")
         else:
             # 加载 Qdrant 向量存储
             if not os.path.exists(self.qdrant_persist_dir):
@@ -276,6 +305,7 @@ class RAGSystem:
                 collection_name=self.qdrant_collection_name,
                 embeddings=self.embeddings,
             )
+            logger.info(f"Qdrant 向量存储已从 {self.qdrant_persist_dir} 加载")
 
         return self.vector_store
 

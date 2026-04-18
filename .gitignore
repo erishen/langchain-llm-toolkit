@@ -69,5 +69,6 @@ Thumbs.db
 
 # Project specific
 vector_store/
+qdrant_storage/
 *.faiss
 *.pkl
