@@ -15,11 +15,21 @@ import os
 class OllamaEmbeddingsWrapper(Embeddings):
     """Ollama Embeddings 包装器 - 解决版本兼容问题"""
 
-    def __init__(self, model: str = "nomic-embed-text", base_url: str = "http://localhost:11434"):
+    MODELS_NEED_NUM_CTX = {"nomic-embed-text"}
+
+    def __init__(
+        self,
+        model: str = "nomic-embed-text",
+        base_url: str = "http://localhost:11434",
+        num_ctx: int = 8192,
+    ):
         self.model = model
         self.base_url = base_url
+        self.num_ctx = num_ctx
+        self._use_options = model in self.MODELS_NEED_NUM_CTX
         try:
             import ollama
+
             self._client = ollama.Client(host=base_url)
         except ImportError:
             raise ImportError("请安装 ollama: pip install ollama")
@@ -28,13 +38,23 @@ class OllamaEmbeddingsWrapper(Embeddings):
         """嵌入多个文档"""
         embeddings = []
         for text in texts:
-            response = self._client.embeddings(model=self.model, prompt=text)
+            if self._use_options:
+                response = self._client.embeddings(
+                    model=self.model, prompt=text, options={"num_ctx": self.num_ctx}
+                )
+            else:
+                response = self._client.embeddings(model=self.model, prompt=text)
             embeddings.append(response["embedding"])
         return embeddings
 
     def embed_query(self, text: str) -> List[float]:
         """嵌入查询"""
-        response = self._client.embeddings(model=self.model, prompt=text)
+        if self._use_options:
+            response = self._client.embeddings(
+                model=self.model, prompt=text, options={"num_ctx": self.num_ctx}
+            )
+        else:
+            response = self._client.embeddings(model=self.model, prompt=text)
         return response["embedding"]
 
 
@@ -43,11 +63,14 @@ class RAGSystem:
         self,
         vector_store_type: str = "qdrant",
         embedding_type: str = "ollama",
-        embedding_model: str = "nomic-embed-text",
-        llm_model: str = "ollama/gemma3",
+        embedding_model: str = "snowflake-arctic-embed2",
+        llm_model: str = "ollama/gemma4",
         qdrant_persist_dir: Optional[str] = None,
         faiss_persist_dir: Optional[str] = None,
         collection_name: Optional[str] = None,
+        timeout: int = 120,
+        qdrant_url: Optional[str] = None,
+        qdrant_api_key: Optional[str] = None,
     ):
         """
         初始化 RAG 系统
@@ -60,10 +83,13 @@ class RAGSystem:
             qdrant_persist_dir: Qdrant 存储目录（默认从环境变量读取）
             faiss_persist_dir: FAISS 存储目录（默认从环境变量读取）
             collection_name: 集合名称（默认从环境变量读取）
+            timeout: LLM 请求超时时间（秒）
+            qdrant_url: Qdrant Server URL（可选，使用服务器模式）
+            qdrant_api_key: Qdrant Server API Key（可选）
         """
         self.document_loader = DocumentLoader()
         self.text_splitter = TextSplitter()
-        self.llm_integration = LLMIntegration()
+        self.llm_integration = LLMIntegration(timeout=timeout)
         self.llm_integration.set_model(llm_model)
         self.vector_store: Optional[Union[FAISS, Qdrant]] = None
         self.embeddings: Optional[Embeddings] = None
@@ -72,8 +98,9 @@ class RAGSystem:
         self.embedding_model = embedding_model
         self.llm_model = llm_model
         self.prompt_builder = RAGPromptBuilder()
+        self.qdrant_url = qdrant_url or os.environ.get("QDRANT_URL")
+        self.qdrant_api_key = qdrant_api_key or os.environ.get("QDRANT_API_KEY")
 
-        # 从环境变量读取配置
         self.qdrant_collection_name = collection_name or os.environ.get(
             "RAG_COLLECTION_NAME", "langchain_documents"
         )
@@ -88,17 +115,17 @@ class RAGSystem:
             f"Initialized RAG system with vector store type: {vector_store_type}, "
             f"embedding type: {embedding_type}, llm model: {llm_model}"
         )
-        logger.info(
-            f"Storage paths - Qdrant: {self.qdrant_persist_dir}, FAISS: {self.faiss_persist_dir}"
-        )
+        if self.qdrant_url:
+            logger.info(f"Using Qdrant Server: {self.qdrant_url}")
+        else:
+            logger.info(f"Using local Qdrant storage: {self.qdrant_persist_dir}")
 
     def setup_embeddings(self):
         """设置嵌入模型"""
         if self.embedding_type == "ollama":
             ollama_base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
             self.embeddings = OllamaEmbeddingsWrapper(
-                model=self.embedding_model,
-                base_url=ollama_base_url
+                model=self.embedding_model, base_url=ollama_base_url, num_ctx=8192
             )
             logger.info(f"Using Ollama embeddings with model: {self.embedding_model}")
         else:
@@ -127,23 +154,22 @@ class RAGSystem:
 
     def _create_qdrant_store(self, documents: List[Document]):
         """创建 Qdrant 向量存储"""
-        # 确保 embeddings 已初始化
         assert self.embeddings is not None, "Embeddings must be initialized"
 
-        # 创建持久化目录
-        os.makedirs(self.qdrant_persist_dir, exist_ok=True)
+        if self.qdrant_url:
+            client = QdrantClient(
+                url=self.qdrant_url,
+                api_key=self.qdrant_api_key,
+            )
+        else:
+            os.makedirs(self.qdrant_persist_dir, exist_ok=True)
+            client = QdrantClient(path=self.qdrant_persist_dir)
 
-        # 创建 Qdrant 客户端（本地模式）
-        client = QdrantClient(path=self.qdrant_persist_dir)
-
-        # 创建向量存储
         from qdrant_client.http import models as rest
-        
-        # 先获取一个 embedding 来确定向量大小
+
         sample_embedding = self.embeddings.embed_query("test")
         vector_size = len(sample_embedding)
-        
-        # 创建集合
+
         client.recreate_collection(
             collection_name=self.qdrant_collection_name,
             vectors_config=rest.VectorParams(
@@ -151,8 +177,7 @@ class RAGSystem:
                 distance=rest.Distance.COSINE,
             ),
         )
-        
-        # 创建向量存储
+
         vector_store = Qdrant(
             client=client,
             collection_name=self.qdrant_collection_name,
@@ -229,7 +254,9 @@ class RAGSystem:
 
         return results[:k]
 
-    def rerank_documents(self, query: str, documents: List[Document], top_k: int = 3) -> List[Document]:
+    def rerank_documents(
+        self, query: str, documents: List[Document], top_k: int = 3
+    ) -> List[Document]:
         """重排序文档 - 使用 LLM 对检索结果进行重排序
 
         Args:
@@ -279,6 +306,7 @@ class RAGSystem:
         max_context_length: int = 4000,
         score_threshold: float = 0.0,
         use_rerank: bool = False,
+        use_cache: bool = True,
     ):
         """
         生成基于检索文档的回答
@@ -290,10 +318,22 @@ class RAGSystem:
             max_context_length: 最大上下文长度
             score_threshold: 相似度阈值
             use_rerank: 是否使用重排序
+            use_cache: 是否使用缓存
 
         Returns:
             (回答, 相关文档列表)
         """
+        import time
+        from langchain_llm_toolkit.performance import query_cache, performance_monitor
+
+        start_time = time.time()
+
+        if use_cache:
+            cached = query_cache.get(query, k, use_rerank=use_rerank)
+            if cached:
+                logger.info(f"Cache hit for query: {query[:30]}...")
+                return cached["answer"], cached["documents"]
+
         logger.info(f"Generating answer for query: {query[:50]}...")
 
         relevant_docs = self.retrieve_documents(query, k * 2 if use_rerank else k, score_threshold)
@@ -311,7 +351,15 @@ class RAGSystem:
 
         answer = self.llm_integration.generate(prompt)
 
-        logger.info("Generated answer successfully")
+        elapsed_time = time.time() - start_time
+        performance_monitor.record("rag_generate_time", elapsed_time)
+
+        if use_cache:
+            query_cache.set(
+                query, {"answer": answer, "documents": relevant_docs}, k, use_rerank=use_rerank
+            )
+
+        logger.info(f"Generated answer successfully in {elapsed_time:.2f}s")
         return answer, relevant_docs
 
     def generate_summary(self, documents: List[Document], max_context_length: int = 4000):
@@ -359,15 +407,38 @@ class RAGSystem:
         logger.info("Information extracted successfully")
         return result
 
-    def load_and_process_documents(self, file_paths: List[str]):
-        """加载和处理文档"""
-        all_docs = []
+    def load_and_process_documents(self, file_paths: List[str], parallel: bool = True):
+        """加载和处理文档
 
-        for file_path in file_paths:
-            docs = self.document_loader.load_document(file_path)
-            all_docs.extend(docs)
+        Args:
+            file_paths: 文件路径列表
+            parallel: 是否并行处理
 
-        return all_docs
+        Returns:
+            文档列表
+        """
+        if parallel and len(file_paths) > 1:
+            from langchain_llm_toolkit.performance import get_parallel_processor
+
+            def process_file(file_path: str):
+                try:
+                    return self.document_loader.load_document(file_path)
+                except Exception as e:
+                    logger.warning(f"Failed to load {file_path}: {e}")
+                    return []
+
+            processor = get_parallel_processor()
+            results = processor.process_batch(process_file, file_paths)
+            all_docs = []
+            for docs in results:
+                all_docs.extend(docs)
+            return all_docs
+        else:
+            all_docs = []
+            for file_path in file_paths:
+                docs = self.document_loader.load_document(file_path)
+                all_docs.extend(docs)
+            return all_docs
 
     def save_vector_store(self, file_path: Optional[str] = None):
         """保存向量存储
@@ -398,7 +469,6 @@ class RAGSystem:
         if not self.embeddings:
             self.setup_embeddings()
 
-        # 确保 embeddings 已初始化
         assert self.embeddings is not None, "Embeddings must be initialized"
 
         if self.vector_store_type == "faiss":
@@ -410,26 +480,35 @@ class RAGSystem:
             )
             logger.info(f"FAISS 向量存储已从 {load_path} 加载")
         else:
-            # 加载 Qdrant 向量存储
-            if not os.path.exists(self.qdrant_persist_dir):
-                raise ValueError(f"Qdrant 存储目录不存在: {self.qdrant_persist_dir}")
+            if self.qdrant_url:
+                client = QdrantClient(
+                    url=self.qdrant_url,
+                    api_key=self.qdrant_api_key,
+                )
+                logger.info(f"Qdrant 向量存储已从服务器加载: {self.qdrant_url}")
+            else:
+                if not os.path.exists(self.qdrant_persist_dir):
+                    raise ValueError(f"Qdrant 存储目录不存在: {self.qdrant_persist_dir}")
 
-            client = QdrantClient(path=self.qdrant_persist_dir)
+                client = QdrantClient(path=self.qdrant_persist_dir)
+                logger.info(f"Qdrant 向量存储已从 {self.qdrant_persist_dir} 加载")
 
             self.vector_store = Qdrant(
                 client=client,
                 collection_name=self.qdrant_collection_name,
                 embeddings=self.embeddings,
             )
-            logger.info(f"Qdrant 向量存储已从 {self.qdrant_persist_dir} 加载")
 
         return self.vector_store
 
     def delete_collection(self):
         """删除向量存储集合（仅 Qdrant）"""
         if self.vector_store_type == "qdrant":
-            client = QdrantClient(path=self.qdrant_persist_dir)
+            if self.vector_store is None:
+                print("向量存储未初始化")
+                return
             try:
+                client = self.vector_store.client
                 client.delete_collection(self.qdrant_collection_name)
                 print(f"已删除集合: {self.qdrant_collection_name}")
             except Exception as e:
@@ -438,8 +517,10 @@ class RAGSystem:
     def get_collection_info(self):
         """获取向量存储信息"""
         if self.vector_store_type == "qdrant":
-            client = QdrantClient(path=self.qdrant_persist_dir)
+            if self.vector_store is None:
+                return {"error": "向量存储未初始化"}
             try:
+                client = self.vector_store.client
                 info = client.get_collection(self.qdrant_collection_name)
                 return {
                     "points_count": info.points_count,

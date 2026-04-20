@@ -1,7 +1,7 @@
 from typer.testing import CliRunner
 from unittest.mock import patch, Mock
 
-from cli import app
+from langchain_llm_toolkit.cli import app
 
 runner = CliRunner()
 
@@ -9,7 +9,7 @@ runner = CliRunner()
 class TestGenerateCommand:
     """测试生成命令"""
 
-    @patch("cli.LLMIntegration")
+    @patch("langchain_llm_toolkit.cli.LLMIntegration")
     def test_generate_with_defaults(self, mock_llm_class):
         """测试使用默认参数生成"""
         mock_llm = Mock()
@@ -25,7 +25,7 @@ class TestGenerateCommand:
         mock_llm.set_temperature.assert_called_once()
         mock_llm.generate.assert_called_once_with("你好")
 
-    @patch("cli.LLMIntegration")
+    @patch("langchain_llm_toolkit.cli.LLMIntegration")
     def test_generate_with_custom_model(self, mock_llm_class):
         """测试使用自定义模型生成"""
         mock_llm = Mock()
@@ -38,7 +38,7 @@ class TestGenerateCommand:
         assert "gpt-4o" in result.output
         assert "自定义模型响应" in result.output
 
-    @patch("cli.LLMIntegration")
+    @patch("langchain_llm_toolkit.cli.LLMIntegration")
     def test_generate_with_custom_temperature(self, mock_llm_class):
         """测试使用自定义温度生成"""
         mock_llm = Mock()
@@ -55,7 +55,7 @@ class TestGenerateCommand:
 class TestChatCommand:
     """测试聊天命令"""
 
-    @patch("cli.ConversationManager")
+    @patch("langchain_llm_toolkit.cli.ConversationManager")
     def test_chat_exit(self, mock_conv_class):
         """测试退出聊天"""
         mock_conv = Mock()
@@ -66,7 +66,7 @@ class TestChatCommand:
         assert result.exit_code == 0
         assert "再见" in result.output
 
-    @patch("cli.ConversationManager")
+    @patch("langchain_llm_toolkit.cli.ConversationManager")
     def test_chat_clear_history(self, mock_conv_class):
         """测试清空历史"""
         mock_conv = Mock()
@@ -78,7 +78,7 @@ class TestChatCommand:
         assert "对话历史已清空" in result.output
         mock_conv.clear_history.assert_called_once()
 
-    @patch("cli.ConversationManager")
+    @patch("langchain_llm_toolkit.cli.ConversationManager")
     def test_chat_show_history(self, mock_conv_class):
         """测试显示历史"""
         mock_conv = Mock()
@@ -93,7 +93,7 @@ class TestChatCommand:
         assert result.exit_code == 0
         assert "对话历史" in result.output
 
-    @patch("cli.ConversationManager")
+    @patch("langchain_llm_toolkit.cli.ConversationManager")
     def test_chat_conversation(self, mock_conv_class):
         """测试对话"""
         mock_conv = Mock()
@@ -154,7 +154,7 @@ class TestTemperatureCommands:
 class TestCLIIntegration:
     """测试 CLI 集成"""
 
-    @patch("cli.LLMIntegration")
+    @patch("langchain_llm_toolkit.cli.LLMIntegration")
     def test_full_workflow(self, mock_llm_class):
         """测试完整工作流"""
         mock_llm = Mock()

@@ -142,9 +142,9 @@ class BaseAgent(ABC):
         """
         descriptions = []
         for name, tool in self.tools.items():
-            if hasattr(tool, 'description'):
+            if hasattr(tool, "description"):
                 descriptions.append(f"- {name}: {tool.description}")
-            elif hasattr(tool, '__doc__') and tool.__doc__:
+            elif hasattr(tool, "__doc__") and tool.__doc__:
                 descriptions.append(f"- {name}: {tool.__doc__.strip()}")
             else:
                 descriptions.append(f"- {name}: No description available")
@@ -167,34 +167,34 @@ class BaseAgent(ABC):
         # 尝试解析 JSON 格式
         try:
             # 查找 JSON 代码块
-            json_match = re.search(r'```json\s*(\{.*?\})\s*```', text, re.DOTALL)
+            json_match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
             if json_match:
                 data = json.loads(json_match.group(1))
-                if 'tool' in data or 'action' in data:
+                if "tool" in data or "action" in data:
                     return {
-                        'tool': data.get('tool') or data.get('action'),
-                        'input': data.get('input') or data.get('action_input') or {}
+                        "tool": data.get("tool") or data.get("action"),
+                        "input": data.get("input") or data.get("action_input") or {},
                     }
         except json.JSONDecodeError:
             pass
 
         # 尝试解析 Action 格式
         action_match = re.search(
-            r'Action:\s*(\w+)\s*\nAction Input:\s*(\{.*?\}|.*?)(?=\n|$)',
+            r"Action:\s*(\w+)\s*\nAction Input:\s*(\{.*?\}|.*?)(?=\n|$)",
             text,
-            re.DOTALL | re.IGNORECASE
+            re.DOTALL | re.IGNORECASE,
         )
         if action_match:
             tool_name = action_match.group(1).strip()
             input_str = action_match.group(2).strip()
             try:
-                if input_str.startswith('{'):
+                if input_str.startswith("{"):
                     input_data = json.loads(input_str)
                 else:
                     input_data = {"query": input_str}
             except json.JSONDecodeError:
                 input_data = {"query": input_str}
-            return {'tool': tool_name, 'input': input_data}
+            return {"tool": tool_name, "input": input_data}
 
         return None
 
@@ -211,16 +211,16 @@ class BaseAgent(ABC):
         """
         tool = self.get_tool(tool_name)
         if not tool:
-            available = ', '.join(self.list_tools())
+            available = ", ".join(self.list_tools())
             return f"Error: Tool '{tool_name}' not found. Available tools: {available}"
 
         try:
             logger.info(f"Executing tool: {tool_name} with input: {tool_input}")
 
             # 支持不同类型的工具调用
-            if hasattr(tool, 'run'):
+            if hasattr(tool, "run"):
                 result = tool.run(**tool_input)
-            elif hasattr(tool, 'execute'):
+            elif hasattr(tool, "execute"):
                 result = tool.execute(**tool_input)
             elif callable(tool):
                 result = tool(**tool_input)

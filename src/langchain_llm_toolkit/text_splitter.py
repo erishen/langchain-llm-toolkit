@@ -1,6 +1,6 @@
 """文档分块模块 - 支持多种分块策略"""
 
-from typing import List, Union, Optional
+from typing import List, Union
 from langchain_core.documents import Document
 from langchain_text_splitters import (
     RecursiveCharacterTextSplitter,
@@ -90,9 +90,7 @@ class TextSplitter:
                     chunk.metadata.update(doc.metadata)
                 all_chunks.extend(text_splitter.split_documents(md_chunks))
             except Exception:
-                all_chunks.extend(
-                    text_splitter.split_documents([doc])
-                )
+                all_chunks.extend(text_splitter.split_documents([doc]))
 
         return all_chunks
 
