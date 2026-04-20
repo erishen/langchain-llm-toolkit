@@ -15,6 +15,7 @@ from langchain_llm_toolkit.agent import (
 
 # ========== 示例 1: 使用内置工具 ==========
 
+
 def example_builtin_tools():
     """使用内置工具示例"""
     print("=" * 60)
@@ -40,6 +41,7 @@ def example_builtin_tools():
 
 
 # ========== 示例 2: 创建自定义工具 ==========
+
 
 def example_custom_tool():
     """创建自定义工具示例"""
@@ -82,6 +84,7 @@ def example_custom_tool():
 
 # ========== 示例 3: 使用 ReAct Agent ==========
 
+
 def example_react_agent():
     """使用 ReAct Agent 示例"""
     print("\n" + "=" * 60)
@@ -106,6 +109,7 @@ def example_react_agent():
 
 # ========== 示例 4: 使用任务规划器 ==========
 
+
 def example_task_planner():
     """使用任务规划器示例"""
     print("\n" + "=" * 60)
@@ -121,7 +125,8 @@ def example_task_planner():
     print("  - 跟踪执行进度")
 
     print("\n示例代码:")
-    print("""
+    print(
+        """
     # 创建任务计划
     plan = planner.create_plan(
         "Research Python web frameworks and write a comparison report"
@@ -134,10 +139,12 @@ def example_task_planner():
     # 执行计划
     result = planner.execute_plan(plan, agent)
     print(result["summary"])
-    """)
+    """
+    )
 
 
 # ========== 示例 5: 工具注册表 ==========
+
 
 def example_tool_registry():
     """使用工具注册表示例"""

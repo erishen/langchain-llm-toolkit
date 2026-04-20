@@ -82,8 +82,7 @@ class TaskPlan(BaseModel):
 
             # 检查依赖是否都已完成
             deps_completed = all(
-                self.get_subtask(dep_id) and
-                self.get_subtask(dep_id).status == TaskStatus.COMPLETED
+                self.get_subtask(dep_id) and self.get_subtask(dep_id).status == TaskStatus.COMPLETED
                 for dep_id in subtask.dependencies
             )
 
@@ -185,24 +184,28 @@ class TaskPlanner:
         ]
 
         if context:
-            prompt_parts.extend([
-                "Context:",
-                context,
-                "",
-            ])
+            prompt_parts.extend(
+                [
+                    "Context:",
+                    context,
+                    "",
+                ]
+            )
 
-        prompt_parts.extend([
-            f"Task: {task}",
-            "",
-            "Provide your plan in this format:",
-            "",
-            "Plan:",
-            "[1] [] First independent subtask",
-            "[2] [1] Second subtask that depends on #1",
-            "[3] [] Another independent subtask",
-            "[4] [2,3] Subtask that depends on #2 and #3",
-            "",
-        ])
+        prompt_parts.extend(
+            [
+                f"Task: {task}",
+                "",
+                "Provide your plan in this format:",
+                "",
+                "Plan:",
+                "[1] [] First independent subtask",
+                "[2] [1] Second subtask that depends on #1",
+                "[3] [] Another independent subtask",
+                "[4] [2,3] Subtask that depends on #2 and #3",
+                "",
+            ]
+        )
 
         return "\n".join(prompt_parts)
 
@@ -236,7 +239,7 @@ class TaskPlanner:
             # 解析格式: [ID] [DEPENDENCIES] Description
             import re
 
-            match = re.match(r'\[(\w+)\]\s*\[([^\]]*)\]\s*(.+)', line)
+            match = re.match(r"\[(\w+)\]\s*\[([^\]]*)\]\s*(.+)", line)
             if match:
                 task_id = match.group(1).strip()
                 deps_str = match.group(2).strip()
@@ -269,12 +272,7 @@ class TaskPlanner:
 
         return plan
 
-    def execute_plan(
-        self,
-        plan: TaskPlan,
-        agent: BaseAgent,
-        **kwargs
-    ) -> Dict[str, Any]:
+    def execute_plan(self, plan: TaskPlan, agent: BaseAgent, **kwargs) -> Dict[str, Any]:
         """
         执行任务计划
 
@@ -315,39 +313,41 @@ class TaskPlanner:
                 task_context = self._build_task_context(plan, subtask)
 
                 # 执行子任务
-                response = agent.run(
-                    subtask.description,
-                    context=task_context,
-                    **kwargs
-                )
+                response = agent.run(subtask.description, context=task_context, **kwargs)
 
                 if response.content:
                     subtask.complete(response.content)
-                    results.append({
-                        "id": subtask.id,
-                        "description": subtask.description,
-                        "result": response.content,
-                        "success": True,
-                    })
+                    results.append(
+                        {
+                            "id": subtask.id,
+                            "description": subtask.description,
+                            "result": response.content,
+                            "success": True,
+                        }
+                    )
                 else:
                     subtask.fail("No response generated")
-                    results.append({
-                        "id": subtask.id,
-                        "description": subtask.description,
-                        "error": "No response generated",
-                        "success": False,
-                    })
+                    results.append(
+                        {
+                            "id": subtask.id,
+                            "description": subtask.description,
+                            "error": "No response generated",
+                            "success": False,
+                        }
+                    )
 
             except Exception as e:
                 error_msg = str(e)
                 logger.error(f"Subtask {subtask.id} failed: {error_msg}")
                 subtask.fail(error_msg)
-                results.append({
-                    "id": subtask.id,
-                    "description": subtask.description,
-                    "error": error_msg,
-                    "success": False,
-                })
+                results.append(
+                    {
+                        "id": subtask.id,
+                        "description": subtask.description,
+                        "error": error_msg,
+                        "success": False,
+                    }
+                )
 
         # 生成最终总结
         progress = plan.get_progress()
@@ -381,11 +381,13 @@ class TaskPlanner:
         for dep_id in current_subtask.dependencies:
             dep_task = plan.get_subtask(dep_id)
             if dep_task and dep_task.status == TaskStatus.COMPLETED:
-                dependency_results.append({
-                    "id": dep_id,
-                    "description": dep_task.description,
-                    "result": dep_task.result,
-                })
+                dependency_results.append(
+                    {
+                        "id": dep_id,
+                        "description": dep_task.description,
+                        "result": dep_task.result,
+                    }
+                )
 
         if dependency_results:
             context["dependency_results"] = dependency_results

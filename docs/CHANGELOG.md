@@ -8,13 +8,81 @@
 ## [Unreleased]
 
 ### 新增
-- 待添加的新功能
+
+#### v0.2.0 新功能
+
+- ✨ **Markdown 文档增强** (`markdown_loader.py`)
+  - 按标题分割文档
+  - 提取 YAML front matter 元数据
+  - 代码块识别和提取
+  - 表格结构解析
+  - 链接和图片提取
+  - 文档大纲和统计信息
+
+- ✨ **RAG 混合检索** (`hybrid_retriever.py`)
+  - BM25 关键词检索算法
+  - 语义检索 + 关键词检索融合
+  - 支持多种融合策略（加权、RRF、分数归一化）
+  - HybridRAGSystem 封装
+
+- ✨ **对话历史持久化** (`conversation_store.py`)
+  - SQLite 数据库存储
+  - 对话 CRUD 操作
+  - 对话搜索功能
+  - 统计信息查询
+
+- ✨ **API 认证系统** (`auth.py`)
+  - JWT Token 认证
+  - API Key 认证
+  - 用户注册和登录
+  - 权限管理
+
+- ✨ **流式响应 API**
+  - SSE 流式输出
+  - `/api/v1/generate/stream` 端点
+  - `/api/v1/chat/stream` 端点
+  - `/api/v1/rag/query/stream` 端点
+
+- ✨ **性能优化模块** (`performance.py`)
+  - LRU 缓存（支持 TTL）
+  - 查询结果缓存
+  - 并行文档处理
+  - 性能监控和统计
+
+- ✨ **Web UI 增强** (`app.py`)
+  - 多页面导航
+  - 流式响应实时显示
+  - 对话历史管理界面
+  - 文档上传和管理
+  - API Key 管理
+  - 性能统计显示
+
+- ✨ **Qdrant Server 支持**
+  - 支持远程 Qdrant 服务器
+  - 环境变量配置 (QDRANT_URL, QDRANT_API_KEY)
+
+### 新增 API 端点
+
+- `POST /api/v1/rag/hybrid` - 混合检索 RAG
+- `POST /api/v1/rag/query/stream` - RAG 流式响应
+- `POST /api/v1/generate/stream` - 生成流式响应
+- `POST /api/v1/chat/stream` - 聊天流式响应
+- `GET/POST/DELETE /api/v1/conversations/*` - 对话管理
+- `POST /api/v1/auth/register` - 用户注册
+- `POST /api/v1/auth/login` - 用户登录
+- `POST/GET/DELETE /api/v1/auth/api-keys/*` - API Key 管理
+- `GET/DELETE /api/v1/performance/*` - 性能统计
 
 ### 变更
-- 待变更的内容
+
+- RAG 系统 `generate_answer()` 新增 `use_cache` 参数
+- RAG 系统 `load_and_process_documents()` 新增 `parallel` 参数
+- RAG 系统默认超时时间从 30秒 增加到 120秒
 
 ### 修复
-- 待修复的问题
+
+- 修复 Qdrant 客户端锁定冲突问题
+- 修复向量存储加载时的并发问题
 
 ## [0.1.0] - 2026-04-13
 

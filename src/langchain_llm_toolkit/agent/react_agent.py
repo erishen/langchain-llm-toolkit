@@ -107,9 +107,7 @@ class ReActAgent(BaseAgent):
         """
         # 匹配 Thought: ... 直到下一个 Action: 或 Final Answer:
         match = re.search(
-            r'Thought:\s*(.*?)(?=Action:|Final Answer:|$)',
-            text,
-            re.DOTALL | re.IGNORECASE
+            r"Thought:\s*(.*?)(?=Action:|Final Answer:|$)", text, re.DOTALL | re.IGNORECASE
         )
         if match:
             return match.group(1).strip()
@@ -126,20 +124,12 @@ class ReActAgent(BaseAgent):
             最终答案或 None
         """
         # 匹配 Final Answer: ...
-        match = re.search(
-            r'Final Answer:\s*(.*?)(?=$)',
-            text,
-            re.DOTALL | re.IGNORECASE
-        )
+        match = re.search(r"Final Answer:\s*(.*?)(?=$)", text, re.DOTALL | re.IGNORECASE)
         if match:
             return match.group(1).strip()
 
         # 也支持直接以 "Answer:" 开头
-        match = re.search(
-            r'Answer:\s*(.*?)(?=$)',
-            text,
-            re.DOTALL | re.IGNORECASE
-        )
+        match = re.search(r"Answer:\s*(.*?)(?=$)", text, re.DOTALL | re.IGNORECASE)
         if match:
             return match.group(1).strip()
 
@@ -156,8 +146,8 @@ class ReActAgent(BaseAgent):
             是否包含最终答案
         """
         return bool(
-            re.search(r'Final Answer:', text, re.IGNORECASE) or
-            re.search(r'Answer:', text, re.IGNORECASE)
+            re.search(r"Final Answer:", text, re.IGNORECASE)
+            or re.search(r"Answer:", text, re.IGNORECASE)
         )
 
     def run(self, task: str, **kwargs) -> AgentResponse:
@@ -251,11 +241,13 @@ class ReActAgent(BaseAgent):
                 observation = self._execute_tool(tool_name, tool_input)
 
                 # 记录工具调用
-                tool_calls.append({
-                    "tool": tool_name,
-                    "input": tool_input,
-                    "output": observation,
-                })
+                tool_calls.append(
+                    {
+                        "tool": tool_name,
+                        "input": tool_input,
+                        "output": observation,
+                    }
+                )
 
                 # 记录步骤
                 step = AgentStep(
@@ -276,7 +268,7 @@ class ReActAgent(BaseAgent):
                 # 达到最大迭代次数
                 logger.warning(f"Reached max iterations ({self.max_iterations})")
                 if not final_answer:
-                    last_thought = reasoning_steps[-1] if reasoning_steps else 'None'
+                    last_thought = reasoning_steps[-1] if reasoning_steps else "None"
                     final_answer = (
                         f"I couldn't complete the task within "
                         f"{self.max_iterations} steps. Last thought: {last_thought}"

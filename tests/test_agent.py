@@ -23,6 +23,7 @@ from langchain_llm_toolkit.agent import (
 
 # ========== Tool Tests ==========
 
+
 class TestTool:
     """测试 Tool 基类"""
 
@@ -65,6 +66,7 @@ class TestFunctionTool:
 
     def test_function_tool_from_callable(self):
         """测试从可调用对象创建工具"""
+
         def greet(name: str, greeting: str = "Hello") -> str:
             """Greet someone"""
             return f"{greeting}, {name}!"
@@ -76,6 +78,7 @@ class TestFunctionTool:
 
     def test_function_tool_run(self):
         """测试函数工具执行"""
+
         def add(a: int, b: int) -> int:
             return a + b
 
@@ -129,6 +132,7 @@ class TestToolRegistry:
 
 
 # ========== Agent Tests ==========
+
 
 class TestAgentContext:
     """测试 AgentContext"""
@@ -228,7 +232,7 @@ class TestBaseAgent:
     def test_parse_tool_call_json(self):
         """测试解析 JSON 格式的工具调用"""
         agent = MockAgent()
-        text = '''
+        text = """
         Let me use the calculator.
         ```json
         {
@@ -236,7 +240,7 @@ class TestBaseAgent:
             "input": {"expression": "2 + 2"}
         }
         ```
-        '''
+        """
 
         result = agent._parse_tool_call(text)
 
@@ -249,8 +253,8 @@ class TestBaseAgent:
         agent = MockAgent()
         # 注意：Action: 和 Action Input: 需要在同一行结束和开始
         text = (
-            'Thought: I need to calculate something.\n'
-            'Action: calculator\n'
+            "Thought: I need to calculate something.\n"
+            "Action: calculator\n"
             'Action Input: {"expression": "10 * 5"}'
         )
 
@@ -263,8 +267,8 @@ class TestBaseAgent:
 class TestReActAgent:
     """测试 ReActAgent"""
 
-    @patch.object(ReActAgent, '_create_react_prompt')
-    @patch('langchain_llm_toolkit.llm_integration.LLMIntegration.generate')
+    @patch.object(ReActAgent, "_create_react_prompt")
+    @patch("langchain_llm_toolkit.llm_integration.LLMIntegration.generate")
     def test_react_agent_run(self, mock_generate, mock_prompt):
         """测试 ReAct Agent 运行"""
         mock_prompt.return_value = "prompt"
@@ -276,15 +280,15 @@ class TestReActAgent:
         assert "42" in response.content
         assert response.reasoning is not None
 
-    @patch.object(ReActAgent, '_create_react_prompt')
-    @patch('langchain_llm_toolkit.llm_integration.LLMIntegration.generate')
+    @patch.object(ReActAgent, "_create_react_prompt")
+    @patch("langchain_llm_toolkit.llm_integration.LLMIntegration.generate")
     def test_react_agent_with_tool(self, mock_generate, mock_prompt):
         """测试带工具调用的 ReAct Agent"""
         mock_prompt.return_value = "prompt"
 
         # 第一次调用返回工具调用，第二次返回最终答案
         mock_generate.side_effect = [
-            "Thought: I need to calculate.\nAction: calc\nAction Input: {\"expression\": \"2+2\"}",
+            'Thought: I need to calculate.\nAction: calc\nAction Input: {"expression": "2+2"}',
             "Final Answer: The result is 4.",
         ]
 
@@ -323,6 +327,7 @@ class TestReActAgent:
 
 
 # ========== Task Planner Tests ==========
+
 
 class TestSubTask:
     """测试 SubTask"""
@@ -416,7 +421,7 @@ class TestTaskPlan:
 class TestTaskPlanner:
     """测试 TaskPlanner"""
 
-    @patch('langchain_llm_toolkit.llm_integration.LLMIntegration.generate')
+    @patch("langchain_llm_toolkit.llm_integration.LLMIntegration.generate")
     def test_create_plan(self, mock_generate):
         """测试创建计划"""
         mock_generate.return_value = """
@@ -432,7 +437,7 @@ class TestTaskPlanner:
         assert plan.subtasks[0].id == "1"
         assert plan.subtasks[1].dependencies == ["1"]
 
-    @patch('langchain_llm_toolkit.llm_integration.LLMIntegration.generate')
+    @patch("langchain_llm_toolkit.llm_integration.LLMIntegration.generate")
     def test_create_plan_empty_response(self, mock_generate):
         """测试空响应时创建默认计划"""
         mock_generate.return_value = "No plan here"
@@ -444,7 +449,7 @@ class TestTaskPlanner:
         assert len(plan.subtasks) == 1
         assert plan.subtasks[0].description == "Do something"
 
-    @patch.object(MockAgent, 'run')
+    @patch.object(MockAgent, "run")
     def test_execute_plan(self, mock_run):
         """测试执行计划"""
         mock_run.return_value = AgentResponse(content="Result", tool_calls=[])
@@ -461,6 +466,7 @@ class TestTaskPlanner:
 
 
 # ========== Builtin Tools Tests ==========
+
 
 class TestCalculatorTool:
     """测试计算器工具"""

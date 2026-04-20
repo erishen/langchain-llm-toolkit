@@ -250,6 +250,7 @@ class ToolRegistry:
         Returns:
             装饰器函数或原函数
         """
+
         def decorator(f: Callable) -> Callable:
             tool = FunctionTool(f, name=name or f.__name__, description=description)
             self.register(tool)

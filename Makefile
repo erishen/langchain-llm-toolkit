@@ -202,19 +202,19 @@ test:
 
 test-llm:
 	@echo "$(GREEN)测试 LLM 集成...$(RESET)"
-	uv run python llm_integration.py
+	uv run python -c "from langchain_llm_toolkit.llm_integration import main; main()"
 
 test-rag:
 	@echo "$(GREEN)测试 RAG 系统...$(RESET)"
-	uv run python rag.py
+	uv run python -c "from langchain_llm_toolkit.rag import main; main()"
 
 test-doc:
 	@echo "$(GREEN)测试文档处理...$(RESET)"
-	uv run python test_document_processing.py
+	uv run python -m pytest tests/test_document_processing.py -v
 
 test-conversation:
 	@echo "$(GREEN)测试对话管理...$(RESET)"
-	uv run python conversation.py
+	uv run python -c "from langchain_llm_toolkit.conversation import main; main()"
 
 test-coverage:
 	@echo "$(GREEN)运行测试并生成覆盖率报告...$(RESET)"
@@ -231,11 +231,11 @@ test-quick:
 
 run:
 	@echo "$(GREEN)运行 CLI 工具...$(RESET)"
-	uv run python cli.py --help
+	uv run langchain-cli --help
 
 chat:
 	@echo "$(GREEN)进入聊天模式...$(RESET)"
-	uv run python cli.py chat
+	uv run langchain-cli chat
 
 generate:
 	@if [ -z "$(PROMPT)" ]; then \
@@ -244,11 +244,11 @@ generate:
 		exit 1; \
 	fi
 	@echo "$(GREEN)生成文本...$(RESET)"
-	uv run python cli.py generate "$(PROMPT)"
+	uv run langchain-cli generate "$(PROMPT)"
 
 model-list:
 	@echo "$(GREEN)支持的模型列表:$(RESET)"
-	uv run python cli.py model list
+	uv run langchain-cli model list
 
 # ═══════════════════════════════════════════════════════════
 # 代码质量
@@ -392,7 +392,7 @@ reset: clean-all install
 web:
 	@echo "$(GREEN)启动 Web 界面...$(RESET)"
 	@echo "$(YELLOW)访问地址: http://localhost:8501$(RESET)"
-	uv run streamlit run app.py
+	uv run streamlit run src/langchain_llm_toolkit/app.py
 
 web-port:
 	@if [ -z "$(PORT)" ]; then \
@@ -402,12 +402,12 @@ web-port:
 	fi
 	@echo "$(GREEN)启动 Web 界面（端口: $(PORT)）...$(RESET)"
 	@echo "$(YELLOW)访问地址: http://localhost:$(PORT)$(RESET)"
-	uv run streamlit run app.py --server.port $(PORT)
+	uv run streamlit run src/langchain_llm_toolkit/app.py --server.port $(PORT)
 
 web-external:
 	@echo "$(GREEN)启动 Web 界面（允许外部访问）...$(RESET)"
 	@echo "$(YELLOW)访问地址: http://0.0.0.0:8501$(RESET)"
-	uv run streamlit run app.py --server.address 0.0.0.0
+	uv run streamlit run src/langchain_llm_toolkit/app.py --server.address 0.0.0.0
 
 # ═══════════════════════════════════════════════════════════
 # API 服务
@@ -418,7 +418,7 @@ api:
 	@echo "$(YELLOW)API 地址: http://localhost:8000$(RESET)"
 	@echo "$(YELLOW)API 文档: http://localhost:8000/docs$(RESET)"
 	@echo "$(YELLOW)ReDoc 文档: http://localhost:8000/redoc$(RESET)"
-	uv run uvicorn api:app --reload --host 127.0.0.1 --port 8000
+	uv run langchain-api
 
 api-port:
 	@if [ -z "$(PORT)" ]; then \
@@ -429,13 +429,13 @@ api-port:
 	@echo "$(GREEN)启动 FastAPI 服务（端口: $(PORT)）...$(RESET)"
 	@echo "$(YELLOW)API 地址: http://localhost:$(PORT)$(RESET)"
 	@echo "$(YELLOW)API 文档: http://localhost:$(PORT)/docs$(RESET)"
-	uv run uvicorn api:app --reload --host 127.0.0.1 --port $(PORT)
+	uv run langchain-api --port $(PORT)
 
 api-external:
 	@echo "$(GREEN)启动 FastAPI 服务（允许外部访问）...$(RESET)"
 	@echo "$(YELLOW)API 地址: http://0.0.0.0:8000$(RESET)"
 	@echo "$(YELLOW)API 文档: http://0.0.0.0:8000/docs$(RESET)"
-	uv run uvicorn api:app --reload --host 0.0.0.0 --port 8000
+	uv run langchain-api --host 0.0.0.0
 
 api-docs:
 	@echo "$(GREEN)打开 API 文档...$(RESET)"

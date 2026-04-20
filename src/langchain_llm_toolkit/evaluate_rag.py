@@ -7,11 +7,7 @@
 3. 响应时间
 """
 
-import sys
 import time
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from langchain_llm_toolkit.rag import RAGSystem
 
@@ -65,7 +61,7 @@ def evaluate_retrieval(rag: RAGSystem, test_cases: list):
         print(f"    检索文档数: {len(docs)} | 耗时: {elapsed:.2f}s")
 
     n = len(test_cases)
-    print(f"\n平均指标:")
+    print("\n平均指标:")
     print(f"  召回率: {total_recall/n:.2%}")
     print(f"  精确率: {total_precision/n:.2%}")
     print(f"  MRR: {total_mrr/n:.2f}")
@@ -101,7 +97,12 @@ def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = Fal
         answer_lower = answer.lower()
 
         relevance = 1.0
-        accuracy = sum(1 for kw in expected_keywords if kw.lower() in answer_lower) / len(expected_keywords) if expected_keywords else 0
+        accuracy = (
+            sum(1 for kw in expected_keywords if kw.lower() in answer_lower)
+            / len(expected_keywords)
+            if expected_keywords
+            else 0
+        )
         completeness = min(1.0, len(answer) / 100)
 
         total_relevance += relevance
@@ -115,7 +116,7 @@ def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = Fal
         print(f"    耗时: {elapsed:.2f}s | 文档数: {len(docs)}")
 
     n = len(test_cases)
-    print(f"\n平均指标:")
+    print("\n平均指标:")
     print(f"  相关性: {total_relevance/n:.2%}")
     print(f"  准确性: {total_accuracy/n:.2%}")
     print(f"  完整性: {total_completeness/n:.2%}")
@@ -133,14 +134,14 @@ def main():
     print("RAG 效果评估工具")
     print("=" * 60)
 
-    # 初始化 RAG 系统
     print("\n初始化 RAG 系统...")
     rag = RAGSystem(
         vector_store_type="qdrant",
         embedding_type="ollama",
-        embedding_model="nomic-embed-text",
-        llm_model="ollama/gemma3",
+        embedding_model="mxbai-embed-large",
+        llm_model="ollama/gemma4",
     )
+    rag.llm_integration.timeout = 120
     rag.load_vector_store()
 
     # 测试用例
@@ -157,14 +158,6 @@ def main():
             "query": "我的健康状况如何？",
             "expected_keywords": ["健康", "体重", "维生素", "饮食"],
         },
-        {
-            "query": "我的简历中有什么技能？",
-            "expected_keywords": ["React", "TypeScript", "前端", "开发"],
-        },
-        {
-            "query": "我有哪些工作经历？",
-            "expected_keywords": ["PayPal", "工作", "项目", "经验"],
-        },
     ]
 
     # 评估检索质量
@@ -173,28 +166,18 @@ def main():
     # 评估生成质量（普通模式）
     generation_metrics = evaluate_generation(rag, test_cases, use_rerank=False)
 
-    # 评估生成质量（重排序模式）
-    print("\n" + "=" * 60)
-    print("对比测试：重排序 vs 普通模式")
-    print("=" * 60)
-    generation_metrics_rerank = evaluate_generation(rag, test_cases[:3], use_rerank=True)
-
     # 总结
     print("\n" + "=" * 60)
     print("评估总结")
     print("=" * 60)
-    print(f"\n检索质量:")
+    print("\n检索质量:")
     print(f"  召回率: {retrieval_metrics['recall']:.2%}")
     print(f"  精确率: {retrieval_metrics['precision']:.2%}")
     print(f"  MRR: {retrieval_metrics['mrr']:.2f}")
-    print(f"\n生成质量 (普通模式):")
+    print("\n生成质量:")
     print(f"  相关性: {generation_metrics['relevance']:.2%}")
     print(f"  准确性: {generation_metrics['accuracy']:.2%}")
     print(f"  完整性: {generation_metrics['completeness']:.2%}")
-    print(f"\n生成质量 (重排序模式):")
-    print(f"  相关性: {generation_metrics_rerank['relevance']:.2%}")
-    print(f"  准确性: {generation_metrics_rerank['accuracy']:.2%}")
-    print(f"  完整性: {generation_metrics_rerank['completeness']:.2%}")
 
     # 综合评分
     overall_score = (

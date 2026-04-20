@@ -1,11 +1,16 @@
-import litellm
+import os
+
+os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "true")
+os.environ.setdefault("LITELLM_MODE", "PRODUCTION")
+
+import time
+from typing import Optional, Generator
+
 import requests
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
 from langchain_llm_toolkit.config.settings import settings
 from langchain_llm_toolkit.logger import logger
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from typing import Optional, Generator
-import time
-
 from langchain_llm_toolkit.exceptions import (
     APIConnectionError,
     APITimeoutError,
@@ -13,6 +18,11 @@ from langchain_llm_toolkit.exceptions import (
 )
 from langchain_llm_toolkit.cache import ResponseCache
 from langchain_llm_toolkit.rate_limiter import RateLimiter
+
+
+def _get_litellm():
+    import litellm
+    return litellm
 
 
 class LLMIntegration:
@@ -188,6 +198,7 @@ class LLMIntegration:
 
     def _generate_litellm(self, prompt: str, timeout: int) -> str:
         """使用 LiteLLM 生成文本"""
+        litellm = _get_litellm()
         logger.debug(f"Calling LiteLLM with model: {self.model}")
         response = litellm.completion(
             model=self.model,
@@ -332,6 +343,7 @@ class LLMIntegration:
 
     def _chat_litellm(self, messages: list, timeout: int) -> str:
         """使用 LiteLLM 进行聊天"""
+        litellm = _get_litellm()
         logger.debug(f"Calling LiteLLM chat with model: {self.model}")
         response = litellm.completion(
             model=self.model,

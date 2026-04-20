@@ -17,16 +17,14 @@ class CalculatorTool(Tool):
 
     name = "calculator"
     description = (
-        "Perform mathematical calculations. "
-        "Supports basic operations, functions, and constants."
+        "Perform mathematical calculations. " "Supports basic operations, functions, and constants."
     )
     parameters = [
         ToolParameter(
             name="expression",
             type=str,
             description=(
-                "Mathematical expression to evaluate "
-                "(e.g., '2 + 2', 'sin(pi/2)', 'sqrt(16)')"
+                "Mathematical expression to evaluate " "(e.g., '2 + 2', 'sin(pi/2)', 'sqrt(16)')"
             ),
             required=True,
         ),
@@ -122,13 +120,9 @@ class WebSearchTool(Tool):
             from urllib.parse import quote_plus
             import re
 
-            url = (
-                f"https://html.duckduckgo.com/html/?q={quote_plus(query)}"
-            )
+            url = f"https://html.duckduckgo.com/html/?q={quote_plus(query)}"
 
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            }
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
@@ -141,8 +135,8 @@ class WebSearchTool(Tool):
 
             for i, (title, snippet) in enumerate(zip(titles[:num_results], snippets[:num_results])):
                 # 清理 HTML 标签
-                title = re.sub(r'<[^>]+>', '', title)
-                snippet = re.sub(r'<[^>]+>', '', snippet)
+                title = re.sub(r"<[^>]+>", "", title)
+                snippet = re.sub(r"<[^>]+>", "", snippet)
                 results.append(f"{i+1}. {title}\n   {snippet}")
 
             if results:
@@ -196,7 +190,7 @@ class FileReadTool(Tool):
                 return f"Error: '{path}' is not a file"
 
             # 读取文件
-            with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+            with open(path, "r", encoding="utf-8", errors="ignore") as f:
                 lines = []
                 for i, line in enumerate(f):
                     if i >= limit:
@@ -251,8 +245,8 @@ class FileWriteTool(Tool):
             操作结果
         """
         try:
-            mode = 'a' if append else 'w'
-            with open(path, mode, encoding='utf-8') as f:
+            mode = "a" if append else "w"
+            with open(path, mode, encoding="utf-8") as f:
                 f.write(content)
 
             action = "appended to" if append else "written to"
@@ -319,7 +313,7 @@ class ListDirectoryTool(Tool):
 
     def _format_size(self, size: int) -> str:
         """格式化文件大小"""
-        for unit in ['B', 'KB', 'MB', 'GB']:
+        for unit in ["B", "KB", "MB", "GB"]:
             if size < 1024:
                 return f"{size:.1f} {unit}"
             size /= 1024
@@ -417,7 +411,7 @@ class DateTimeTool(Tool):
             try:
                 return now.strftime(format)
             except Exception:
-                default = now.strftime('%Y-%m-%d %H:%M:%S')
+                default = now.strftime("%Y-%m-%d %H:%M:%S")
                 return f"Error: Invalid format '{format}'. Using default: {default}"
 
 
