@@ -108,6 +108,10 @@ def list_models():
     typer.echo("  - gpt-4")
     typer.echo("  - gpt-3.5-turbo")
 
+    typer.echo("\nDeepSeek 模型:")
+    typer.echo("  - deepseek-chat (V4 最新)")
+    typer.echo("  - deepseek-reasoner (R1 推理)")
+
     typer.echo("\nAnthropic 模型:")
     typer.echo("  - claude-3-opus")
     typer.echo("  - claude-3-sonnet")
@@ -120,6 +124,8 @@ def list_models():
     typer.echo("  - ollama/mistral")
     typer.echo("  - ollama/phi3")
     typer.echo("  - ollama/gemma")
+    typer.echo("  - ollama/deepseek-v3")
+    typer.echo("  - ollama/deepseek-r1")
 
     typer.echo("\n当前默认模型: " + typer.style(current_model, fg=typer.colors.GREEN, bold=True))
 

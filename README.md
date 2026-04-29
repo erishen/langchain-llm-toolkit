@@ -176,6 +176,8 @@ print(answer)
 |------|------|
 | gpt-5.3 | OpenAI 最新模型，需要 API Key |
 | gpt-4o | OpenAI 多模态模型 |
+| deepseek-chat | DeepSeek V4 最新模型，需要 API Key |
+| deepseek-reasoner | DeepSeek R1 推理模型，需要 API Key |
 | claude-3-opus | Anthropic 最新模型 |
 
 ### Embedding 模型
