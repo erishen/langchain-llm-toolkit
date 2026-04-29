@@ -162,11 +162,21 @@ print(answer)
 
 ### LLM 模型
 
+#### 本地模型 (Ollama)
+
 | 模型 | 大小 | 说明 |
 |------|------|------|
 | gemma4 | 9.6 GB | 推荐，效果好 |
 | llama3.1:8b | 4.7 GB | 平衡选择 |
 | deepseek-r1:7b | 4.7 GB | 推理能力强 |
+
+#### 云端模型
+
+| 模型 | 说明 |
+|------|------|
+| gpt-5.3 | OpenAI 最新模型，需要 API Key |
+| gpt-4o | OpenAI 多模态模型 |
+| claude-3-opus | Anthropic 最新模型 |
 
 ### Embedding 模型
 
