@@ -5,6 +5,17 @@ import argparse
 from pathlib import Path
 
 from langchain_llm_toolkit.rag import RAGSystem
+from langchain_llm_toolkit.metadata_generator import DocumentMetadataGenerator
+
+
+def _add_fallback_metadata(documents: list) -> list:
+    """为文档添加备用元数据（不使用 LLM）"""
+    generator = DocumentMetadataGenerator()
+    for doc in documents:
+        if "name" not in doc.metadata or not doc.metadata["name"]:
+            metadata = generator._generate_fallback_metadata(doc)
+            doc.metadata.update(metadata)
+    return documents
 
 
 def import_documents(
@@ -12,6 +23,7 @@ def import_documents(
     patterns: list = None,
     embedding_model: str = "snowflake-arctic-embed2",
     llm_model: str = "ollama/gemma4",
+    generate_metadata: bool = False,
 ):
     """批量导入文档
 
@@ -20,6 +32,7 @@ def import_documents(
         patterns: 文件模式列表，默认为 ["*.md"]
         embedding_model: 嵌入模型名称
         llm_model: LLM 模型名称
+        generate_metadata: 是否自动生成元数据
     """
     if patterns is None:
         patterns = ["*.md"]
@@ -32,6 +45,7 @@ def import_documents(
     print("正在初始化 RAG 系统...")
     print(f"  嵌入模型: {embedding_model}")
     print(f"  LLM 模型: {llm_model}")
+    print(f"  生成元数据: {'是' if generate_metadata else '否'}")
 
     rag = RAGSystem(
         vector_store_type="qdrant",
@@ -39,6 +53,10 @@ def import_documents(
         embedding_model=embedding_model,
         llm_model=llm_model,
     )
+
+    metadata_generator = None
+    if generate_metadata:
+        metadata_generator = DocumentMetadataGenerator(llm_model=llm_model)
 
     all_files = []
     for pattern in patterns:
@@ -59,6 +77,13 @@ def import_documents(
             print(f"[{i}/{len(all_files)}] 处理: {file_path.relative_to(docs_path)}")
 
             documents = rag.load_and_process_documents([str(file_path)])
+
+            # 始终添加元数据（使用备用方法或 LLM）
+            if generate_metadata and metadata_generator:
+                print(f"  生成元数据 (LLM)...")
+                documents = metadata_generator.generate_batch(documents, show_progress=False)
+            else:
+                documents = _add_fallback_metadata(documents)
 
             if rag.vector_store is None:
                 rag.create_vector_store(documents)
@@ -93,6 +118,7 @@ def main():
 示例:
   langchain-import ../.docs '*.md'
   langchain-import ../.docs '*.md' '*.txt'
+  langchain-import ../.docs '*.md' --generate-metadata
   langchain-import ../.docs '*.md' --embedding-model snowflake-arctic-embed2
         """,
     )
@@ -107,6 +133,12 @@ def main():
     parser.add_argument(
         "--llm-model", "-l", default="ollama/gemma4", help="LLM 模型名称 (默认: ollama/gemma4)"
     )
+    parser.add_argument(
+        "--generate-metadata",
+        "-g",
+        action="store_true",
+        help="自动生成文档元数据 (name, description, tags)",
+    )
 
     args = parser.parse_args()
 
@@ -115,6 +147,7 @@ def main():
         patterns=args.patterns,
         embedding_model=args.embedding_model,
         llm_model=args.llm_model,
+        generate_metadata=args.generate_metadata,
     )
 
 
