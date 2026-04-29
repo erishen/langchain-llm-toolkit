@@ -114,9 +114,12 @@ def render_sidebar():
             "Ollama - gemma3": "ollama/gemma3",
             "Ollama - llama3.1": "ollama/llama3.1:8b",
             "Ollama - deepseek-r1": "ollama/deepseek-r1:7b",
+            "Ollama - deepseek-v3": "ollama/deepseek-v3",
             "OpenAI - gpt-5.3 (最新)": "gpt-5.3",
             "OpenAI - gpt-4o": "gpt-4o",
             "OpenAI - gpt-3.5-turbo": "gpt-3.5-turbo",
+            "DeepSeek - V4 (最新)": "deepseek-chat",
+            "DeepSeek - R1 推理": "deepseek-reasoner",
         }
         selected_model = st.selectbox("模型", list(model_options.keys()), index=0)
         model = model_options[selected_model]

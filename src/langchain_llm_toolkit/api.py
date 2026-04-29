@@ -388,10 +388,25 @@ async def list_models():
             type="local",
             description="Ollama - deepseek-r1 7B 模型（本地运行）",
         ),
+        ModelInfo(
+            name="ollama/deepseek-v3",
+            type="local",
+            description="Ollama - deepseek-v3 模型（本地运行）",
+        ),
         ModelInfo(name="gpt-5.3", type="cloud", description="OpenAI - GPT-5.3 模型（最新，需要 API Key）"),
         ModelInfo(name="gpt-4o", type="cloud", description="OpenAI - GPT-4o 模型（需要 API Key）"),
         ModelInfo(
             name="gpt-3.5-turbo", type="cloud", description="OpenAI - GPT-3.5 Turbo 模型（需要 API Key）"
+        ),
+        ModelInfo(
+            name="deepseek-chat",
+            type="cloud",
+            description="DeepSeek - V4 模型（最新，需要 API Key）",
+        ),
+        ModelInfo(
+            name="deepseek-reasoner",
+            type="cloud",
+            description="DeepSeek - R1 推理模型（需要 API Key）",
         ),
         ModelInfo(
             name="claude-3-opus",
