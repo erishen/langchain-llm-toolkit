@@ -10,6 +10,45 @@ from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.prompt_templates import RAGPromptBuilder, PromptTemplateType
 from langchain_llm_toolkit.logger import logger
 import os
+import hashlib
+from functools import lru_cache
+from datetime import datetime, timedelta
+
+
+class QueryCache:
+    """查询缓存 - 提升检索性能"""
+
+    def __init__(self, max_size: int = 100, ttl_seconds: int = 3600):
+        self._cache: dict = {}
+        self._max_size = max_size
+        self._ttl = timedelta(seconds=ttl_seconds)
+
+    def _hash_query(self, query: str, k: int) -> str:
+        return hashlib.md5(f"{query}:{k}".encode()).hexdigest()
+
+    def get(self, query: str, k: int) -> Optional[List[Document]]:
+        key = self._hash_query(query, k)
+        if key in self._cache:
+            entry = self._cache[key]
+            if datetime.now() - entry["time"] < self._ttl:
+                logger.debug(f"Cache hit for query: {query[:50]}...")
+                return entry["docs"]
+            else:
+                del self._cache[key]
+        return None
+
+    def set(self, query: str, k: int, docs: List[Document]):
+        if len(self._cache) >= self._max_size:
+            oldest = min(self._cache.items(), key=lambda x: x[1]["time"])
+            del self._cache[oldest[0]]
+
+        key = self._hash_query(query, k)
+        self._cache[key] = {"docs": docs, "time": datetime.now()}
+        logger.debug(f"Cached query: {query[:50]}...")
+
+    def clear(self):
+        self._cache.clear()
+        logger.info("Query cache cleared")
 
 
 class OllamaEmbeddingsWrapper(Embeddings):
@@ -98,6 +137,7 @@ class RAGSystem:
         self.embedding_model = embedding_model
         self.llm_model = llm_model
         self.prompt_builder = RAGPromptBuilder()
+        self.query_cache = QueryCache(max_size=100, ttl_seconds=3600)
         self.qdrant_url = qdrant_url or os.environ.get("QDRANT_URL")
         self.qdrant_api_key = qdrant_api_key or os.environ.get("QDRANT_API_KEY")
 
@@ -210,13 +250,14 @@ class RAGSystem:
 
         return self.vector_store
 
-    def retrieve_documents(self, query: str, k: int = 3, score_threshold: float = 0.0):
+    def retrieve_documents(self, query: str, k: int = 3, score_threshold: float = 0.0, use_cache: bool = True):
         """检索相关文档
 
         Args:
             query: 查询文本
             k: 返回文档数量
             score_threshold: 相似度阈值（0-1），低于此阈值的文档将被过滤
+            use_cache: 是否使用缓存，默认 True
 
         Returns:
             相关文档列表
@@ -224,14 +265,22 @@ class RAGSystem:
         if not self.vector_store:
             raise ValueError("向量存储未初始化，请先调用 create_vector_store")
 
+        if use_cache and score_threshold == 0:
+            cached = self.query_cache.get(query, k)
+            if cached is not None:
+                return cached
+
         if score_threshold > 0:
             results = self.vector_store.similarity_search_with_score(query=query, k=k * 2)
             filtered = [(doc, score) for doc, score in results if score >= score_threshold]
-            return [doc for doc, _ in filtered[:k]]
+            docs = [doc for doc, _ in filtered[:k]]
         else:
-            results = self.vector_store.similarity_search(query=query, k=k)
+            docs = self.vector_store.similarity_search(query=query, k=k)
 
-        return results
+        if use_cache and score_threshold == 0:
+            self.query_cache.set(query, k, docs)
+
+        return docs
 
     def retrieve_documents_with_scores(self, query: str, k: int = 3, score_threshold: float = 0.0):
         """检索相关文档并返回相似度分数
@@ -514,6 +563,71 @@ class RAGSystem:
             except Exception as e:
                 print(f"删除集合失败: {e}")
 
+    def delete_documents_by_source(self, source: str) -> int:
+        """按来源删除文档（仅 Qdrant）
+
+        Args:
+            source: 文档来源路径
+
+        Returns:
+            删除的文档数量
+        """
+        if self.vector_store_type != "qdrant":
+            logger.warning("FAISS 不支持按条件删除")
+            return 0
+
+        if self.vector_store is None:
+            logger.warning("向量存储未初始化")
+            return 0
+
+        try:
+            from qdrant_client.http import models as rest
+
+            client = self.vector_store.client
+
+            client.delete(
+                collection_name=self.qdrant_collection_name,
+                points_selector=rest.FilterSelector(
+                    filter=rest.Filter(
+                        must=[
+                            rest.FieldCondition(
+                                key="metadata.source",
+                                match=rest.MatchValue(value=source),
+                            )
+                        ]
+                    )
+                ),
+            )
+            logger.info(f"已删除来源为 {source} 的文档")
+            return 1
+        except Exception as e:
+            logger.error(f"删除文档失败: {e}")
+            return 0
+
+    def update_document(self, file_path: str) -> bool:
+        """更新单个文档（删除旧的，添加新的）
+
+        Args:
+            file_path: 文档文件路径
+
+        Returns:
+            是否成功
+        """
+        if not self.vector_store:
+            self.load_vector_store()
+
+        try:
+            self.delete_documents_by_source(file_path)
+            documents = self.load_and_process_documents([file_path])
+            if documents:
+                self.add_documents(documents)
+                logger.info(f"已更新文档: {file_path}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"更新文档失败: {e}")
+            return False
+
     def get_collection_info(self):
         """获取向量存储信息"""
         if self.vector_store_type == "qdrant":
@@ -531,6 +645,270 @@ class RAGSystem:
                 return {"error": str(e)}
         else:
             return {"type": "FAISS", "info": "FAISS 不支持集合信息查询"}
+
+    def search_by_metadata(
+        self,
+        query: str,
+        filter_metadata: Optional[dict] = None,
+        k: int = 3,
+    ) -> List[Document]:
+        """按元数据过滤检索文档
+
+        Args:
+            query: 查询文本
+            filter_metadata: 元数据过滤条件，如 {"category": "技术实现", "tags": "IRR"}
+            k: 返回文档数量
+
+        Returns:
+            过滤后的文档列表
+        """
+        if not self.vector_store:
+            raise ValueError("向量存储未初始化，请先调用 create_vector_store")
+
+        if self.vector_store_type == "qdrant":
+            from qdrant_client.http import models as rest
+
+            must_conditions = []
+            for key, value in filter_metadata.items() if filter_metadata else []:
+                must_conditions.append(
+                    rest.FieldCondition(
+                        key=f"metadata.{key}",
+                        match=rest.MatchValue(value=value),
+                    )
+                )
+
+            search_filter = rest.Filter(must=must_conditions) if must_conditions else None
+
+            results = self.vector_store.similarity_search_with_score(
+                query=query,
+                k=k,
+                filter=search_filter,
+            )
+            return [doc for doc, _ in results]
+        else:
+            results = self.vector_store.similarity_search(query=query, k=k * 3)
+            filtered = []
+            for doc in results:
+                match = True
+                if filter_metadata:
+                    for key, value in filter_metadata.items():
+                        if doc.metadata.get(key) != value:
+                            match = False
+                            break
+                if match:
+                    filtered.append(doc)
+                if len(filtered) >= k:
+                    break
+            return filtered
+
+    def search_by_name(
+        self,
+        name: str,
+        k: int = 5,
+    ) -> List[Document]:
+        """按文档名称搜索
+
+        Args:
+            name: 文档名称（模糊匹配）
+            k: 返回文档数量
+
+        Returns:
+            匹配的文档列表
+        """
+        if not self.vector_store:
+            raise ValueError("向量存储未初始化")
+
+        results = self.vector_store.similarity_search(query=name, k=k * 3)
+
+        filtered = []
+        name_lower = name.lower()
+        for doc in results:
+            doc_name = doc.metadata.get("name", "").lower()
+            source = doc.metadata.get("source", "").lower()
+
+            if name_lower in doc_name or name_lower in source:
+                filtered.append(doc)
+            if len(filtered) >= k:
+                break
+
+        return filtered
+
+    def search_by_tags(
+        self,
+        tags: List[str],
+        k: int = 5,
+        match_all: bool = False,
+    ) -> List[Document]:
+        """按标签搜索文档
+
+        Args:
+            tags: 标签列表
+            k: 返回文档数量
+            match_all: 是否需要匹配所有标签
+
+        Returns:
+            匹配的文档列表
+        """
+        if not self.vector_store:
+            raise ValueError("向量存储未初始化")
+
+        query = " ".join(tags)
+        results = self.vector_store.similarity_search(query=query, k=k * 5)
+
+        filtered = []
+        for doc in results:
+            doc_tags = doc.metadata.get("tags", [])
+            if isinstance(doc_tags, str):
+                doc_tags = [doc_tags]
+
+            if match_all:
+                if all(tag in doc_tags for tag in tags):
+                    filtered.append(doc)
+            else:
+                if any(tag in doc_tags for tag in tags):
+                    filtered.append(doc)
+
+            if len(filtered) >= k:
+                break
+
+        return filtered
+
+    def search_by_category(
+        self,
+        category: str,
+        query: Optional[str] = None,
+        k: int = 5,
+    ) -> List[Document]:
+        """按分类搜索文档
+
+        Args:
+            category: 分类名称
+            query: 可选的查询文本
+            k: 返回文档数量
+
+        Returns:
+            匹配的文档列表
+        """
+        return self.search_by_metadata(
+            query=query or category,
+            filter_metadata={"category": category},
+            k=k,
+        )
+
+    def hybrid_search(
+        self,
+        query: str,
+        filter_metadata: Optional[dict] = None,
+        k: int = 5,
+        alpha: float = 0.7,
+    ) -> List[tuple]:
+        """混合检索：向量检索 + 元数据过滤
+
+        Args:
+            query: 查询文本
+            filter_metadata: 元数据过滤条件
+            k: 返回文档数量
+            alpha: 向量检索权重（0-1），1-alpha 为元数据匹配权重
+
+        Returns:
+            (文档, 综合得分) 列表
+        """
+        if not self.vector_store:
+            raise ValueError("向量存储未初始化")
+
+        results = self.vector_store.similarity_search_with_score(query=query, k=k * 3)
+
+        scored_results = []
+        for doc, vector_score in results:
+            metadata_score = 1.0
+            if filter_metadata:
+                match_count = 0
+                total_conditions = len(filter_metadata)
+                for key, value in filter_metadata.items():
+                    doc_value = doc.metadata.get(key)
+                    if doc_value == value:
+                        match_count += 1
+                    elif isinstance(doc_value, list) and value in doc_value:
+                        match_count += 1
+                metadata_score = match_count / total_conditions if total_conditions > 0 else 1.0
+
+            combined_score = alpha * vector_score + (1 - alpha) * metadata_score
+            scored_results.append((doc, combined_score, vector_score, metadata_score))
+
+        scored_results.sort(key=lambda x: x[1], reverse=True)
+
+        return [(doc, score) for doc, score, _, _ in scored_results[:k]]
+
+    def list_documents(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        category: Optional[str] = None,
+    ) -> List[dict]:
+        """列出知识库中的文档
+
+        Args:
+            limit: 返回数量限制
+            offset: 偏移量
+            category: 按分类过滤
+
+        Returns:
+            文档元数据列表
+        """
+        if not self.vector_store:
+            raise ValueError("向量存储未初始化")
+
+        if self.vector_store_type == "qdrant":
+            from qdrant_client.http import models as rest
+
+            client = self.vector_store.client
+
+            scroll_filter = None
+            if category:
+                scroll_filter = rest.Filter(
+                    must=[
+                        rest.FieldCondition(
+                            key="metadata.category",
+                            match=rest.MatchValue(value=category),
+                        )
+                    ]
+                )
+
+            results, _ = client.scroll(
+                collection_name=self.qdrant_collection_name,
+                limit=limit,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+                scroll_filter=scroll_filter,
+            )
+
+            documents = []
+            seen_sources = set()
+            for point in results:
+                payload = point.payload or {}
+                metadata = payload.get("metadata", {})
+                source = metadata.get("source", "")
+
+                if source and source not in seen_sources:
+                    seen_sources.add(source)
+                    documents.append({
+                        "id": str(point.id),
+                        "name": metadata.get("name", source),
+                        "description": metadata.get("description", ""),
+                        "tags": metadata.get("tags", []),
+                        "category": metadata.get("category", ""),
+                        "source": source,
+                    })
+
+            return documents
+        else:
+            return [{"type": "FAISS", "info": "FAISS 不支持文档列表查询"}]
+
+    def get_document_count(self) -> int:
+        """获取文档数量"""
+        info = self.get_collection_info()
+        return info.get("points_count", 0)
 
 
 def test_rag_system():
