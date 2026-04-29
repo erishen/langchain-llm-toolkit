@@ -485,6 +485,122 @@ async def rag_clear():
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
+class DirectoryImportRequest(BaseModel):
+    directory: str
+    recursive: bool = True
+    exclude_patterns: list[str] = []
+
+
+@app.post("/api/v1/rag/import-directory", tags=["RAG"])
+async def rag_import_directory(request: DirectoryImportRequest):
+    """从目录导入文档到 RAG 系统"""
+    from langchain_llm_toolkit.document_import_manager import document_import_manager
+
+    try:
+        report = document_import_manager.import_directory(
+            directory=request.directory,
+            recursive=request.recursive,
+            exclude_patterns=request.exclude_patterns,
+        )
+
+        if report.successful_files > 0:
+            rag_system = get_rag_system()
+            
+            for result in report.results:
+                if result.success:
+                    try:
+                        documents = document_import_manager.loader.load_document(result.file_path)
+                        rag_system.add_documents(documents)
+                        report.total_chunks += len(documents)
+                    except Exception as e:
+                        logger.error(f"添加文档到向量库失败: {result.file_path} - {e}")
+
+        return {
+            "success": report.failed_files == 0,
+            "summary": report.get_summary(),
+            "errors": report.errors[:10],
+        }
+
+    except Exception as e:
+        logger.error(f"Error importing directory: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.post("/api/v1/rag/import-files", tags=["RAG"])
+async def rag_import_files(files: list[UploadFile] = File(...)):
+    """批量导入文件到 RAG 系统"""
+    from langchain_llm_toolkit.document_import_manager import document_import_manager
+    import tempfile
+
+    try:
+        temp_files = []
+        
+        for file in files:
+            if not file.filename:
+                continue
+
+            file_ext = os.path.splitext(file.filename)[1].lower()
+            if file_ext not in document_import_manager.SUPPORTED_EXTENSIONS:
+                continue
+
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=file_ext)
+            content = await file.read()
+            temp_file.write(content)
+            temp_file.close()
+            temp_files.append(temp_file.name)
+
+        report = document_import_manager.import_files(temp_files, parallel=True)
+
+        if report.successful_files > 0:
+            rag_system = get_rag_system()
+            
+            for i, result in enumerate(report.results):
+                if result.success and i < len(temp_files):
+                    try:
+                        documents = document_import_manager.loader.load_document(temp_files[i])
+                        rag_system.add_documents(documents)
+                        report.total_chunks += len(documents)
+                    except Exception as e:
+                        logger.error(f"添加文档到向量库失败: {result.file_path} - {e}")
+
+        for temp_file in temp_files:
+            try:
+                os.unlink(temp_file)
+            except Exception:
+                pass
+
+        return {
+            "success": report.failed_files == 0,
+            "summary": report.get_summary(),
+            "errors": report.errors[:10],
+        }
+
+    except Exception as e:
+        logger.error(f"Error importing files: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
+@app.post("/api/v1/rag/scan-directory", tags=["RAG"])
+async def rag_scan_directory(request: DirectoryImportRequest):
+    """扫描目录，返回文档统计信息"""
+    from langchain_llm_toolkit.document_import_manager import document_import_manager
+
+    try:
+        stats = document_import_manager.scan_directory(
+            directory=request.directory,
+            recursive=request.recursive,
+        )
+
+        return {
+            "success": "error" not in stats,
+            "stats": stats,
+        }
+
+    except Exception as e:
+        logger.error(f"Error scanning directory: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 @app.post("/api/v1/conversations", tags=["Conversations"])
 async def create_conversation(title: str = "新对话"):
     try:
