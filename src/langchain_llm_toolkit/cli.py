@@ -103,6 +103,7 @@ def list_models():
     """列出支持的模型"""
     typer.echo("支持的模型:")
     typer.echo("\nOpenAI 模型:")
+    typer.echo("  - gpt-5.3 (最新)")
     typer.echo("  - gpt-4o")
     typer.echo("  - gpt-4")
     typer.echo("  - gpt-3.5-turbo")
