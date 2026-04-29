@@ -631,6 +631,54 @@ async def get_current_user_info(current_user: TokenData = Depends(get_current_us
     }
 
 
+@app.get("/api/v1/cost/report", tags=["Cost"])
+async def get_cost_report(days: int = 7):
+    """获取成本报告"""
+    from langchain_llm_toolkit.token_cost_manager import token_cost_manager
+
+    report = token_cost_manager.get_report(days)
+    return {
+        "total_requests": report.total_requests,
+        "total_input_tokens": report.total_input_tokens,
+        "total_output_tokens": report.total_output_tokens,
+        "total_cost": round(report.total_cost, 4),
+        "by_model": report.by_model,
+        "by_day": report.by_day,
+        "optimization_tips": report.optimization_tips,
+    }
+
+
+@app.post("/api/v1/cost/estimate", tags=["Cost"])
+async def estimate_cost(request: ChatRequest):
+    """估算请求成本"""
+    from langchain_llm_toolkit.token_cost_manager import token_cost_manager
+
+    messages = [{"role": "user", "content": request.message}]
+    if request.system_prompt:
+        messages.insert(0, {"role": "system", "content": request.system_prompt})
+
+    estimate = token_cost_manager.estimate_request_cost(
+        model=request.model or "gpt-4o",
+        messages=messages,
+    )
+    return estimate
+
+
+@app.get("/api/v1/cost/pricing", tags=["Cost"])
+async def get_pricing():
+    """获取模型定价信息"""
+    from langchain_llm_toolkit.token_cost_manager import MODEL_PRICING
+
+    pricing_info = {}
+    for model, pricing in MODEL_PRICING.items():
+        pricing_info[model] = {
+            "input_price_per_million": pricing.input_price,
+            "output_price_per_million": pricing.output_price,
+            "currency": pricing.currency,
+        }
+    return {"pricing": pricing_info}
+
+
 def run_server(host: str = "127.0.0.1", port: int = 8000):
     import argparse
     import uvicorn
