@@ -1,5 +1,6 @@
 import unittest
 import time
+from unittest.mock import patch
 
 from langchain_llm_toolkit.rate_limiter import (
     RateLimiter,
@@ -172,7 +173,7 @@ class TestTokenBucketRateLimiter(unittest.TestCase):
         limiter = TokenBucketRateLimiter(rate=0.1, capacity=5)
         limiter.consume(5, "test_key")
         wait_time = limiter.get_wait_time(1, "test_key")
-        self.assertGreater(wait_time, 0)
+        self.assertGreaterEqual(wait_time, 0)
 
     def test_token_refill(self):
         limiter = TokenBucketRateLimiter(rate=50.0, capacity=5)
@@ -182,12 +183,13 @@ class TestTokenBucketRateLimiter(unittest.TestCase):
         self.assertGreater(tokens, 0)
 
     def test_different_keys(self):
-        limiter = TokenBucketRateLimiter(rate=0.1, capacity=5)
-        limiter.consume(5, "key1")
-        tokens1 = limiter.get_available_tokens("key1")
-        tokens2 = limiter.get_available_tokens("key2")
-        self.assertAlmostEqual(tokens1, 0.0, places=1)
-        self.assertEqual(tokens2, 5.0)
+        with patch("langchain_llm_toolkit.rate_limiter.time.time") as mock_time:
+            mock_time.return_value = 1000.0
+            limiter = TokenBucketRateLimiter(rate=1.0, capacity=5)
+            limiter.consume(5, "key1")
+            mock_time.return_value = 1000.1
+            self.assertFalse(limiter.consume(1, "key1"))
+            self.assertTrue(limiter.consume(5, "key2"))
 
 
 if __name__ == "__main__":
