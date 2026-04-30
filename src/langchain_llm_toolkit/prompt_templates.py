@@ -223,15 +223,19 @@ class RAGPromptBuilder:
                 break
 
             # 添加文档编号和内容
-            context_parts.append(f"[文档 {i+1}]\n{content}\n")
+            context_parts.append(f"[文档 {i + 1}]\n{content}\n")
             current_length += len(content)
 
         context = "\n".join(context_parts)
 
         # 渲染模板
-        return self.template_manager.render(PromptTemplateType.RAG_QA, context=context, query=query)
+        return self.template_manager.render(
+            PromptTemplateType.RAG_QA, context=context, query=query
+        )
 
-    def build_summary_prompt(self, documents: List[Any], max_context_length: int = 6000) -> str:
+    def build_summary_prompt(
+        self, documents: List[Any], max_context_length: int = 6000
+    ) -> str:
         """构建总结提示"""
         context_parts = []
         current_length = 0
@@ -247,7 +251,9 @@ class RAGPromptBuilder:
 
         context = "\n\n".join(context_parts)
 
-        return self.template_manager.render(PromptTemplateType.RAG_SUMMARY, context=context)
+        return self.template_manager.render(
+            PromptTemplateType.RAG_SUMMARY, context=context
+        )
 
     def build_extraction_prompt(
         self, documents: List[Any], extract_type: str, max_context_length: int = 4000

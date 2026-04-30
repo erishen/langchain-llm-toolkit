@@ -43,7 +43,12 @@ class TestGenerateEndpoints:
 
         response = client.post(
             "/api/v1/generate",
-            json={"prompt": "你好", "model": "ollama/gemma3", "temperature": 0.7, "timeout": 30},
+            json={
+                "prompt": "你好",
+                "model": "ollama/gemma3",
+                "temperature": 0.7,
+                "timeout": 30,
+            },
         )
 
         assert response.status_code == 200
@@ -112,7 +117,8 @@ class TestGenerateEndpoints:
         mock_llm_class.return_value = mock_llm
 
         response = client.post(
-            "/api/v1/generate/stream", json={"prompt": "测试流式", "model": "ollama/gemma3"}
+            "/api/v1/generate/stream",
+            json={"prompt": "测试流式", "model": "ollama/gemma3"},
         )
 
         assert response.status_code == 200
@@ -120,7 +126,9 @@ class TestGenerateEndpoints:
 
     def test_generate_stream_non_ollama_model(self, client):
         """测试非 Ollama 模型的流式生成"""
-        response = client.post("/api/v1/generate/stream", json={"prompt": "测试", "model": "gpt-4o"})
+        response = client.post(
+            "/api/v1/generate/stream", json={"prompt": "测试", "model": "gpt-4o"}
+        )
 
         assert response.status_code == 400
         assert "Streaming only supported for Ollama models" in response.json()["detail"]
@@ -254,7 +262,8 @@ class TestRAGEndpoints:
         test_content = b"This is test content"
 
         response = client.post(
-            "/api/v1/rag/upload", files={"file": ("test.txt", test_content, "text/plain")}
+            "/api/v1/rag/upload",
+            files={"file": ("test.txt", test_content, "text/plain")},
         )
 
         assert response.status_code == 200
@@ -356,7 +365,10 @@ class TestCORS:
         """测试 CORS 头部"""
         response = client.options(
             "/api/v1/generate",
-            headers={"Origin": "http://localhost:3000", "Access-Control-Request-Method": "POST"},
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "POST",
+            },
         )
 
         assert response.status_code == 200
@@ -597,7 +609,9 @@ class TestAuthEndpoints:
         mock_auth.create_access_token.return_value = "test_token"
         mock_get_auth.return_value = mock_auth
 
-        response = client.post("/api/v1/auth/login?username=testuser&password=password123")
+        response = client.post(
+            "/api/v1/auth/login?username=testuser&password=password123"
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -611,7 +625,9 @@ class TestAuthEndpoints:
         mock_auth.authenticate_user.return_value = None
         mock_get_auth.return_value = mock_auth
 
-        response = client.post("/api/v1/auth/login?username=testuser&password=wrongpassword")
+        response = client.post(
+            "/api/v1/auth/login?username=testuser&password=wrongpassword"
+        )
 
         assert response.status_code == 401
 

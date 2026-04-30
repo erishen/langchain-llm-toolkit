@@ -126,7 +126,7 @@ class TestConversationManager:
 
         responses = []
         for i in range(3):
-            response = manager.converse(f"问题{i+1}")
+            response = manager.converse(f"问题{i + 1}")
             responses.append(response)
 
         assert responses == ["回复1", "回复2", "回复3"]

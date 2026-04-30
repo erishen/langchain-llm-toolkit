@@ -20,7 +20,8 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None):
 
     # 日志格式
     formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
 
     # 根日志器
@@ -39,7 +40,9 @@ def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None):
     # 文件处理器（如果指定了日志文件）
     if log_file:
         file_handler = RotatingFileHandler(
-            log_file, maxBytes=10 * 1024 * 1024, backupCount=5  # 10MB
+            log_file,
+            maxBytes=10 * 1024 * 1024,
+            backupCount=5,  # 10MB
         )
         file_handler.setLevel(getattr(logging, log_level.upper()))
         file_handler.setFormatter(formatter)

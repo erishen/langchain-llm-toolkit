@@ -1,4 +1,5 @@
 """缓存管理模块"""
+
 import hashlib
 import json
 import time
@@ -112,7 +113,9 @@ class CacheManager:
             "total_entries": len(self.cache),
             "max_size": self.max_size,
             "ttl": self.ttl,
-            "usage_percentage": len(self.cache) / self.max_size * 100 if self.max_size > 0 else 0,
+            "usage_percentage": len(self.cache) / self.max_size * 100
+            if self.max_size > 0
+            else 0,
         }
 
 
@@ -138,9 +141,7 @@ def cached(
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
-            cache_key = (
-                f"{key_prefix}:{func.__name__}:{cache_manager._generate_key(*args, **kwargs)}"
-            )
+            cache_key = f"{key_prefix}:{func.__name__}:{cache_manager._generate_key(*args, **kwargs)}"
 
             result = cache_manager.get(cache_key)
             if result is not None:
@@ -174,7 +175,9 @@ class ResponseCache:
         key_data = f"{model}:{temperature}:{prompt}"
         return hashlib.md5(key_data.encode()).hexdigest()
 
-    def get_response(self, prompt: str, model: str, temperature: float) -> Optional[str]:
+    def get_response(
+        self, prompt: str, model: str, temperature: float
+    ) -> Optional[str]:
         """
         获取缓存的响应
 

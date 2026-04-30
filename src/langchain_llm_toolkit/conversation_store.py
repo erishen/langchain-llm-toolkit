@@ -80,7 +80,9 @@ class ConversationStore:
         Args:
             db_path: 数据库路径（默认从环境变量读取）
         """
-        self.db_path = db_path or os.environ.get("CONVERSATION_DB_PATH", "./data/conversations.db")
+        self.db_path = db_path or os.environ.get(
+            "CONVERSATION_DB_PATH", "./data/conversations.db"
+        )
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self._init_db()
 
@@ -136,7 +138,9 @@ class ConversationStore:
                     json.dumps([m.to_dict() for m in conversation.messages]),
                     conversation.created_at,
                     conversation.updated_at,
-                    json.dumps(conversation.metadata) if conversation.metadata else None,
+                    json.dumps(conversation.metadata)
+                    if conversation.metadata
+                    else None,
                 ),
             )
             conn.commit()
@@ -153,7 +157,9 @@ class ConversationStore:
                 return Conversation(
                     id=row["id"],
                     title=row["title"],
-                    messages=[Message.from_dict(m) for m in json.loads(row["messages"])],
+                    messages=[
+                        Message.from_dict(m) for m in json.loads(row["messages"])
+                    ],
                     created_at=row["created_at"],
                     updated_at=row["updated_at"],
                     metadata=json.loads(row["metadata"]) if row["metadata"] else None,
@@ -185,10 +191,14 @@ class ConversationStore:
                     Conversation(
                         id=row["id"],
                         title=row["title"],
-                        messages=[Message.from_dict(m) for m in json.loads(row["messages"])],
+                        messages=[
+                            Message.from_dict(m) for m in json.loads(row["messages"])
+                        ],
                         created_at=row["created_at"],
                         updated_at=row["updated_at"],
-                        metadata=json.loads(row["metadata"]) if row["metadata"] else None,
+                        metadata=json.loads(row["metadata"])
+                        if row["metadata"]
+                        else None,
                     )
                 )
         return conversations
@@ -219,10 +229,14 @@ class ConversationStore:
                     Conversation(
                         id=row["id"],
                         title=row["title"],
-                        messages=[Message.from_dict(m) for m in json.loads(row["messages"])],
+                        messages=[
+                            Message.from_dict(m) for m in json.loads(row["messages"])
+                        ],
                         created_at=row["created_at"],
                         updated_at=row["updated_at"],
-                        metadata=json.loads(row["metadata"]) if row["metadata"] else None,
+                        metadata=json.loads(row["metadata"])
+                        if row["metadata"]
+                        else None,
                     )
                 )
         return conversations
@@ -326,7 +340,9 @@ class ConversationManagerWithPersistence:
         self.current_conversation.updated_at = now
 
         if role == "user" and len(self.current_conversation.messages) == 2:
-            self.current_conversation.title = content[:50] + ("..." if len(content) > 50 else "")
+            self.current_conversation.title = content[:50] + (
+                "..." if len(content) > 50 else ""
+            )
 
         self.store.save_conversation(self.current_conversation)
         return message
@@ -336,7 +352,8 @@ class ConversationManagerWithPersistence:
         self.add_message("user", user_input)
 
         messages = [
-            {"role": m.role, "content": m.content} for m in self.current_conversation.messages
+            {"role": m.role, "content": m.content}
+            for m in self.current_conversation.messages
         ]
         response = self.llm.chat(messages)
 
@@ -347,12 +364,17 @@ class ConversationManagerWithPersistence:
         """获取对话历史"""
         if not self.current_conversation:
             return []
-        return [{"role": m.role, "content": m.content} for m in self.current_conversation.messages]
+        return [
+            {"role": m.role, "content": m.content}
+            for m in self.current_conversation.messages
+        ]
 
     def clear_history(self):
         """清空当前对话历史"""
         if self.current_conversation:
-            system_messages = [m for m in self.current_conversation.messages if m.role == "system"]
+            system_messages = [
+                m for m in self.current_conversation.messages if m.role == "system"
+            ]
             self.current_conversation.messages = system_messages
             self.current_conversation.updated_at = datetime.now().isoformat()
             self.store.save_conversation(self.current_conversation)
@@ -364,7 +386,10 @@ class ConversationManagerWithPersistence:
     def delete_conversation(self, conversation_id: str) -> bool:
         """删除对话"""
         result = self.store.delete_conversation(conversation_id)
-        if self.current_conversation and self.current_conversation.id == conversation_id:
+        if (
+            self.current_conversation
+            and self.current_conversation.id == conversation_id
+        ):
             self.current_conversation = None
         return result
 

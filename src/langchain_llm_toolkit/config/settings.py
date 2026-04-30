@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     RAG_FAISS_PATH: str = "./vector_store"
     RAG_COLLECTION_NAME: str = "langchain_documents"
 
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True, extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", case_sensitive=True, extra="ignore"
+    )
 
 
 settings = Settings()

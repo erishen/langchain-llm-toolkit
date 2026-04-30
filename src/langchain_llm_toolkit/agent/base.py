@@ -15,7 +15,9 @@ class AgentResponse(BaseModel):
     """Agent 响应"""
 
     content: str = Field(..., description="响应内容")
-    tool_calls: List[Dict[str, Any]] = Field(default_factory=list, description="工具调用")
+    tool_calls: List[Dict[str, Any]] = Field(
+        default_factory=list, description="工具调用"
+    )
     reasoning: Optional[str] = Field(None, description="推理过程")
     timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
 
@@ -277,4 +279,6 @@ Action Input: {{"param1": "value1"}}
 Think step by step and explain your reasoning."""
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name='{self.name}', tools={self.list_tools()})"
+        return (
+            f"{self.__class__.__name__}(name='{self.name}', tools={self.list_tools()})"
+        )

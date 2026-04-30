@@ -78,7 +78,9 @@ def hello():
             try:
                 documents = loader.load(f.name)
 
-                heading_titles = [doc.metadata.get("heading_title") for doc in documents]
+                heading_titles = [
+                    doc.metadata.get("heading_title") for doc in documents
+                ]
                 assert "主标题" in heading_titles
                 assert "二级标题 A" in heading_titles
                 assert "二级标题 B" in heading_titles
@@ -147,7 +149,9 @@ def hello():
                 assert link_doc is not None
                 assert "links" in link_doc.metadata
                 assert len(link_doc.metadata["links"]) >= 1
-                assert any(link["text"] == "链接文本" for link in link_doc.metadata["links"])
+                assert any(
+                    link["text"] == "链接文本" for link in link_doc.metadata["links"]
+                )
             finally:
                 os.unlink(f.name)
 
@@ -211,7 +215,9 @@ def hello():
             try:
                 documents = loader.load(f.name)
 
-                heading_titles = [doc.metadata.get("heading_title") for doc in documents]
+                heading_titles = [
+                    doc.metadata.get("heading_title") for doc in documents
+                ]
                 assert "一级标题" not in heading_titles
                 assert "二级标题 A" in heading_titles
                 assert "三级标题" not in heading_titles
@@ -328,7 +334,9 @@ print("hello")
 """
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f1:
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f2:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".md", delete=False
+            ) as f2:
                 f1.write(markdown1)
                 f2.write(markdown2)
                 f1.flush()

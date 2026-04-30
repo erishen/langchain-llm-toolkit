@@ -34,7 +34,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
 
         with open(self.test_txt_file, "w", encoding="utf-8") as f:
             f.write("LangChain 是一个用于开发基于语言模型的应用程序的框架。\n\n")
-            f.write("它提供了一系列工具和组件，使得开发者可以更轻松地构建复杂的 LLM 应用。")
+            f.write(
+                "它提供了一系列工具和组件，使得开发者可以更轻松地构建复杂的 LLM 应用。"
+            )
 
     def tearDown(self):
         if os.path.exists(self.temp_dir):
@@ -60,7 +62,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
     def test_create_vector_store(self):
         """测试创建向量存储"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
 
         vector_store = rag_system.create_vector_store([test_doc])
         self.assertIsNotNone(vector_store)
@@ -86,7 +90,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
     def test_retrieve_documents(self):
         """测试检索文档"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         results = rag_system.retrieve_documents("测试")
@@ -101,7 +107,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
     def test_retrieve_documents_with_scores(self):
         """测试带分数的检索文档"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         results = rag_system.retrieve_documents_with_scores("测试")
@@ -116,7 +124,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
         mock_generate.return_value = "测试回答"
 
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         answer, relevant_docs = rag_system.generate_answer("测试")
@@ -132,7 +142,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
     def test_save_vector_store(self):
         """测试保存向量存储"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         save_path = os.path.join(self.temp_dir, "vector_store")
@@ -148,7 +160,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
     def test_get_collection_info(self):
         """测试获取集合信息"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         info = rag_system.get_collection_info()
@@ -157,7 +171,9 @@ class TestRAGSystemQdrant(unittest.TestCase):
     def test_delete_collection(self):
         """测试删除集合"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         rag_system.delete_collection()
@@ -184,7 +200,9 @@ class TestRAGSystemFAISS(unittest.TestCase):
     def test_create_vector_store_faiss(self):
         """测试创建 FAISS 向量存储"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
 
         vector_store = rag_system.create_vector_store([test_doc])
         self.assertIsNotNone(vector_store)
@@ -192,7 +210,9 @@ class TestRAGSystemFAISS(unittest.TestCase):
     def test_get_collection_info_faiss(self):
         """测试 FAISS 集合信息"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="测试文档内容", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="测试文档内容", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         info = rag_system.get_collection_info()
@@ -222,7 +242,9 @@ class TestRAGSystemFAISS(unittest.TestCase):
     def test_retrieve_documents_faiss(self):
         """测试 FAISS 检索文档"""
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="Python 是一种编程语言", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="Python 是一种编程语言", metadata={"source": "test.txt"}
+        )
         rag_system.create_vector_store([test_doc])
 
         results = rag_system.retrieve_documents("编程语言", k=1)
@@ -257,7 +279,9 @@ class TestRAGSystemFAISS(unittest.TestCase):
         mock_llm_class.return_value = mock_llm
 
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="长文档内容" * 100, metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="长文档内容" * 100, metadata={"source": "test.txt"}
+        )
 
         summary = rag_system.generate_summary([test_doc])
         self.assertEqual(summary, "这是文档摘要")
@@ -271,7 +295,9 @@ class TestRAGSystemFAISS(unittest.TestCase):
         mock_llm_class.return_value = mock_llm
 
         rag_system = self._create_rag_system()
-        test_doc = Document(page_content="包含关键信息的文档", metadata={"source": "test.txt"})
+        test_doc = Document(
+            page_content="包含关键信息的文档", metadata={"source": "test.txt"}
+        )
 
         result = rag_system.extract_information([test_doc], "关键信息")
         self.assertEqual(result, "提取的关键信息")
@@ -339,9 +365,13 @@ class TestRAGSystemFAISS(unittest.TestCase):
         rag_system = self._create_rag_system()
 
         docs = [
-            Document(page_content="文档1：Python 编程", metadata={"source": "doc1.txt"}),
+            Document(
+                page_content="文档1：Python 编程", metadata={"source": "doc1.txt"}
+            ),
             Document(page_content="文档2：Java 编程", metadata={"source": "doc2.txt"}),
-            Document(page_content="文档3：JavaScript 编程", metadata={"source": "doc3.txt"}),
+            Document(
+                page_content="文档3：JavaScript 编程", metadata={"source": "doc3.txt"}
+            ),
         ]
 
         rag_system.create_vector_store(docs)
@@ -360,7 +390,9 @@ class TestRAGSystemFAISS(unittest.TestCase):
         rag_system = self._create_rag_system()
 
         large_content = "测试内容 " * 10000
-        test_doc = Document(page_content=large_content, metadata={"source": "large.txt"})
+        test_doc = Document(
+            page_content=large_content, metadata={"source": "large.txt"}
+        )
 
         vector_store = rag_system.create_vector_store([test_doc])
         self.assertIsNotNone(vector_store)
@@ -396,7 +428,8 @@ class TestRAGSystemFAISS(unittest.TestCase):
         rag_system = self._create_rag_system()
 
         docs = [
-            Document(page_content=f"文档{i}", metadata={"source": f"doc{i}.txt"}) for i in range(5)
+            Document(page_content=f"文档{i}", metadata={"source": f"doc{i}.txt"})
+            for i in range(5)
         ]
 
         rag_system.create_vector_store(docs)

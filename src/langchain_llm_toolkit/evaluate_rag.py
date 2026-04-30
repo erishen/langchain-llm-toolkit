@@ -62,10 +62,10 @@ def evaluate_retrieval(rag: RAGSystem, test_cases: list):
 
     n = len(test_cases)
     print("\n平均指标:")
-    print(f"  召回率: {total_recall/n:.2%}")
-    print(f"  精确率: {total_precision/n:.2%}")
-    print(f"  MRR: {total_mrr/n:.2f}")
-    print(f"  平均耗时: {total_time/n:.2f}s")
+    print(f"  召回率: {total_recall / n:.2%}")
+    print(f"  精确率: {total_precision / n:.2%}")
+    print(f"  MRR: {total_mrr / n:.2f}")
+    print(f"  平均耗时: {total_time / n:.2f}s")
 
     return {
         "recall": total_recall / n,
@@ -111,16 +111,22 @@ def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = Fal
         total_time += elapsed
 
         print(f"\n[{i}] 问题: {query}")
-        print(f"    回答: {answer[:200]}..." if len(answer) > 200 else f"    回答: {answer}")
-        print(f"    相关性: {relevance:.2%} | 准确性: {accuracy:.2%} | 完整性: {completeness:.2%}")
+        print(
+            f"    回答: {answer[:200]}..."
+            if len(answer) > 200
+            else f"    回答: {answer}"
+        )
+        print(
+            f"    相关性: {relevance:.2%} | 准确性: {accuracy:.2%} | 完整性: {completeness:.2%}"
+        )
         print(f"    耗时: {elapsed:.2f}s | 文档数: {len(docs)}")
 
     n = len(test_cases)
     print("\n平均指标:")
-    print(f"  相关性: {total_relevance/n:.2%}")
-    print(f"  准确性: {total_accuracy/n:.2%}")
-    print(f"  完整性: {total_completeness/n:.2%}")
-    print(f"  平均耗时: {total_time/n:.2f}s")
+    print(f"  相关性: {total_relevance / n:.2%}")
+    print(f"  准确性: {total_accuracy / n:.2%}")
+    print(f"  完整性: {total_completeness / n:.2%}")
+    print(f"  平均耗时: {total_time / n:.2f}s")
 
     return {
         "relevance": total_relevance / n,

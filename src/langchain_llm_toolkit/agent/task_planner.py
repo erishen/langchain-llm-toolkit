@@ -82,7 +82,8 @@ class TaskPlan(BaseModel):
 
             # 检查依赖是否都已完成
             deps_completed = all(
-                self.get_subtask(dep_id) and self.get_subtask(dep_id).status == TaskStatus.COMPLETED
+                self.get_subtask(dep_id)
+                and self.get_subtask(dep_id).status == TaskStatus.COMPLETED
                 for dep_id in subtask.dependencies
             )
 
@@ -272,7 +273,9 @@ class TaskPlanner:
 
         return plan
 
-    def execute_plan(self, plan: TaskPlan, agent: BaseAgent, **kwargs) -> Dict[str, Any]:
+    def execute_plan(
+        self, plan: TaskPlan, agent: BaseAgent, **kwargs
+    ) -> Dict[str, Any]:
         """
         执行任务计划
 
@@ -295,7 +298,9 @@ class TaskPlanner:
             if not ready_tasks:
                 # 没有可执行的任务，但计划未完成
                 # 检查是否有循环依赖
-                pending = [st for st in plan.subtasks if st.status == TaskStatus.PENDING]
+                pending = [
+                    st for st in plan.subtasks if st.status == TaskStatus.PENDING
+                ]
                 if pending:
                     logger.warning(f"Cannot proceed with {len(pending)} pending tasks")
                     for st in pending:
@@ -306,14 +311,18 @@ class TaskPlanner:
             subtask = ready_tasks[0]
             subtask.start()
 
-            logger.info(f"Executing subtask {subtask.id}: {subtask.description[:50]}...")
+            logger.info(
+                f"Executing subtask {subtask.id}: {subtask.description[:50]}..."
+            )
 
             try:
                 # 构建上下文
                 task_context = self._build_task_context(plan, subtask)
 
                 # 执行子任务
-                response = agent.run(subtask.description, context=task_context, **kwargs)
+                response = agent.run(
+                    subtask.description, context=task_context, **kwargs
+                )
 
                 if response.content:
                     subtask.complete(response.content)
@@ -360,7 +369,9 @@ class TaskPlanner:
             "summary": summary,
         }
 
-    def _build_task_context(self, plan: TaskPlan, current_subtask: SubTask) -> Dict[str, Any]:
+    def _build_task_context(
+        self, plan: TaskPlan, current_subtask: SubTask
+    ) -> Dict[str, Any]:
         """
         构建任务上下文
 
@@ -414,7 +425,9 @@ class TaskPlanner:
             for st in completed:
                 parts.append(f"  [{st.id}] {st.description}")
                 if st.result:
-                    result_preview = st.result[:100] + "..." if len(st.result) > 100 else st.result
+                    result_preview = (
+                        st.result[:100] + "..." if len(st.result) > 100 else st.result
+                    )
                     parts.append(f"      Result: {result_preview}")
 
         if failed:
@@ -425,7 +438,9 @@ class TaskPlanner:
                     parts.append(f"      Error: {st.error}")
 
         progress = plan.get_progress()
-        parts.append(f"\nProgress: {progress['completed']}/{progress['total']} completed")
+        parts.append(
+            f"\nProgress: {progress['completed']}/{progress['total']} completed"
+        )
 
         return "\n".join(parts)
 
@@ -471,7 +486,7 @@ Plan:
 
         # 为子任务生成新的唯一ID
         for i, st in enumerate(sub_plan.subtasks):
-            st.id = f"{failed_subtask.id}.{i+1}"
+            st.id = f"{failed_subtask.id}.{i + 1}"
             # 更新依赖
             st.dependencies = [f"{failed_subtask.id}.{d}" for d in st.dependencies]
 

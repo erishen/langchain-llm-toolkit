@@ -11,7 +11,6 @@ from langchain_llm_toolkit.prompt_templates import RAGPromptBuilder, PromptTempl
 from langchain_llm_toolkit.logger import logger
 import os
 import hashlib
-from functools import lru_cache
 from datetime import datetime, timedelta
 
 
@@ -163,7 +162,9 @@ class RAGSystem:
     def setup_embeddings(self):
         """设置嵌入模型"""
         if self.embedding_type == "ollama":
-            ollama_base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+            ollama_base_url = os.environ.get(
+                "OLLAMA_BASE_URL", "http://localhost:11434"
+            )
             self.embeddings = OllamaEmbeddingsWrapper(
                 model=self.embedding_model, base_url=ollama_base_url, num_ctx=8192
             )
@@ -234,7 +235,9 @@ class RAGSystem:
         # 确保 embeddings 已初始化
         assert self.embeddings is not None, "Embeddings must be initialized"
 
-        vector_store = FAISS.from_documents(documents=documents, embedding=self.embeddings)
+        vector_store = FAISS.from_documents(
+            documents=documents, embedding=self.embeddings
+        )
         return vector_store
 
     def add_documents(self, documents: List[Document]):
@@ -250,7 +253,13 @@ class RAGSystem:
 
         return self.vector_store
 
-    def retrieve_documents(self, query: str, k: int = 3, score_threshold: float = 0.0, use_cache: bool = True):
+    def retrieve_documents(
+        self,
+        query: str,
+        k: int = 3,
+        score_threshold: float = 0.0,
+        use_cache: bool = True,
+    ):
         """检索相关文档
 
         Args:
@@ -271,8 +280,12 @@ class RAGSystem:
                 return cached
 
         if score_threshold > 0:
-            results = self.vector_store.similarity_search_with_score(query=query, k=k * 2)
-            filtered = [(doc, score) for doc, score in results if score >= score_threshold]
+            results = self.vector_store.similarity_search_with_score(
+                query=query, k=k * 2
+            )
+            filtered = [
+                (doc, score) for doc, score in results if score >= score_threshold
+            ]
             docs = [doc for doc, _ in filtered[:k]]
         else:
             docs = self.vector_store.similarity_search(query=query, k=k)
@@ -282,7 +295,9 @@ class RAGSystem:
 
         return docs
 
-    def retrieve_documents_with_scores(self, query: str, k: int = 3, score_threshold: float = 0.0):
+    def retrieve_documents_with_scores(
+        self, query: str, k: int = 3, score_threshold: float = 0.0
+    ):
         """检索相关文档并返回相似度分数
 
         Args:
@@ -299,7 +314,9 @@ class RAGSystem:
         results = self.vector_store.similarity_search_with_score(query=query, k=k * 2)
 
         if score_threshold > 0:
-            results = [(doc, score) for doc, score in results if score >= score_threshold]
+            results = [
+                (doc, score) for doc, score in results if score >= score_threshold
+            ]
 
         return results[:k]
 
@@ -336,7 +353,9 @@ class RAGSystem:
 
         try:
             response = self.llm_integration.generate(rerank_prompt)
-            indices = [int(x.strip()) - 1 for x in response.split(",") if x.strip().isdigit()]
+            indices = [
+                int(x.strip()) - 1 for x in response.split(",") if x.strip().isdigit()
+            ]
             indices = [i for i in indices if 0 <= i < len(documents)]
             while len(indices) < top_k and len(indices) < len(documents):
                 for i in range(len(documents)):
@@ -385,7 +404,9 @@ class RAGSystem:
 
         logger.info(f"Generating answer for query: {query[:50]}...")
 
-        relevant_docs = self.retrieve_documents(query, k * 2 if use_rerank else k, score_threshold)
+        relevant_docs = self.retrieve_documents(
+            query, k * 2 if use_rerank else k, score_threshold
+        )
 
         if not relevant_docs:
             logger.warning("No relevant documents found")
@@ -405,13 +426,18 @@ class RAGSystem:
 
         if use_cache:
             query_cache.set(
-                query, {"answer": answer, "documents": relevant_docs}, k, use_rerank=use_rerank
+                query,
+                {"answer": answer, "documents": relevant_docs},
+                k,
+                use_rerank=use_rerank,
             )
 
         logger.info(f"Generated answer successfully in {elapsed_time:.2f}s")
         return answer, relevant_docs
 
-    def generate_summary(self, documents: List[Document], max_context_length: int = 4000):
+    def generate_summary(
+        self, documents: List[Document], max_context_length: int = 4000
+    ):
         """
         生成文档摘要
 
@@ -433,7 +459,10 @@ class RAGSystem:
         return summary
 
     def extract_information(
-        self, documents: List[Document], extract_type: str, max_context_length: int = 4000
+        self,
+        documents: List[Document],
+        extract_type: str,
+        max_context_length: int = 4000,
     ):
         """
         从文档中提取信息
@@ -449,7 +478,9 @@ class RAGSystem:
         logger.info(f"Extracting {extract_type} from {len(documents)} documents")
 
         prompt = self.prompt_builder.build_extraction_prompt(
-            documents=documents, extract_type=extract_type, max_context_length=max_context_length
+            documents=documents,
+            extract_type=extract_type,
+            max_context_length=max_context_length,
         )
 
         result = self.llm_integration.generate(prompt)
@@ -537,7 +568,9 @@ class RAGSystem:
                 logger.info(f"Qdrant 向量存储已从服务器加载: {self.qdrant_url}")
             else:
                 if not os.path.exists(self.qdrant_persist_dir):
-                    raise ValueError(f"Qdrant 存储目录不存在: {self.qdrant_persist_dir}")
+                    raise ValueError(
+                        f"Qdrant 存储目录不存在: {self.qdrant_persist_dir}"
+                    )
 
                 client = QdrantClient(path=self.qdrant_persist_dir)
                 logger.info(f"Qdrant 向量存储已从 {self.qdrant_persist_dir} 加载")
@@ -677,7 +710,9 @@ class RAGSystem:
                     )
                 )
 
-            search_filter = rest.Filter(must=must_conditions) if must_conditions else None
+            search_filter = (
+                rest.Filter(must=must_conditions) if must_conditions else None
+            )
 
             results = self.vector_store.similarity_search_with_score(
                 query=query,
@@ -830,7 +865,9 @@ class RAGSystem:
                         match_count += 1
                     elif isinstance(doc_value, list) and value in doc_value:
                         match_count += 1
-                metadata_score = match_count / total_conditions if total_conditions > 0 else 1.0
+                metadata_score = (
+                    match_count / total_conditions if total_conditions > 0 else 1.0
+                )
 
             combined_score = alpha * vector_score + (1 - alpha) * metadata_score
             scored_results.append((doc, combined_score, vector_score, metadata_score))
@@ -892,14 +929,16 @@ class RAGSystem:
 
                 if source and source not in seen_sources:
                     seen_sources.add(source)
-                    documents.append({
-                        "id": str(point.id),
-                        "name": metadata.get("name", source),
-                        "description": metadata.get("description", ""),
-                        "tags": metadata.get("tags", []),
-                        "category": metadata.get("category", ""),
-                        "source": source,
-                    })
+                    documents.append(
+                        {
+                            "id": str(point.id),
+                            "name": metadata.get("name", source),
+                            "description": metadata.get("description", ""),
+                            "tags": metadata.get("tags", []),
+                            "category": metadata.get("category", ""),
+                            "source": source,
+                        }
+                    )
 
             return documents
         else:
@@ -925,7 +964,9 @@ def test_rag_system():
     # 创建测试文档
     with open(test_file, "w", encoding="utf-8") as f:
         f.write("LangChain 是一个用于开发基于语言模型的应用程序的框架。\n\n")
-        f.write("它提供了一系列工具和组件，使得开发者可以更轻松地构建复杂的 LLM 应用。\n\n")
+        f.write(
+            "它提供了一系列工具和组件，使得开发者可以更轻松地构建复杂的 LLM 应用。\n\n"
+        )
         f.write("LangChain 的主要组件包括：\n")
         f.write("1. 文档加载器：用于加载各种格式的文档\n")
         f.write("2. 文本分割器：用于将长文本分割为更小的片段\n")
@@ -957,14 +998,18 @@ def test_rag_system():
     relevant_docs = rag_system.retrieve_documents(query)
     print(f"检索到 {len(relevant_docs)} 个相关文档")
     for i, doc in enumerate(relevant_docs):
-        print(f"\n相关文档 {i+1}:")
-        print(doc.page_content[:100] + "..." if len(doc.page_content) > 100 else doc.page_content)
+        print(f"\n相关文档 {i + 1}:")
+        print(
+            doc.page_content[:100] + "..."
+            if len(doc.page_content) > 100
+            else doc.page_content
+        )
 
     # 测试带分数的检索
     print("\n5. 测试带分数的检索...")
     results_with_scores = rag_system.retrieve_documents_with_scores(query)
     for i, (doc, score) in enumerate(results_with_scores):
-        print(f"文档 {i+1} - 相似度分数: {score:.4f}")
+        print(f"文档 {i + 1} - 相似度分数: {score:.4f}")
         print(doc.page_content[:80] + "...")
 
     # 测试生成回答

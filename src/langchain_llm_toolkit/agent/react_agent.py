@@ -107,7 +107,9 @@ class ReActAgent(BaseAgent):
         """
         # 匹配 Thought: ... 直到下一个 Action: 或 Final Answer:
         match = re.search(
-            r"Thought:\s*(.*?)(?=Action:|Final Answer:|$)", text, re.DOTALL | re.IGNORECASE
+            r"Thought:\s*(.*?)(?=Action:|Final Answer:|$)",
+            text,
+            re.DOTALL | re.IGNORECASE,
         )
         if match:
             return match.group(1).strip()
@@ -124,7 +126,9 @@ class ReActAgent(BaseAgent):
             最终答案或 None
         """
         # 匹配 Final Answer: ...
-        match = re.search(r"Final Answer:\s*(.*?)(?=$)", text, re.DOTALL | re.IGNORECASE)
+        match = re.search(
+            r"Final Answer:\s*(.*?)(?=$)", text, re.DOTALL | re.IGNORECASE
+        )
         if match:
             return match.group(1).strip()
 
@@ -182,9 +186,9 @@ class ReActAgent(BaseAgent):
                 prompt = self._create_react_prompt(task, context)
 
                 if self.verbose:
-                    print(f"\n{'='*50}")
+                    print(f"\n{'=' * 50}")
                     print(f"Iteration {iteration + 1}")
-                    print(f"{'='*50}")
+                    print(f"{'=' * 50}")
                     print(f"Prompt:\n{prompt[:500]}...")
 
                 # 调用 LLM
@@ -221,7 +225,9 @@ class ReActAgent(BaseAgent):
                     if not self._has_final_answer(response):
                         # 尝试将响应作为最终答案
                         final_answer = response.strip()
-                        logger.info("No tool call found, using response as final answer")
+                        logger.info(
+                            "No tool call found, using response as final answer"
+                        )
 
                         step = AgentStep(
                             step_number=iteration + 1,

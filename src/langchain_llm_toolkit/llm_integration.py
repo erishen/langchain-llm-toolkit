@@ -7,7 +7,12 @@ import time
 from typing import Optional, Generator
 
 import requests
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_exponential,
+    retry_if_exception_type,
+)
 
 from langchain_llm_toolkit.config.settings import settings
 from langchain_llm_toolkit.logger import logger
@@ -22,6 +27,7 @@ from langchain_llm_toolkit.rate_limiter import RateLimiter
 
 def _get_litellm():
     import litellm
+
     return litellm
 
 
@@ -137,7 +143,9 @@ class LLMIntegration:
 
             # 检查缓存
             if self.enable_cache and self.cache:
-                cached_response = self.cache.get_response(prompt, self.model, self.temperature)
+                cached_response = self.cache.get_response(
+                    prompt, self.model, self.temperature
+                )
                 if cached_response:
                     logger.info(f"Cache hit for prompt: {prompt[:50]}...")
                     return cached_response

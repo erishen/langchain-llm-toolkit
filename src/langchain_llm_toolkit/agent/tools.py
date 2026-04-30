@@ -192,7 +192,9 @@ class FunctionTool(Tool):
 
         for param_name, param in sig.parameters.items():
             param_type = type_hints.get(param_name, str)
-            default = param.default if param.default != inspect.Parameter.empty else None
+            default = (
+                param.default if param.default != inspect.Parameter.empty else None
+            )
             required = param.default == inspect.Parameter.empty
 
             parameters.append(
