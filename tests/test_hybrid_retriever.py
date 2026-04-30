@@ -10,11 +10,19 @@ class TestBM25:
     @pytest.fixture
     def sample_documents(self):
         return [
-            Document(page_content="Python 是一种流行的编程语言，广泛用于数据科学和机器学习。"),
-            Document(page_content="JavaScript 是网页开发的主要语言，用于前端和后端开发。"),
-            Document(page_content="机器学习是人工智能的一个分支，使用算法从数据中学习。"),
+            Document(
+                page_content="Python 是一种流行的编程语言，广泛用于数据科学和机器学习。"
+            ),
+            Document(
+                page_content="JavaScript 是网页开发的主要语言，用于前端和后端开发。"
+            ),
+            Document(
+                page_content="机器学习是人工智能的一个分支，使用算法从数据中学习。"
+            ),
             Document(page_content="深度学习是机器学习的子领域，使用神经网络进行学习。"),
-            Document(page_content="自然语言处理是 AI 的重要应用，用于理解和生成人类语言。"),
+            Document(
+                page_content="自然语言处理是 AI 的重要应用，用于理解和生成人类语言。"
+            ),
         ]
 
     @pytest.fixture
@@ -74,9 +82,17 @@ class TestHybridRetriever:
     @pytest.fixture
     def sample_documents(self):
         return [
-            Document(page_content="Python 是一种流行的编程语言。", metadata={"source": "doc1.txt"}),
-            Document(page_content="JavaScript 用于网页开发。", metadata={"source": "doc2.txt"}),
-            Document(page_content="机器学习是 AI 的分支。", metadata={"source": "doc3.txt"}),
+            Document(
+                page_content="Python 是一种流行的编程语言。",
+                metadata={"source": "doc1.txt"},
+            ),
+            Document(
+                page_content="JavaScript 用于网页开发。",
+                metadata={"source": "doc2.txt"},
+            ),
+            Document(
+                page_content="机器学习是 AI 的分支。", metadata={"source": "doc3.txt"}
+            ),
         ]
 
     @pytest.fixture

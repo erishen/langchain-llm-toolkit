@@ -80,8 +80,10 @@ def import_documents(
 
             # 始终添加元数据（使用备用方法或 LLM）
             if generate_metadata and metadata_generator:
-                print(f"  生成元数据 (LLM)...")
-                documents = metadata_generator.generate_batch(documents, show_progress=False)
+                print("  生成元数据 (LLM)...")
+                documents = metadata_generator.generate_batch(
+                    documents, show_progress=False
+                )
             else:
                 documents = _add_fallback_metadata(documents)
 
@@ -123,7 +125,9 @@ def main():
         """,
     )
     parser.add_argument("docs_dir", help="文档目录路径")
-    parser.add_argument("patterns", nargs="*", default=["*.md"], help="文件模式 (默认: *.md)")
+    parser.add_argument(
+        "patterns", nargs="*", default=["*.md"], help="文件模式 (默认: *.md)"
+    )
     parser.add_argument(
         "--embedding-model",
         "-e",
@@ -131,7 +135,10 @@ def main():
         help="嵌入模型名称 (默认: snowflake-arctic-embed2)",
     )
     parser.add_argument(
-        "--llm-model", "-l", default="ollama/gemma4", help="LLM 模型名称 (默认: ollama/gemma4)"
+        "--llm-model",
+        "-l",
+        default="ollama/gemma4",
+        help="LLM 模型名称 (默认: ollama/gemma4)",
     )
     parser.add_argument(
         "--generate-metadata",

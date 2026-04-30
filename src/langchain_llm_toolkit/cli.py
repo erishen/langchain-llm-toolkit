@@ -23,7 +23,9 @@ current_temperature = settings.DEFAULT_TEMPERATURE
 def generate(
     prompt: str,
     model: Optional[str] = typer.Option(None, "--model", "-m", help="指定模型"),
-    temperature: Optional[float] = typer.Option(None, "--temperature", "-t", help="温度参数"),
+    temperature: Optional[float] = typer.Option(
+        None, "--temperature", "-t", help="温度参数"
+    ),
 ):
     """生成文本响应"""
     llm = LLMIntegration()
@@ -47,7 +49,9 @@ def generate(
 @app.command()
 def chat(
     model: Optional[str] = typer.Option(None, "--model", "-m", help="指定模型"),
-    temperature: Optional[float] = typer.Option(None, "--temperature", "-t", help="温度参数"),
+    temperature: Optional[float] = typer.Option(
+        None, "--temperature", "-t", help="温度参数"
+    ),
 ):
     """进入聊天模式"""
     conversation_manager = ConversationManager()
@@ -127,7 +131,10 @@ def list_models():
     typer.echo("  - ollama/deepseek-v3")
     typer.echo("  - ollama/deepseek-r1")
 
-    typer.echo("\n当前默认模型: " + typer.style(current_model, fg=typer.colors.GREEN, bold=True))
+    typer.echo(
+        "\n当前默认模型: "
+        + typer.style(current_model, fg=typer.colors.GREEN, bold=True)
+    )
 
 
 @model_app.command("set")
@@ -135,7 +142,9 @@ def set_model(model: str):
     """设置默认模型"""
     global current_model
     current_model = model
-    typer.echo(f"默认模型已设置为: {typer.style(model, fg=typer.colors.GREEN, bold=True)}")
+    typer.echo(
+        f"默认模型已设置为: {typer.style(model, fg=typer.colors.GREEN, bold=True)}"
+    )
 
 
 @temperature_app.command("set")
@@ -143,13 +152,17 @@ def set_temperature(temperature: float):
     """设置温度参数"""
     global current_temperature
     current_temperature = temperature
-    typer.echo(f"温度参数已设置为: {typer.style(str(temperature), fg=typer.colors.GREEN, bold=True)}")
+    typer.echo(
+        f"温度参数已设置为: {typer.style(str(temperature), fg=typer.colors.GREEN, bold=True)}"
+    )
 
 
 @temperature_app.command("get")
 def get_temperature():
     """获取当前温度参数"""
-    typer.echo(f"当前温度参数: {typer.style(str(current_temperature), fg=typer.colors.GREEN, bold=True)}")
+    typer.echo(
+        f"当前温度参数: {typer.style(str(current_temperature), fg=typer.colors.GREEN, bold=True)}"
+    )
 
 
 if __name__ == "__main__":

@@ -132,7 +132,11 @@ class TextSplitter:
         return all_chunks
 
     def split_text(
-        self, text: str, chunk_size: int = 1000, chunk_overlap: int = 200, method: str = "recursive"
+        self,
+        text: str,
+        chunk_size: int = 1000,
+        chunk_overlap: int = 200,
+        method: str = "recursive",
     ) -> List[str]:
         """分割文本为更小的片段
 

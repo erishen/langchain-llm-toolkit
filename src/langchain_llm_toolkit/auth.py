@@ -133,14 +133,18 @@ class AuthStore:
 
     def get_user(self, user_id: str) -> Optional[User]:
         with self._get_connection() as conn:
-            row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM users WHERE id = ?", (user_id,)
+            ).fetchone()
             if row:
                 return self._row_to_user(row)
         return None
 
     def get_user_by_username(self, username: str) -> Optional[User]:
         with self._get_connection() as conn:
-            row = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+            row = conn.execute(
+                "SELECT * FROM users WHERE username = ?", (username,)
+            ).fetchone()
             if row:
                 return self._row_to_user(row)
         return None
@@ -188,7 +192,8 @@ class AuthStore:
     def get_api_key_by_hash(self, key_hash: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute(
-                "SELECT * FROM api_keys WHERE key_hash = ? AND is_active = 1", (key_hash,)
+                "SELECT * FROM api_keys WHERE key_hash = ? AND is_active = 1",
+                (key_hash,),
             ).fetchone()
             if row:
                 import ast
@@ -233,7 +238,9 @@ class AuthStore:
 
     def revoke_api_key(self, key_id: str) -> bool:
         with self._get_connection() as conn:
-            conn.execute("UPDATE api_keys SET is_active = 0 WHERE key_id = ?", (key_id,))
+            conn.execute(
+                "UPDATE api_keys SET is_active = 0 WHERE key_id = ?", (key_id,)
+            )
             conn.commit()
         return True
 
@@ -247,7 +254,9 @@ class JWTHandler:
         algorithm: str = "HS256",
         access_token_expire_minutes: int = 30,
     ):
-        self.secret_key = secret_key or os.environ.get("JWT_SECRET_KEY", secrets.token_urlsafe(32))
+        self.secret_key = secret_key or os.environ.get(
+            "JWT_SECRET_KEY", secrets.token_urlsafe(32)
+        )
         self.algorithm = algorithm
         self.access_token_expire_minutes = access_token_expire_minutes
 
@@ -266,7 +275,9 @@ class JWTHandler:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
+            expire = datetime.utcnow() + timedelta(
+                minutes=self.access_token_expire_minutes
+            )
 
         payload = {
             "sub": user_id,
@@ -307,7 +318,9 @@ class PasswordHandler:
         import hashlib
 
         salt = secrets.token_hex(16)
-        hash_value = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100000).hex()
+        hash_value = hashlib.pbkdf2_hmac(
+            "sha256", password.encode(), salt.encode(), 100000
+        ).hex()
         return f"{salt}:{hash_value}"
 
     @staticmethod
@@ -316,7 +329,9 @@ class PasswordHandler:
 
         try:
             salt, hash_value = hashed_password.split(":")
-            new_hash = hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100000).hex()
+            new_hash = hashlib.pbkdf2_hmac(
+                "sha256", password.encode(), salt.encode(), 100000
+            ).hex()
             return new_hash == hash_value
         except ValueError:
             return False
@@ -452,7 +467,9 @@ def require_scopes(required_scopes: List[str]):
 
         if not required.issubset(user_scopes):
             missing = required - user_scopes
-            raise HTTPException(status_code=403, detail=f"缺少权限: {', '.join(missing)}")
+            raise HTTPException(
+                status_code=403, detail=f"缺少权限: {', '.join(missing)}"
+            )
         return current_user
 
     return decorator

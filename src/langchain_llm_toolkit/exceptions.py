@@ -1,4 +1,5 @@
 """自定义异常类"""
+
 from typing import Optional, Any
 
 
@@ -88,7 +89,11 @@ class EmbeddingError(LLMToolkitError):
         message = "Embedding 生成失败"
         details = reason
         if text_length:
-            details = f"文本长度: {text_length}. {reason}" if reason else f"文本长度: {text_length}"
+            details = (
+                f"文本长度: {text_length}. {reason}"
+                if reason
+                else f"文本长度: {text_length}"
+            )
         super().__init__(message, details)
 
 

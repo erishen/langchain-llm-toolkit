@@ -30,7 +30,9 @@ class TestOllamaEmbeddingsWrapper(unittest.TestCase):
             from langchain_llm_toolkit.rag import OllamaEmbeddingsWrapper
 
             wrapper = OllamaEmbeddingsWrapper(
-                model="snowflake-arctic-embed2", base_url="http://custom:11434", num_ctx=4096
+                model="snowflake-arctic-embed2",
+                base_url="http://custom:11434",
+                num_ctx=4096,
             )
 
             self.assertEqual(wrapper.model, "snowflake-arctic-embed2")
@@ -180,10 +182,12 @@ class TestRAGSystemRerank(unittest.TestCase):
         self.rag = RAGSystem()
         self.docs = [
             Document(
-                page_content="Python is a programming language", metadata={"source": "doc1.txt"}
+                page_content="Python is a programming language",
+                metadata={"source": "doc1.txt"},
             ),
             Document(
-                page_content="Java is also a programming language", metadata={"source": "doc2.txt"}
+                page_content="Java is also a programming language",
+                metadata={"source": "doc2.txt"},
             ),
             Document(
                 page_content="JavaScript is used for web development",
@@ -235,7 +239,9 @@ class TestRAGSystemGenerateSummary(unittest.TestCase):
         rag = RAGSystem()
         rag.llm_integration = mock_llm
 
-        docs = [Document(page_content="Long content here", metadata={"source": "test.txt"})]
+        docs = [
+            Document(page_content="Long content here", metadata={"source": "test.txt"})
+        ]
         result = rag.generate_summary(docs)
 
         self.assertEqual(result, "This is a summary")
@@ -259,7 +265,10 @@ class TestRAGSystemExtractInformation(unittest.TestCase):
         rag.llm_integration = mock_llm
 
         docs = [
-            Document(page_content="Document with key information", metadata={"source": "test.txt"})
+            Document(
+                page_content="Document with key information",
+                metadata={"source": "test.txt"},
+            )
         ]
         result = rag.extract_information(docs, "key information")
 

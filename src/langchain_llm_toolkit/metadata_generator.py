@@ -5,7 +5,6 @@ Document Metadata Generator.
 
 import json
 import re
-from typing import Optional
 
 from langchain_core.documents import Document
 from langchain_llm_toolkit.llm_integration import LLMIntegration
@@ -167,11 +166,30 @@ class DocumentMetadataGenerator:
     def _extract_tags_from_content(self, content: str) -> list:
         """从内容中提取标签"""
         keywords = [
-            "IRR", "收益率", "投资", "股票", "基金", "REITs",
-            "Python", "TypeScript", "JavaScript", "React", "Vue",
-            "机器学习", "ML", "AI", "LLM", "RAG",
-            "职业", "面试", "简历", "LinkedIn",
-            "财务", "资产", "收益", "风险",
+            "IRR",
+            "收益率",
+            "投资",
+            "股票",
+            "基金",
+            "REITs",
+            "Python",
+            "TypeScript",
+            "JavaScript",
+            "React",
+            "Vue",
+            "机器学习",
+            "ML",
+            "AI",
+            "LLM",
+            "RAG",
+            "职业",
+            "面试",
+            "简历",
+            "LinkedIn",
+            "财务",
+            "资产",
+            "收益",
+            "风险",
         ]
 
         found_tags = []
@@ -246,7 +264,7 @@ class DocumentMetadataGenerator:
         for i, doc in enumerate(documents):
             if show_progress:
                 source = doc.metadata.get("source", "unknown")
-                print(f"  [{i+1}/{len(documents)}] 生成元数据: {source}")
+                print(f"  [{i + 1}/{len(documents)}] 生成元数据: {source}")
 
             metadata = self.generate_metadata(doc, max_content_length)
 

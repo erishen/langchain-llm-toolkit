@@ -50,7 +50,7 @@ def test_text_splitter():
         chunks = splitter.split_text(test_text, chunk_size=100, chunk_overlap=20)
         print(f"成功分割文本，获取到 {len(chunks)} 个片段")
         for i, chunk in enumerate(chunks[:3]):  # 只显示前3个片段
-            print(f"片段 {i+1}: {chunk[:50]}...")
+            print(f"片段 {i + 1}: {chunk[:50]}...")
     except Exception as e:
         print(f"分割文本失败: {e}")
 
@@ -74,12 +74,14 @@ def test_complete_document_processing():
 
         # 分割文档
         splitter = TextSplitter()
-        split_docs = splitter.split_documents(documents, chunk_size=150, chunk_overlap=30)
+        split_docs = splitter.split_documents(
+            documents, chunk_size=150, chunk_overlap=30
+        )
         print(f"成功分割文档，获取到 {len(split_docs)} 个片段")
 
         # 显示分割结果
         for i, doc in enumerate(split_docs[:2]):  # 只显示前2个片段
-            print(f"片段 {i+1} 长度: {len(doc.page_content)}")
+            print(f"片段 {i + 1} 长度: {len(doc.page_content)}")
             print(f"内容: {doc.page_content[:100]}...")
     except Exception as e:
         print(f"文档处理失败: {e}")

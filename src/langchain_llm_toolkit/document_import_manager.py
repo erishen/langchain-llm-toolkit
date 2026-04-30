@@ -4,14 +4,12 @@ Document Import Manager - 文档导入管理器
 """
 
 import os
-import logging
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from langchain_core.documents import Document
 from langchain_llm_toolkit.document_loader import DocumentLoader
 from langchain_llm_toolkit.logger import logger
 
@@ -19,6 +17,7 @@ from langchain_llm_toolkit.logger import logger
 @dataclass
 class ImportResult:
     """导入结果"""
+
     file_path: str
     success: bool
     documents_count: int = 0
@@ -29,6 +28,7 @@ class ImportResult:
 @dataclass
 class ImportReport:
     """导入报告"""
+
     total_files: int = 0
     successful_files: int = 0
     failed_files: int = 0
@@ -70,7 +70,7 @@ class DocumentImportManager:
     def import_file(self, file_path: str) -> ImportResult:
         """导入单个文件"""
         start_time = datetime.now()
-        
+
         try:
             if not os.path.exists(file_path):
                 return ImportResult(
@@ -88,11 +88,11 @@ class DocumentImportManager:
                 )
 
             documents = self.loader.load_document(file_path)
-            
+
             processing_time = (datetime.now() - start_time).total_seconds()
-            
+
             logger.info(f"导入文件成功: {file_path} ({len(documents)} 个文档)")
-            
+
             return ImportResult(
                 file_path=file_path,
                 success=True,
@@ -120,12 +120,14 @@ class DocumentImportManager:
 
         if parallel and len(file_paths) > 1:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                futures = {executor.submit(self.import_file, fp): fp for fp in file_paths}
-                
+                futures = {
+                    executor.submit(self.import_file, fp): fp for fp in file_paths
+                }
+
                 for future in as_completed(futures):
                     result = future.result()
                     report.results.append(result)
-                    
+
                     if result.success:
                         report.successful_files += 1
                         report.total_documents += result.documents_count
@@ -137,7 +139,7 @@ class DocumentImportManager:
             for file_path in file_paths:
                 result = self.import_file(file_path)
                 report.results.append(result)
-                
+
                 if result.success:
                     report.successful_files += 1
                     report.total_documents += result.documents_count
@@ -147,12 +149,12 @@ class DocumentImportManager:
                         report.errors.append(f"{result.file_path}: {result.error}")
 
         report.processing_time = (datetime.now() - start_time).total_seconds()
-        
+
         logger.info(
             f"批量导入完成: {report.successful_files}/{report.total_files} 成功, "
             f"{report.total_documents} 个文档, {report.processing_time:.2f}s"
         )
-        
+
         return report
 
     def import_directory(
@@ -163,7 +165,7 @@ class DocumentImportManager:
     ) -> ImportReport:
         """导入目录中的所有文档"""
         directory_path = Path(directory)
-        
+
         if not directory_path.exists():
             return ImportReport(
                 total_files=0,
@@ -188,7 +190,7 @@ class DocumentImportManager:
 
             relative_path = file_path.relative_to(directory_path)
             should_exclude = False
-            
+
             for pattern in exclude_patterns:
                 if pattern in str(relative_path):
                     should_exclude = True
@@ -198,7 +200,7 @@ class DocumentImportManager:
                 file_paths.append(str(file_path))
 
         logger.info(f"发现 {len(file_paths)} 个文档文件在 {directory}")
-        
+
         return self.import_files(file_paths, parallel=True)
 
     def scan_directory(
@@ -208,7 +210,7 @@ class DocumentImportManager:
     ) -> dict:
         """扫描目录，返回文档统计"""
         directory_path = Path(directory)
-        
+
         if not directory_path.exists():
             return {"error": f"目录不存在: {directory}"}
 
@@ -233,24 +235,26 @@ class DocumentImportManager:
                 continue
 
             file_size = file_path.stat().st_size
-            
+
             stats["total_files"] += 1
             stats["total_size"] += file_size
-            
+
             if file_ext not in stats["by_extension"]:
                 stats["by_extension"][file_ext] = {"count": 0, "size": 0}
-            
+
             stats["by_extension"][file_ext]["count"] += 1
             stats["by_extension"][file_ext]["size"] += file_size
-            
-            stats["files"].append({
-                "path": str(file_path),
-                "extension": file_ext,
-                "size": file_size,
-            })
+
+            stats["files"].append(
+                {
+                    "path": str(file_path),
+                    "extension": file_ext,
+                    "size": file_size,
+                }
+            )
 
         stats["total_size_mb"] = round(stats["total_size"] / (1024 * 1024), 2)
-        
+
         return stats
 
     def get_supported_extensions(self) -> list[str]:
