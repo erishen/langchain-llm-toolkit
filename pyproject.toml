@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "investkit-shared @ file:///${PROJECT_ROOT}/../shared",
+    "investkit-utils @ file:///${PROJECT_ROOT}/../investkit_utils",
     "langchain>=0.3.0",
     "langchain-core>=0.3.0",
     "langchain-community>=0.3.0",
