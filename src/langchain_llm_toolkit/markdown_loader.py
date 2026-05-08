@@ -233,26 +233,18 @@ class MarkdownLoader:
 
     def _extract_links(self, content: str) -> List[Dict[str, str]]:
         """提取链接"""
-        links = []
-        for match in self.LINK_PATTERN.finditer(content):
-            links.append(
-                {
-                    "text": match.group(1),
-                    "url": match.group(2),
-                }
-            )
+        links = [
+            {"text": match.group(1), "url": match.group(2)}
+            for match in self.LINK_PATTERN.finditer(content)
+        ]
         return links[:20]
 
     def _extract_images(self, content: str) -> List[Dict[str, str]]:
         """提取图片"""
-        images = []
-        for match in self.IMAGE_PATTERN.finditer(content):
-            images.append(
-                {
-                    "alt": match.group(1),
-                    "url": match.group(2),
-                }
-            )
+        images = [
+            {"alt": match.group(1), "url": match.group(2)}
+            for match in self.IMAGE_PATTERN.finditer(content)
+        ]
         return images[:10]
 
     def get_document_outline(self, content: str) -> List[Dict[str, Any]]:

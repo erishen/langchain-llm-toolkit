@@ -185,22 +185,21 @@ class ConversationStore:
                 (limit, offset),
             ).fetchall()
 
-            conversations = []
-            for row in rows:
-                conversations.append(
-                    Conversation(
-                        id=row["id"],
-                        title=row["title"],
-                        messages=[
-                            Message.from_dict(m) for m in json.loads(row["messages"])
-                        ],
-                        created_at=row["created_at"],
-                        updated_at=row["updated_at"],
-                        metadata=json.loads(row["metadata"])
-                        if row["metadata"]
-                        else None,
-                    )
+            conversations = [
+                Conversation(
+                    id=row["id"],
+                    title=row["title"],
+                    messages=[
+                        Message.from_dict(m) for m in json.loads(row["messages"])
+                    ],
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                    metadata=json.loads(row["metadata"])
+                    if row["metadata"]
+                    else None,
                 )
+                for row in rows
+            ]
         return conversations
 
     def delete_conversation(self, conversation_id: str) -> bool:
@@ -223,22 +222,21 @@ class ConversationStore:
                 (f"%{query}%", f"%{query}%", limit),
             ).fetchall()
 
-            conversations = []
-            for row in rows:
-                conversations.append(
-                    Conversation(
-                        id=row["id"],
-                        title=row["title"],
-                        messages=[
-                            Message.from_dict(m) for m in json.loads(row["messages"])
-                        ],
-                        created_at=row["created_at"],
-                        updated_at=row["updated_at"],
-                        metadata=json.loads(row["metadata"])
-                        if row["metadata"]
-                        else None,
-                    )
+            conversations = [
+                Conversation(
+                    id=row["id"],
+                    title=row["title"],
+                    messages=[
+                        Message.from_dict(m) for m in json.loads(row["messages"])
+                    ],
+                    created_at=row["created_at"],
+                    updated_at=row["updated_at"],
+                    metadata=json.loads(row["metadata"])
+                    if row["metadata"]
+                    else None,
                 )
+                for row in rows
+            ]
         return conversations
 
     def get_stats(self) -> Dict[str, Any]:
