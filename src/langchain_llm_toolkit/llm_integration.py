@@ -330,9 +330,7 @@ class LLMIntegration:
         url = f"{self.ollama_base_url}/api/chat"
 
         # 转换 messages 格式
-        ollama_messages = []
-        for msg in messages:
-            ollama_messages.append({"role": msg["role"], "content": msg["content"]})
+        ollama_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
 
         data = {
             "model": ollama_model,

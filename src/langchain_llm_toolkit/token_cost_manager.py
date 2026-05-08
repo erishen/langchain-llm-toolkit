@@ -105,7 +105,7 @@ class TokenCounter:
         total = 0
         for msg in messages:
             total += 4
-            for key, value in msg.items():
+            for value in msg.values():
                 if isinstance(value, str):
                     total += self.count_tokens(value, model)
                 elif isinstance(value, list):
@@ -251,7 +251,7 @@ class TokenCostManager:
         if report.total_cost > 10:
             tips.append("💰 成本较高，建议使用本地模型 (Ollama) 或 DeepSeek")
 
-        for model, stats in report.by_model.items():
+        for model in report.by_model:
             pricing = self.cost_estimator.get_model_pricing(model)
             if pricing and pricing.input_price > 5:
                 tips.append(
