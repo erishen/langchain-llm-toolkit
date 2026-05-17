@@ -3,15 +3,16 @@
 展示如何使用 langchain-llm-toolkit 的 Agent 功能
 """
 
+from typing import ClassVar
+
 from langchain_llm_toolkit.agent import (
+    CalculatorTool,
+    DateTimeTool,
     ReActAgent,
     Tool,
     ToolParameter,
-    CalculatorTool,
-    DateTimeTool,
     get_all_builtin_tools,
 )
-
 
 # ========== 示例 1: 使用内置工具 ==========
 
@@ -54,7 +55,7 @@ def example_custom_tool():
 
         name = "greeting"
         description = "Generate a greeting message"
-        parameters = [
+        parameters: ClassVar[list[ToolParameter]] = [
             ToolParameter(
                 name="name",
                 type=str,
@@ -153,9 +154,9 @@ def example_tool_registry():
     print("=" * 60)
 
     from langchain_llm_toolkit.agent import (
-        ToolRegistry,
         CalculatorTool,
         DateTimeTool,
+        ToolRegistry,
     )
 
     # 创建注册表

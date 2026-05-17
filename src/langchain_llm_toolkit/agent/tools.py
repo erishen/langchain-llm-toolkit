@@ -1,10 +1,12 @@
 """Agent 工具系统 - 提供标准化的工具定义和注册机制"""
 
-from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Type, get_type_hints
-from pydantic import BaseModel, Field
-from dataclasses import dataclass
 import inspect
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any, ClassVar, get_type_hints
+
+from pydantic import BaseModel, Field
 
 from langchain_llm_toolkit.logger import logger
 
@@ -14,7 +16,7 @@ class ToolParameter:
     """工具参数定义"""
 
     name: str
-    type: Type
+    type: type
     description: str
     required: bool = True
     default: Any = None
@@ -25,7 +27,7 @@ class ToolResult(BaseModel):
 
     success: bool = Field(..., description="是否成功")
     result: Any = Field(None, description="执行结果")
-    error: Optional[str] = Field(None, description="错误信息")
+    error: str | None = Field(None, description="错误信息")
 
 
 class Tool(ABC):
@@ -36,7 +38,7 @@ class Tool(ABC):
 
     name: str = ""
     description: str = ""
-    parameters: List[ToolParameter] = []
+    parameters: ClassVar[list[ToolParameter]] = []
 
     def __init__(self):
         if not self.name:
@@ -80,7 +82,7 @@ class Tool(ABC):
             logger.error(f"Tool {self.name} execution failed: {e}")
             return ToolResult(success=False, error=str(e))
 
-    def _validate_parameters(self, kwargs: Dict[str, Any]) -> None:
+    def _validate_parameters(self, kwargs: dict[str, Any]) -> None:
         """
         验证参数
 
@@ -104,9 +106,9 @@ class Tool(ABC):
                     raise ValueError(
                         f"Parameter '{param.name}' should be of type {param.type.__name__}, "
                         f"got {type(value).__name__}"
-                    )
+                    ) from None
 
-    def get_schema(self) -> Dict[str, Any]:
+    def get_schema(self) -> dict[str, Any]:
         """
         获取工具的模式定义（用于 OpenAI function calling）
 
@@ -158,8 +160,8 @@ class FunctionTool(Tool):
     def __init__(
         self,
         func: Callable,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
     ):
         """
         初始化函数工具
@@ -176,7 +178,7 @@ class FunctionTool(Tool):
         # 从函数签名提取参数
         self.parameters = self._extract_parameters(func)
 
-    def _extract_parameters(self, func: Callable) -> List[ToolParameter]:
+    def _extract_parameters(self, func: Callable) -> list[ToolParameter]:
         """
         从函数签名提取参数定义
 
@@ -221,7 +223,7 @@ class ToolRegistry:
     """
 
     def __init__(self):
-        self._tools: Dict[str, Tool] = {}
+        self._tools: dict[str, Tool] = {}
         logger.info("Initialized ToolRegistry")
 
     def register(self, tool: Tool) -> None:
@@ -236,10 +238,10 @@ class ToolRegistry:
 
     def register_function(
         self,
-        func: Optional[Callable] = None,
+        func: Callable | None = None,
         *,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
     ) -> Callable:
         """
         注册函数为工具（可作为装饰器使用）
@@ -273,7 +275,7 @@ class ToolRegistry:
             del self._tools[name]
             logger.info(f"Unregistered tool: {name}")
 
-    def get(self, name: str) -> Optional[Tool]:
+    def get(self, name: str) -> Tool | None:
         """
         获取工具
 
@@ -285,7 +287,7 @@ class ToolRegistry:
         """
         return self._tools.get(name)
 
-    def list_tools(self) -> List[str]:
+    def list_tools(self) -> list[str]:
         """
         列出所有工具名称
 
@@ -294,7 +296,7 @@ class ToolRegistry:
         """
         return list(self._tools.keys())
 
-    def get_all_tools(self) -> List[Tool]:
+    def get_all_tools(self) -> list[Tool]:
         """
         获取所有工具
 
@@ -303,7 +305,7 @@ class ToolRegistry:
         """
         return list(self._tools.values())
 
-    def get_schemas(self) -> List[Dict[str, Any]]:
+    def get_schemas(self) -> list[dict[str, Any]]:
         """
         获取所有工具的 schema
 
@@ -363,20 +365,20 @@ def register_tool(tool: Tool) -> None:
 
 
 def register_function(
-    func: Optional[Callable] = None,
+    func: Callable | None = None,
     *,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
+    name: str | None = None,
+    description: str | None = None,
 ) -> Callable:
     """在全局注册表中注册函数"""
     return _global_registry.register_function(func, name=name, description=description)
 
 
-def get_tool(name: str) -> Optional[Tool]:
+def get_tool(name: str) -> Tool | None:
     """从全局注册表获取工具"""
     return _global_registry.get(name)
 
 
-def list_tools() -> List[str]:
+def list_tools() -> list[str]:
     """列出全局注册表中的所有工具"""
     return _global_registry.list_tools()

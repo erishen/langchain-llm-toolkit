@@ -4,11 +4,11 @@ Document Import Manager - 文档导入管理器
 """
 
 import os
-from pathlib import Path
-from dataclasses import dataclass, field
-from typing import Optional
-from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import ClassVar
 
 from langchain_llm_toolkit.document_loader import DocumentLoader
 from langchain_llm_toolkit.logger import logger
@@ -21,7 +21,7 @@ class ImportResult:
     file_path: str
     success: bool
     documents_count: int = 0
-    error: Optional[str] = None
+    error: str | None = None
     processing_time: float = 0.0
 
 
@@ -53,11 +53,11 @@ class ImportReport:
 class DocumentImportManager:
     """文档导入管理器"""
 
-    SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".md", ".docx"}
+    SUPPORTED_EXTENSIONS: ClassVar[set[str]] = {".pdf", ".txt", ".md", ".docx"}
 
     def __init__(
         self,
-        document_loader: Optional[DocumentLoader] = None,
+        document_loader: DocumentLoader | None = None,
         max_workers: int = 4,
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
@@ -161,7 +161,7 @@ class DocumentImportManager:
         self,
         directory: str,
         recursive: bool = True,
-        exclude_patterns: Optional[list[str]] = None,
+        exclude_patterns: list[str] | None = None,
     ) -> ImportReport:
         """导入目录中的所有文档"""
         directory_path = Path(directory)
@@ -175,10 +175,7 @@ class DocumentImportManager:
         exclude_patterns = exclude_patterns or []
         file_paths = []
 
-        if recursive:
-            pattern = "**/*"
-        else:
-            pattern = "*"
+        pattern = "**/*" if recursive else "*"
 
         for file_path in directory_path.glob(pattern):
             if not file_path.is_file():
@@ -221,10 +218,7 @@ class DocumentImportManager:
             "files": [],
         }
 
-        if recursive:
-            pattern = "**/*"
-        else:
-            pattern = "*"
+        pattern = "**/*" if recursive else "*"
 
         for file_path in directory_path.glob(pattern):
             if not file_path.is_file():

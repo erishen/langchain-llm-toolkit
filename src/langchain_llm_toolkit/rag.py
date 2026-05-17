@@ -1,17 +1,19 @@
-from typing import List, Optional, Union
-from langchain_core.documents import Document
-from langchain_community.vectorstores import FAISS, Qdrant
-from langchain_openai import OpenAIEmbeddings
-from langchain_core.embeddings import Embeddings
-from qdrant_client import QdrantClient
-from langchain_llm_toolkit.document_loader import DocumentLoader
-from langchain_llm_toolkit.text_splitter import TextSplitter
-from langchain_llm_toolkit.llm_integration import LLMIntegration
-from langchain_llm_toolkit.prompt_templates import RAGPromptBuilder, PromptTemplateType
-from langchain_llm_toolkit.logger import logger
-import os
 import hashlib
+import os
 from datetime import datetime, timedelta
+from typing import ClassVar
+
+from langchain_community.vectorstores import FAISS, Qdrant
+from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
+from langchain_openai import OpenAIEmbeddings
+from qdrant_client import QdrantClient
+
+from langchain_llm_toolkit.document_loader import DocumentLoader
+from langchain_llm_toolkit.llm_integration import LLMIntegration
+from langchain_llm_toolkit.logger import logger
+from langchain_llm_toolkit.prompt_templates import PromptTemplateType, RAGPromptBuilder
+from langchain_llm_toolkit.text_splitter import TextSplitter
 
 
 class QueryCache:
@@ -25,7 +27,7 @@ class QueryCache:
     def _hash_query(self, query: str, k: int) -> str:
         return hashlib.md5(f"{query}:{k}".encode()).hexdigest()
 
-    def get(self, query: str, k: int) -> Optional[List[Document]]:
+    def get(self, query: str, k: int) -> list[Document] | None:
         key = self._hash_query(query, k)
         if key in self._cache:
             entry = self._cache[key]
@@ -36,7 +38,7 @@ class QueryCache:
                 del self._cache[key]
         return None
 
-    def set(self, query: str, k: int, docs: List[Document]):
+    def set(self, query: str, k: int, docs: list[Document]):
         if len(self._cache) >= self._max_size:
             oldest = min(self._cache.items(), key=lambda x: x[1]["time"])
             del self._cache[oldest[0]]
@@ -53,7 +55,7 @@ class QueryCache:
 class OllamaEmbeddingsWrapper(Embeddings):
     """Ollama Embeddings 包装器 - 解决版本兼容问题"""
 
-    MODELS_NEED_NUM_CTX = {"nomic-embed-text"}
+    MODELS_NEED_NUM_CTX: ClassVar[set[str]] = {"nomic-embed-text"}
 
     def __init__(
         self,
@@ -70,9 +72,9 @@ class OllamaEmbeddingsWrapper(Embeddings):
 
             self._client = ollama.Client(host=base_url)
         except ImportError:
-            raise ImportError("请安装 ollama: pip install ollama")
+            raise ImportError("请安装 ollama: pip install ollama") from None
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """嵌入多个文档"""
         embeddings = []
         for text in texts:
@@ -85,7 +87,7 @@ class OllamaEmbeddingsWrapper(Embeddings):
             embeddings.append(response["embedding"])
         return embeddings
 
-    def embed_query(self, text: str) -> List[float]:
+    def embed_query(self, text: str) -> list[float]:
         """嵌入查询"""
         if self._use_options:
             response = self._client.embeddings(
@@ -103,12 +105,12 @@ class RAGSystem:
         embedding_type: str = "ollama",
         embedding_model: str = "snowflake-arctic-embed2",
         llm_model: str = "ollama/gemma4",
-        qdrant_persist_dir: Optional[str] = None,
-        faiss_persist_dir: Optional[str] = None,
-        collection_name: Optional[str] = None,
+        qdrant_persist_dir: str | None = None,
+        faiss_persist_dir: str | None = None,
+        collection_name: str | None = None,
         timeout: int = 120,
-        qdrant_url: Optional[str] = None,
-        qdrant_api_key: Optional[str] = None,
+        qdrant_url: str | None = None,
+        qdrant_api_key: str | None = None,
     ):
         """
         初始化 RAG 系统
@@ -129,8 +131,8 @@ class RAGSystem:
         self.text_splitter = TextSplitter()
         self.llm_integration = LLMIntegration(timeout=timeout)
         self.llm_integration.set_model(llm_model)
-        self.vector_store: Optional[Union[FAISS, Qdrant]] = None
-        self.embeddings: Optional[Embeddings] = None
+        self.vector_store: FAISS | Qdrant | None = None
+        self.embeddings: Embeddings | None = None
         self.vector_store_type = vector_store_type.lower()
         self.embedding_type = embedding_type.lower()
         self.embedding_model = embedding_model
@@ -174,7 +176,7 @@ class RAGSystem:
             logger.info("Using OpenAI embeddings")
         return self.embeddings
 
-    def create_vector_store(self, documents: List[Document]):
+    def create_vector_store(self, documents: list[Document]):
         """创建向量存储"""
         if not self.embeddings:
             self.setup_embeddings()
@@ -193,7 +195,7 @@ class RAGSystem:
 
         return self.vector_store
 
-    def _create_qdrant_store(self, documents: List[Document]):
+    def _create_qdrant_store(self, documents: list[Document]):
         """创建 Qdrant 向量存储"""
         assert self.embeddings is not None, "Embeddings must be initialized"
 
@@ -230,7 +232,7 @@ class RAGSystem:
 
         return vector_store
 
-    def _create_faiss_store(self, documents: List[Document]):
+    def _create_faiss_store(self, documents: list[Document]):
         """创建 FAISS 向量存储"""
         # 确保 embeddings 已初始化
         assert self.embeddings is not None, "Embeddings must be initialized"
@@ -240,7 +242,7 @@ class RAGSystem:
         )
         return vector_store
 
-    def add_documents(self, documents: List[Document]):
+    def add_documents(self, documents: list[Document]):
         """向向量存储添加文档"""
         if not self.vector_store:
             raise ValueError("向量存储未初始化，请先调用 create_vector_store")
@@ -321,8 +323,8 @@ class RAGSystem:
         return results[:k]
 
     def rerank_documents(
-        self, query: str, documents: List[Document], top_k: int = 3
-    ) -> List[Document]:
+        self, query: str, documents: list[Document], top_k: int = 3
+    ) -> list[Document]:
         """重排序文档 - 使用 LLM 对检索结果进行重排序
 
         Args:
@@ -392,7 +394,8 @@ class RAGSystem:
             (回答, 相关文档列表)
         """
         import time
-        from langchain_llm_toolkit.performance import query_cache, performance_monitor
+
+        from langchain_llm_toolkit.performance import performance_monitor, query_cache
 
         start_time = time.time()
 
@@ -436,7 +439,7 @@ class RAGSystem:
         return answer, relevant_docs
 
     def generate_summary(
-        self, documents: List[Document], max_context_length: int = 4000
+        self, documents: list[Document], max_context_length: int = 4000
     ):
         """
         生成文档摘要
@@ -460,7 +463,7 @@ class RAGSystem:
 
     def extract_information(
         self,
-        documents: List[Document],
+        documents: list[Document],
         extract_type: str,
         max_context_length: int = 4000,
     ):
@@ -487,7 +490,7 @@ class RAGSystem:
         logger.info("Information extracted successfully")
         return result
 
-    def load_and_process_documents(self, file_paths: List[str], parallel: bool = True):
+    def load_and_process_documents(self, file_paths: list[str], parallel: bool = True):
         """加载和处理文档
 
         Args:
@@ -520,7 +523,7 @@ class RAGSystem:
                 all_docs.extend(docs)
             return all_docs
 
-    def save_vector_store(self, file_path: Optional[str] = None):
+    def save_vector_store(self, file_path: str | None = None):
         """保存向量存储
 
         Args:
@@ -540,7 +543,7 @@ class RAGSystem:
 
         return True
 
-    def load_vector_store(self, file_path: Optional[str] = None):
+    def load_vector_store(self, file_path: str | None = None):
         """加载向量存储
 
         Args:
@@ -682,9 +685,9 @@ class RAGSystem:
     def search_by_metadata(
         self,
         query: str,
-        filter_metadata: Optional[dict] = None,
+        filter_metadata: dict | None = None,
         k: int = 3,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """按元数据过滤检索文档
 
         Args:
@@ -740,7 +743,7 @@ class RAGSystem:
         self,
         name: str,
         k: int = 5,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """按文档名称搜索
 
         Args:
@@ -770,10 +773,10 @@ class RAGSystem:
 
     def search_by_tags(
         self,
-        tags: List[str],
+        tags: list[str],
         k: int = 5,
         match_all: bool = False,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """按标签搜索文档
 
         Args:
@@ -811,9 +814,9 @@ class RAGSystem:
     def search_by_category(
         self,
         category: str,
-        query: Optional[str] = None,
+        query: str | None = None,
         k: int = 5,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """按分类搜索文档
 
         Args:
@@ -833,10 +836,10 @@ class RAGSystem:
     def hybrid_search(
         self,
         query: str,
-        filter_metadata: Optional[dict] = None,
+        filter_metadata: dict | None = None,
         k: int = 5,
         alpha: float = 0.7,
-    ) -> List[tuple]:
+    ) -> list[tuple]:
         """混合检索：向量检索 + 元数据过滤
 
         Args:
@@ -861,9 +864,7 @@ class RAGSystem:
                 total_conditions = len(filter_metadata)
                 for key, value in filter_metadata.items():
                     doc_value = doc.metadata.get(key)
-                    if doc_value == value:
-                        match_count += 1
-                    elif isinstance(doc_value, list) and value in doc_value:
+                    if doc_value == value or (isinstance(doc_value, list) and value in doc_value):
                         match_count += 1
                 metadata_score = (
                     match_count / total_conditions if total_conditions > 0 else 1.0
@@ -880,8 +881,8 @@ class RAGSystem:
         self,
         limit: int = 100,
         offset: int = 0,
-        category: Optional[str] = None,
-    ) -> List[dict]:
+        category: str | None = None,
+    ) -> list[dict]:
         """列出知识库中的文档
 
         Args:
