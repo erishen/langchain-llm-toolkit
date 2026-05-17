@@ -3,9 +3,10 @@
 提供搜索、计算、文件操作等常用工具
 """
 
-import os
 import math
-from typing import List
+import os
+from typing import ClassVar
+
 import requests
 
 from langchain_llm_toolkit.agent.tools import Tool, ToolParameter
@@ -20,7 +21,7 @@ class CalculatorTool(Tool):
         "Perform mathematical calculations. "
         "Supports basic operations, functions, and constants."
     )
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="expression",
             type=str,
@@ -82,7 +83,7 @@ class CalculatorTool(Tool):
             return f"Result: {result}"
 
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Error: {e!s}"
 
 
 class WebSearchTool(Tool):
@@ -90,7 +91,7 @@ class WebSearchTool(Tool):
 
     name = "web_search"
     description = "Search the web for information using DuckDuckGo."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="query",
             type=str,
@@ -119,8 +120,8 @@ class WebSearchTool(Tool):
         """
         try:
             # 使用 DuckDuckGo 的 HTML 版本
-            from urllib.parse import quote_plus
             import re
+            from urllib.parse import quote_plus
 
             url = f"https://html.duckduckgo.com/html/?q={quote_plus(query)}"
 
@@ -142,7 +143,7 @@ class WebSearchTool(Tool):
             )
 
             for i, (title, snippet) in enumerate(
-                zip(titles[:num_results], snippets[:num_results])
+                zip(titles[:num_results], snippets[:num_results], strict=False)
             ):
                 # 清理 HTML 标签
                 title = re.sub(r"<[^>]+>", "", title)
@@ -156,7 +157,7 @@ class WebSearchTool(Tool):
 
         except Exception as e:
             logger.error(f"Web search failed: {e}")
-            return f"Search error: {str(e)}"
+            return f"Search error: {e!s}"
 
 
 class FileReadTool(Tool):
@@ -164,7 +165,7 @@ class FileReadTool(Tool):
 
     name = "file_read"
     description = "Read the contents of a file."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="path",
             type=str,
@@ -200,7 +201,7 @@ class FileReadTool(Tool):
                 return f"Error: '{path}' is not a file"
 
             # 读取文件
-            with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(path, encoding="utf-8", errors="ignore") as f:
                 lines = []
                 for i, line in enumerate(f):
                     if i >= limit:
@@ -212,7 +213,7 @@ class FileReadTool(Tool):
             return f"File: {path}\n\n{content}"
 
         except Exception as e:
-            return f"Error reading file: {str(e)}"
+            return f"Error reading file: {e!s}"
 
 
 class FileWriteTool(Tool):
@@ -220,7 +221,7 @@ class FileWriteTool(Tool):
 
     name = "file_write"
     description = "Write content to a file."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="path",
             type=str,
@@ -263,7 +264,7 @@ class FileWriteTool(Tool):
             return f"Successfully {action} {path}"
 
         except Exception as e:
-            return f"Error writing file: {str(e)}"
+            return f"Error writing file: {e!s}"
 
 
 class ListDirectoryTool(Tool):
@@ -271,7 +272,7 @@ class ListDirectoryTool(Tool):
 
     name = "list_directory"
     description = "List files and directories in a given path."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="path",
             type=str,
@@ -319,7 +320,7 @@ class ListDirectoryTool(Tool):
             return "\n".join(result)
 
         except Exception as e:
-            return f"Error listing directory: {str(e)}"
+            return f"Error listing directory: {e!s}"
 
     def _format_size(self, size: int) -> str:
         """格式化文件大小"""
@@ -335,7 +336,7 @@ class PythonExecuteTool(Tool):
 
     name = "python_execute"
     description = "Execute Python code and return the result."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="code",
             type=str,
@@ -356,17 +357,16 @@ class PythonExecuteTool(Tool):
         """
         try:
             # 创建执行环境
-            import io
             import contextlib
+            import io
 
             # 捕获输出
             stdout = io.StringIO()
             stderr = io.StringIO()
 
-            with contextlib.redirect_stdout(stdout):
-                with contextlib.redirect_stderr(stderr):
-                    # 执行代码
-                    exec(code, {"__builtins__": __builtins__}, {})
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                # 执行代码
+                exec(code, {"__builtins__": __builtins__}, {})
 
             output = stdout.getvalue()
             errors = stderr.getvalue()
@@ -379,7 +379,7 @@ class PythonExecuteTool(Tool):
                 return "Code executed successfully (no output)"
 
         except Exception as e:
-            return f"Execution error: {str(e)}"
+            return f"Execution error: {e!s}"
 
 
 class DateTimeTool(Tool):
@@ -387,7 +387,7 @@ class DateTimeTool(Tool):
 
     name = "datetime"
     description = "Get current date and time information."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="format",
             type=str,
@@ -430,7 +430,7 @@ class WikipediaTool(Tool):
 
     name = "wikipedia"
     description = "Search Wikipedia for information."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="query",
             type=str,
@@ -492,7 +492,7 @@ class WikipediaTool(Tool):
             data = response.json()
 
             pages = data["query"]["pages"]
-            page = list(pages.values())[0]
+            page = next(iter(pages.values()))
 
             if "extract" in page:
                 extract = page["extract"]
@@ -505,7 +505,7 @@ class WikipediaTool(Tool):
 
         except Exception as e:
             logger.error(f"Wikipedia search failed: {e}")
-            return f"Wikipedia search error: {str(e)}"
+            return f"Wikipedia search error: {e!s}"
 
 
 class WeatherTool(Tool):
@@ -513,7 +513,7 @@ class WeatherTool(Tool):
 
     name = "weather"
     description = "Get weather information for a location."
-    parameters = [
+    parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="location",
             type=str,
@@ -558,10 +558,10 @@ class WeatherTool(Tool):
 
         except Exception as e:
             logger.error(f"Weather query failed: {e}")
-            return f"Weather query error: {str(e)}"
+            return f"Weather query error: {e!s}"
 
 
-def get_all_builtin_tools() -> List[Tool]:
+def get_all_builtin_tools() -> list[Tool]:
     """
     获取所有内置工具
 
