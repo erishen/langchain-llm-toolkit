@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 
 class TestOllamaEmbeddingsWrapper(unittest.TestCase):
@@ -176,8 +176,9 @@ class TestRAGSystemRerank(unittest.TestCase):
     """测试 RAGSystem 重排序功能"""
 
     def setUp(self):
-        from langchain_llm_toolkit.rag import RAGSystem
         from langchain_core.documents import Document
+
+        from langchain_llm_toolkit.rag import RAGSystem
 
         self.rag = RAGSystem()
         self.docs = [
@@ -229,8 +230,9 @@ class TestRAGSystemGenerateSummary(unittest.TestCase):
     @patch("langchain_llm_toolkit.rag.LLMIntegration")
     def test_generate_summary(self, mock_llm_class):
         """测试生成摘要"""
-        from langchain_llm_toolkit.rag import RAGSystem
         from langchain_core.documents import Document
+
+        from langchain_llm_toolkit.rag import RAGSystem
 
         mock_llm = MagicMock()
         mock_llm.generate.return_value = "This is a summary"
@@ -254,8 +256,9 @@ class TestRAGSystemExtractInformation(unittest.TestCase):
     @patch("langchain_llm_toolkit.rag.LLMIntegration")
     def test_extract_information(self, mock_llm_class):
         """测试信息提取"""
-        from langchain_llm_toolkit.rag import RAGSystem
         from langchain_core.documents import Document
+
+        from langchain_llm_toolkit.rag import RAGSystem
 
         mock_llm = MagicMock()
         mock_llm.generate.return_value = "Extracted: key information"

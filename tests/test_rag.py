@@ -1,13 +1,14 @@
-import unittest
 import os
-import tempfile
 import shutil
-from unittest.mock import patch, Mock
-from langchain_llm_toolkit.rag import RAGSystem
+import tempfile
+import unittest
+from unittest.mock import Mock, patch
+
+import numpy as np
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-import numpy as np
-from typing import List
+
+from langchain_llm_toolkit.rag import RAGSystem
 
 
 class MockEmbeddings(Embeddings):
@@ -16,13 +17,13 @@ class MockEmbeddings(Embeddings):
     def __init__(self):
         pass
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """Mock embed documents"""
         return [np.random.rand(1536).tolist() for _ in texts]
 
-    def embed_query(self, text: str) -> List[float]:
+    def embed_query(self, text: str) -> list[float]:
         """Mock embed query"""
-        result: List[float] = np.random.rand(1536).tolist()
+        result: list[float] = np.random.rand(1536).tolist()
         return result
 
 

@@ -1,11 +1,10 @@
 import logging
 import sys
-from pathlib import Path
 from logging.handlers import RotatingFileHandler
-from typing import Optional
+from pathlib import Path
 
 
-def setup_logging(log_level: str = "INFO", log_file: Optional[str] = None):
+def setup_logging(log_level: str = "INFO", log_file: str | None = None):
     """
     设置日志配置
 

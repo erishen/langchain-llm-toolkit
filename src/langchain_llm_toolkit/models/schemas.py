@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional, Dict, Any
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class GenerateRequest(BaseModel):
@@ -25,7 +26,7 @@ class GenerateResponse(BaseModel):
     response: str = Field(..., description="生成的文本")
     model: str = Field(..., description="使用的模型")
     timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
-    elapsed_time: Optional[float] = Field(None, description="耗时（秒）")
+    elapsed_time: float | None = Field(None, description="耗时（秒）")
 
 
 class ChatMessage(BaseModel):
@@ -45,7 +46,7 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     """聊天请求"""
 
-    messages: List[ChatMessage] = Field(..., description="消息列表", min_length=1)
+    messages: list[ChatMessage] = Field(..., description="消息列表", min_length=1)
     model: str = Field(default="ollama/gemma3", description="模型名称")
     temperature: float = Field(default=0.7, description="温度参数", ge=0, le=2)
     timeout: int = Field(default=30, description="超时时间（秒）", gt=0)
@@ -57,7 +58,7 @@ class ChatResponse(BaseModel):
     response: str = Field(..., description="生成的回复")
     model: str = Field(..., description="使用的模型")
     timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
-    elapsed_time: Optional[float] = Field(None, description="耗时（秒）")
+    elapsed_time: float | None = Field(None, description="耗时（秒）")
 
 
 class RAGQueryRequest(BaseModel):
@@ -78,14 +79,14 @@ class SourceDocument(BaseModel):
     """源文档"""
 
     content: str = Field(..., description="文档内容")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="元数据")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="元数据")
 
 
 class RAGQueryResponse(BaseModel):
     """RAG 查询响应"""
 
     answer: str = Field(..., description="生成的回答")
-    sources: List[SourceDocument] = Field(..., description="相关文档")
+    sources: list[SourceDocument] = Field(..., description="相关文档")
     timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
 
 
@@ -109,7 +110,7 @@ class ModelInfo(BaseModel):
 class ModelsResponse(BaseModel):
     """模型列表响应"""
 
-    models: List[ModelInfo] = Field(..., description="模型列表")
+    models: list[ModelInfo] = Field(..., description="模型列表")
     timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
 
 

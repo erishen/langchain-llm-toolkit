@@ -27,7 +27,7 @@ class ConversationManager:
 
             return response
         except Exception as e:
-            return f"Error: {str(e)}"
+            return f"Error: {e!s}"
 
     def get_history(self):
         """获取对话历史"""

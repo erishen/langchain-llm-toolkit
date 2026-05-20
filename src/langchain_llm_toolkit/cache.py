@@ -3,8 +3,9 @@
 import hashlib
 import json
 import time
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Optional, Dict
+from typing import Any
 
 from langchain_llm_toolkit.exceptions import CacheError
 
@@ -20,10 +21,10 @@ class CacheManager:
             max_size: 最大缓存数量
             ttl: 缓存过期时间（秒）
         """
-        self.cache: Dict[str, Dict[str, Any]] = {}
+        self.cache: dict[str, dict[str, Any]] = {}
         self.max_size = max_size
         self.ttl = ttl
-        self.access_times: Dict[str, float] = {}
+        self.access_times: dict[str, float] = {}
 
     def _generate_key(self, *args, **kwargs) -> str:
         """生成缓存键"""
@@ -45,7 +46,7 @@ class CacheManager:
             oldest_key = min(self.access_times, key=self.access_times.get)
             self.delete(oldest_key)
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """
         获取缓存值
 
@@ -61,9 +62,9 @@ class CacheManager:
                 return self.cache[key]["value"]
             return None
         except Exception as e:
-            raise CacheError("get", str(e))
+            raise CacheError("get", str(e)) from e
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None):
         """
         设置缓存值
 
@@ -82,7 +83,7 @@ class CacheManager:
             }
             self.access_times[key] = time.time()
         except Exception as e:
-            raise CacheError("set", str(e))
+            raise CacheError("set", str(e)) from e
 
     def delete(self, key: str):
         """
@@ -97,7 +98,7 @@ class CacheManager:
             if key in self.access_times:
                 del self.access_times[key]
         except Exception as e:
-            raise CacheError("delete", str(e))
+            raise CacheError("delete", str(e)) from e
 
     def clear(self):
         """清空所有缓存"""
@@ -105,7 +106,7 @@ class CacheManager:
             self.cache.clear()
             self.access_times.clear()
         except Exception as e:
-            raise CacheError("clear", str(e))
+            raise CacheError("clear", str(e)) from e
 
     def get_stats(self) -> dict:
         """获取缓存统计信息"""
@@ -120,9 +121,9 @@ class CacheManager:
 
 
 def cached(
-    cache_manager: Optional[CacheManager] = None,
+    cache_manager: CacheManager | None = None,
     key_prefix: str = "",
-    ttl: Optional[int] = None,
+    ttl: int | None = None,
 ):
     """
     缓存装饰器
@@ -177,7 +178,7 @@ class ResponseCache:
 
     def get_response(
         self, prompt: str, model: str, temperature: float
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         获取缓存的响应
 
@@ -198,7 +199,7 @@ class ResponseCache:
         model: str,
         temperature: float,
         response: str,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
     ):
         """
         缓存响应

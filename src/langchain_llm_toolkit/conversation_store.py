@@ -1,10 +1,10 @@
 import json
 import os
 import sqlite3
-from datetime import datetime
-from typing import List, Optional, Dict, Any
-from dataclasses import dataclass
 from contextlib import contextmanager
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
 
 
 @dataclass
@@ -14,9 +14,9 @@ class Message:
     role: str
     content: str
     timestamp: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "role": self.role,
             "content": self.content,
@@ -25,7 +25,7 @@ class Message:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Message":
+    def from_dict(cls, data: dict[str, Any]) -> "Message":
         return cls(
             role=data["role"],
             content=data["content"],
@@ -40,12 +40,12 @@ class Conversation:
 
     id: str
     title: str
-    messages: List[Message]
+    messages: list[Message]
     created_at: str
     updated_at: str
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "title": self.title,
@@ -56,7 +56,7 @@ class Conversation:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Conversation":
+    def from_dict(cls, data: dict[str, Any]) -> "Conversation":
         return cls(
             id=data["id"],
             title=data["title"],
@@ -73,7 +73,7 @@ class ConversationStore:
     使用 SQLite 存储对话历史。
     """
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         """
         初始化对话存储
 
@@ -146,7 +146,7 @@ class ConversationStore:
             conn.commit()
         return True
 
-    def get_conversation(self, conversation_id: str) -> Optional[Conversation]:
+    def get_conversation(self, conversation_id: str) -> Conversation | None:
         """获取对话"""
         with self._get_connection() as conn:
             row = conn.execute(
@@ -172,7 +172,7 @@ class ConversationStore:
         offset: int = 0,
         order_by: str = "updated_at",
         descending: bool = True,
-    ) -> List[Conversation]:
+    ) -> list[Conversation]:
         """列出对话"""
         order = "DESC" if descending else "ASC"
         with self._get_connection() as conn:
@@ -209,7 +209,7 @@ class ConversationStore:
             conn.commit()
         return True
 
-    def search_conversations(self, query: str, limit: int = 10) -> List[Conversation]:
+    def search_conversations(self, query: str, limit: int = 10) -> list[Conversation]:
         """搜索对话"""
         with self._get_connection() as conn:
             rows = conn.execute(
@@ -239,7 +239,7 @@ class ConversationStore:
             ]
         return conversations
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取统计信息"""
         with self._get_connection() as conn:
             total = conn.execute("SELECT COUNT(*) FROM conversations").fetchone()[0]
@@ -261,8 +261,8 @@ class ConversationManagerWithPersistence:
     def __init__(
         self,
         llm_integration,
-        store: Optional[ConversationStore] = None,
-        system_prompt: Optional[str] = None,
+        store: ConversationStore | None = None,
+        system_prompt: str | None = None,
     ):
         """
         初始化对话管理器
@@ -275,12 +275,12 @@ class ConversationManagerWithPersistence:
         self.llm = llm_integration
         self.store = store or ConversationStore()
         self.system_prompt = system_prompt
-        self.current_conversation: Optional[Conversation] = None
+        self.current_conversation: Conversation | None = None
 
     def create_conversation(
         self,
         title: str = "新对话",
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> Conversation:
         """创建新对话"""
         import uuid
@@ -309,7 +309,7 @@ class ConversationManagerWithPersistence:
         self.current_conversation = conversation
         return conversation
 
-    def load_conversation(self, conversation_id: str) -> Optional[Conversation]:
+    def load_conversation(self, conversation_id: str) -> Conversation | None:
         """加载对话"""
         conversation = self.store.get_conversation(conversation_id)
         if conversation:
@@ -320,7 +320,7 @@ class ConversationManagerWithPersistence:
         self,
         role: str,
         content: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> Message:
         """添加消息"""
         if not self.current_conversation:
@@ -358,7 +358,7 @@ class ConversationManagerWithPersistence:
         self.add_message("assistant", response)
         return response
 
-    def get_history(self) -> List[Dict[str, str]]:
+    def get_history(self) -> list[dict[str, str]]:
         """获取对话历史"""
         if not self.current_conversation:
             return []
@@ -377,7 +377,7 @@ class ConversationManagerWithPersistence:
             self.current_conversation.updated_at = datetime.now().isoformat()
             self.store.save_conversation(self.current_conversation)
 
-    def list_conversations(self, limit: int = 20) -> List[Conversation]:
+    def list_conversations(self, limit: int = 20) -> list[Conversation]:
         """列出所有对话"""
         return self.store.list_conversations(limit=limit)
 
@@ -391,10 +391,10 @@ class ConversationManagerWithPersistence:
             self.current_conversation = None
         return result
 
-    def search_conversations(self, query: str) -> List[Conversation]:
+    def search_conversations(self, query: str) -> list[Conversation]:
         """搜索对话"""
         return self.store.search_conversations(query)
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取统计信息"""
         return self.store.get_stats()

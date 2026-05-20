@@ -1,18 +1,18 @@
 import unittest
 
 from langchain_llm_toolkit.exceptions import (
+    APIConnectionError,
+    APIKeyMissingError,
+    APITimeoutError,
+    CacheError,
+    ConfigurationError,
+    DocumentProcessingError,
+    EmbeddingError,
     LLMToolkitError,
     ModelNotFoundError,
-    APIKeyMissingError,
-    APIConnectionError,
-    APITimeoutError,
     RateLimitExceededError,
-    DocumentProcessingError,
-    VectorStoreError,
-    EmbeddingError,
-    ConfigurationError,
     ValidationError,
-    CacheError,
+    VectorStoreError,
 )
 
 

@@ -1,7 +1,8 @@
 import os
+
 import magic
-from typing import List
 from langchain_core.documents import Document
+
 from langchain_llm_toolkit.markdown_loader import MarkdownLoader
 
 
@@ -45,7 +46,7 @@ class DocumentLoader:
             max_heading_level=markdown_max_heading_level,
         )
 
-    def load_document(self, file_path: str) -> List[Document]:
+    def load_document(self, file_path: str) -> list[Document]:
         """加载文档并返回文档对象列表"""
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"文件不存在: {file_path}")
@@ -63,7 +64,7 @@ class DocumentLoader:
         else:
             raise ValueError(f"不支持的文件类型: {file_extension}")
 
-    def load_documents(self, file_paths: List[str]) -> List[Document]:
+    def load_documents(self, file_paths: list[str]) -> list[Document]:
         """批量加载多个文档"""
         all_documents = []
         for file_path in file_paths:
@@ -74,7 +75,7 @@ class DocumentLoader:
                 print(f"加载文件 {file_path} 失败: {e}")
         return all_documents
 
-    def _load_pdf(self, file_path: str) -> List[Document]:
+    def _load_pdf(self, file_path: str) -> list[Document]:
         """加载 PDF 文档"""
         try:
             import pypdf
@@ -97,22 +98,22 @@ class DocumentLoader:
                         documents.append(doc)
             return documents
         except ImportError:
-            raise ImportError("需要安装 pypdf 来处理 PDF 文件")
+            raise ImportError("需要安装 pypdf 来处理 PDF 文件") from None
 
-    def _load_txt(self, file_path: str) -> List[Document]:
+    def _load_txt(self, file_path: str) -> list[Document]:
         """加载 TXT 文档"""
-        with open(file_path, "r", encoding="utf-8", errors="ignore") as file:
+        with open(file_path, encoding="utf-8", errors="ignore") as file:
             text = file.read()
             doc = Document(
                 page_content=text, metadata={"source": file_path, "type": "txt"}
             )
             return [doc]
 
-    def _load_markdown(self, file_path: str) -> List[Document]:
+    def _load_markdown(self, file_path: str) -> list[Document]:
         """加载 Markdown 文档（增强版）"""
         return self.markdown_loader.load(file_path)
 
-    def _load_docx(self, file_path: str) -> List[Document]:
+    def _load_docx(self, file_path: str) -> list[Document]:
         """加载 DOCX 文档"""
         try:
             from docx import Document as DocxDocument
@@ -124,14 +125,14 @@ class DocumentLoader:
             )
             return [doc]
         except ImportError:
-            raise ImportError("需要安装 python-docx 来处理 DOCX 文件")
+            raise ImportError("需要安装 python-docx 来处理 DOCX 文件") from None
 
-    def get_markdown_outline(self, file_path: str) -> List[dict]:
+    def get_markdown_outline(self, file_path: str) -> list[dict]:
         """获取 Markdown 文档大纲"""
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"文件不存在: {file_path}")
 
-        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(file_path, encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
         return self.markdown_loader.get_document_outline(content)
@@ -141,7 +142,7 @@ class DocumentLoader:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"文件不存在: {file_path}")
 
-        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(file_path, encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
         return self.markdown_loader.get_statistics(content)

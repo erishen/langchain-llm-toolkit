@@ -1,5 +1,5 @@
-import unittest
 import time
+import unittest
 
 
 class TestLRUCache(unittest.TestCase):

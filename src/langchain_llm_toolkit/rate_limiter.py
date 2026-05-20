@@ -2,8 +2,8 @@
 
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable, Optional, Dict, List
 
 from langchain_llm_toolkit.exceptions import RateLimitExceededError
 
@@ -21,7 +21,7 @@ class RateLimiter:
         """
         self.max_requests = max_requests
         self.window_seconds = window_seconds
-        self.requests: Dict[str, List[float]] = defaultdict(list)
+        self.requests: dict[str, list[float]] = defaultdict(list)
 
     def _clean_old_requests(self, key: str):
         """清理过期的请求记录"""
@@ -66,7 +66,7 @@ class RateLimiter:
         self._clean_old_requests(key)
         return max(0, self.max_requests - len(self.requests[key]))
 
-    def get_reset_time(self, key: str = "default") -> Optional[float]:
+    def get_reset_time(self, key: str = "default") -> float | None:
         """
         获取重置时间
 
@@ -104,7 +104,7 @@ class RateLimiter:
 def rate_limit(
     max_requests: int = 100,
     window_seconds: int = 60,
-    key_func: Optional[Callable] = None,
+    key_func: Callable | None = None,
 ):
     """
     速率限制装饰器
@@ -209,8 +209,8 @@ class TokenBucketRateLimiter:
         """
         self.rate = rate
         self.capacity = capacity
-        self.tokens: Dict[str, float] = defaultdict(lambda: float(capacity))
-        self.last_update: Dict[str, float] = defaultdict(time.time)
+        self.tokens: dict[str, float] = defaultdict(lambda: float(capacity))
+        self.last_update: dict[str, float] = defaultdict(time.time)
 
     def _refill_tokens(self, key: str = "default"):
         """补充令牌"""
