@@ -4,24 +4,24 @@ os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "true")
 os.environ.setdefault("LITELLM_MODE", "PRODUCTION")
 
 import time
-from typing import Optional, Generator
+from collections.abc import Generator
 
 import requests
 from tenacity import (
     retry,
+    retry_if_exception_type,
     stop_after_attempt,
     wait_exponential,
-    retry_if_exception_type,
 )
 
+from langchain_llm_toolkit.cache import ResponseCache
 from langchain_llm_toolkit.config.settings import settings
-from langchain_llm_toolkit.logger import logger
 from langchain_llm_toolkit.exceptions import (
     APIConnectionError,
     APITimeoutError,
     RateLimitExceededError,
 )
-from langchain_llm_toolkit.cache import ResponseCache
+from langchain_llm_toolkit.logger import logger
 from langchain_llm_toolkit.rate_limiter import RateLimiter
 
 
@@ -114,7 +114,7 @@ class LLMIntegration:
             f"Retrying... attempt {retry_state.attempt_number}"
         ),
     )
-    def generate(self, prompt: str, timeout: Optional[int] = None) -> str:
+    def generate(self, prompt: str, timeout: int | None = None) -> str:
         """
         生成文本响应（带重试和超时控制）
 
@@ -176,11 +176,11 @@ class LLMIntegration:
         except requests.Timeout:
             elapsed = time.time() - start_time
             logger.error(f"Timeout after {elapsed:.2f}s")
-            raise APITimeoutError("LLM API", timeout or self.timeout)
+            raise APITimeoutError("LLM API", timeout or self.timeout) from None
         except requests.ConnectionError as e:
             elapsed = time.time() - start_time
             logger.error(f"Connection error after {elapsed:.2f}s: {e}")
-            raise APIConnectionError("LLM API", str(e))
+            raise APIConnectionError("LLM API", str(e)) from e
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(f"Error generating response after {elapsed:.2f}s: {e}")
@@ -230,7 +230,7 @@ class LLMIntegration:
             return f"Error: Unexpected response format: {response}"
 
     def generate_stream(
-        self, prompt: str, timeout: Optional[int] = None
+        self, prompt: str, timeout: int | None = None
     ) -> Generator[str, None, None]:
         """
         流式生成文本（仅支持 Ollama）
@@ -279,14 +279,14 @@ class LLMIntegration:
 
         except Exception as e:
             logger.error(f"Error in stream generation: {e}")
-            yield f"Error: {str(e)}"
+            yield f"Error: {e!s}"
 
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type((requests.RequestException, ConnectionError)),
     )
-    def chat(self, messages: list, timeout: Optional[int] = None) -> str:
+    def chat(self, messages: list, timeout: int | None = None) -> str:
         """
         聊天模式（带重试和超时控制）
 
@@ -322,7 +322,7 @@ class LLMIntegration:
         except Exception as e:
             elapsed = time.time() - start_time
             logger.error(f"Error in chat after {elapsed:.2f}s: {e}")
-            return f"Error: {str(e)}"
+            return f"Error: {e!s}"
 
     def _chat_ollama(self, messages: list, timeout: int) -> str:
         """使用 Ollama API 进行聊天"""

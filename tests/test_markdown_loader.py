@@ -1,9 +1,10 @@
-import pytest
-import tempfile
 import os
+import tempfile
 
-from langchain_llm_toolkit.markdown_loader import MarkdownLoader
+import pytest
+
 from langchain_llm_toolkit.document_loader import DocumentLoader
+from langchain_llm_toolkit.markdown_loader import MarkdownLoader
 
 
 class TestMarkdownLoader:
@@ -333,19 +334,17 @@ print("hello")
 内容2
 """
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f1:
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".md", delete=False
-            ) as f2:
-                f1.write(markdown1)
-                f2.write(markdown2)
-                f1.flush()
-                f2.flush()
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f1, \
+             tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f2:
+            f1.write(markdown1)
+            f2.write(markdown2)
+            f1.flush()
+            f2.flush()
 
-                try:
-                    documents = loader.load_documents([f1.name, f2.name])
+            try:
+                documents = loader.load_documents([f1.name, f2.name])
 
-                    assert len(documents) >= 2
-                finally:
-                    os.unlink(f1.name)
-                    os.unlink(f2.name)
+                assert len(documents) >= 2
+            finally:
+                os.unlink(f1.name)
+                os.unlink(f2.name)

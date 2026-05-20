@@ -1,11 +1,12 @@
 """Agent 基础类 - 提供 Agent 的核心功能"""
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
-from datetime import datetime
 import json
 import re
+from abc import ABC, abstractmethod
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.logger import logger
@@ -15,10 +16,10 @@ class AgentResponse(BaseModel):
     """Agent 响应"""
 
     content: str = Field(..., description="响应内容")
-    tool_calls: List[Dict[str, Any]] = Field(
+    tool_calls: list[dict[str, Any]] = Field(
         default_factory=list, description="工具调用"
     )
-    reasoning: Optional[str] = Field(None, description="推理过程")
+    reasoning: str | None = Field(None, description="推理过程")
     timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
 
 
@@ -27,9 +28,9 @@ class AgentStep(BaseModel):
 
     step_number: int = Field(..., description="步骤编号")
     thought: str = Field(..., description="思考过程")
-    action: Optional[str] = Field(None, description="执行的动作")
-    action_input: Optional[Dict[str, Any]] = Field(None, description="动作输入")
-    observation: Optional[str] = Field(None, description="观察结果")
+    action: str | None = Field(None, description="执行的动作")
+    action_input: dict[str, Any] | None = Field(None, description="动作输入")
+    observation: str | None = Field(None, description="观察结果")
     timestamp: datetime = Field(default_factory=datetime.now, description="时间戳")
 
 
@@ -37,9 +38,9 @@ class AgentContext(BaseModel):
     """Agent 上下文"""
 
     task: str = Field(..., description="任务描述")
-    steps: List[AgentStep] = Field(default_factory=list, description="执行步骤")
-    final_answer: Optional[str] = Field(None, description="最终答案")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="元数据")
+    steps: list[AgentStep] = Field(default_factory=list, description="执行步骤")
+    final_answer: str | None = Field(None, description="最终答案")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="元数据")
 
     def add_step(self, step: AgentStep) -> None:
         """添加执行步骤"""
@@ -70,7 +71,7 @@ class BaseAgent(ABC):
 
     def __init__(
         self,
-        llm: Optional[LLMIntegration] = None,
+        llm: LLMIntegration | None = None,
         name: str = "BaseAgent",
         max_iterations: int = 10,
         verbose: bool = False,
@@ -88,7 +89,7 @@ class BaseAgent(ABC):
         self.name = name
         self.max_iterations = max_iterations
         self.verbose = verbose
-        self.tools: Dict[str, Any] = {}
+        self.tools: dict[str, Any] = {}
 
         logger.info(f"Initialized {self.name} with max_iterations={max_iterations}")
 
@@ -114,7 +115,7 @@ class BaseAgent(ABC):
             del self.tools[name]
             logger.info(f"Unregistered tool: {name}")
 
-    def get_tool(self, name: str) -> Optional[Any]:
+    def get_tool(self, name: str) -> Any | None:
         """
         获取工具
 
@@ -126,7 +127,7 @@ class BaseAgent(ABC):
         """
         return self.tools.get(name)
 
-    def list_tools(self) -> List[str]:
+    def list_tools(self) -> list[str]:
         """
         列出所有可用工具
 
@@ -152,7 +153,7 @@ class BaseAgent(ABC):
                 descriptions.append(f"- {name}: No description available")
         return "\n".join(descriptions) if descriptions else "No tools available"
 
-    def _parse_tool_call(self, text: str) -> Optional[Dict[str, Any]]:
+    def _parse_tool_call(self, text: str) -> dict[str, Any] | None:
         """
         解析工具调用
 
@@ -200,7 +201,7 @@ class BaseAgent(ABC):
 
         return None
 
-    def _execute_tool(self, tool_name: str, tool_input: Dict[str, Any]) -> str:
+    def _execute_tool(self, tool_name: str, tool_input: dict[str, Any]) -> str:
         """
         执行工具
 
@@ -234,7 +235,7 @@ class BaseAgent(ABC):
             return result_str
 
         except Exception as e:
-            error_msg = f"Error executing tool '{tool_name}': {str(e)}"
+            error_msg = f"Error executing tool '{tool_name}': {e!s}"
             logger.error(error_msg)
             return error_msg
 

@@ -1,5 +1,5 @@
-from typing import Dict, List, Any
 from enum import Enum
+from typing import Any
 
 
 class PromptTemplateType(Enum):
@@ -22,7 +22,7 @@ class PromptTemplate:
     def __init__(self):
         self.templates = self._load_default_templates()
 
-    def _load_default_templates(self) -> Dict[str, str]:
+    def _load_default_templates(self) -> dict[str, str]:
         """加载默认提示模板"""
         return {
             # RAG 相关模板
@@ -180,13 +180,13 @@ class PromptTemplate:
         try:
             return template_str.format(**kwargs)
         except Exception as e:
-            raise ValueError(f"Failed to render template: {e}")
+            raise ValueError(f"Failed to render template: {e}") from e
 
     def add_template(self, name: str, template: str):
         """添加自定义模板"""
         self.templates[name] = template
 
-    def list_templates(self) -> List[str]:
+    def list_templates(self) -> list[str]:
         """列出所有模板"""
         return list(self.templates.keys())
 
@@ -198,7 +198,7 @@ class RAGPromptBuilder:
         self.template_manager: PromptTemplate = PromptTemplate()
 
     def build_qa_prompt(
-        self, query: str, documents: List[Any], max_context_length: int = 4000
+        self, query: str, documents: list[Any], max_context_length: int = 4000
     ) -> str:
         """
         构建问答提示
@@ -234,7 +234,7 @@ class RAGPromptBuilder:
         )
 
     def build_summary_prompt(
-        self, documents: List[Any], max_context_length: int = 6000
+        self, documents: list[Any], max_context_length: int = 6000
     ) -> str:
         """构建总结提示"""
         context_parts = []
@@ -256,7 +256,7 @@ class RAGPromptBuilder:
         )
 
     def build_extraction_prompt(
-        self, documents: List[Any], extract_type: str, max_context_length: int = 4000
+        self, documents: list[Any], extract_type: str, max_context_length: int = 4000
     ) -> str:
         """构建提取提示"""
         context_parts = []

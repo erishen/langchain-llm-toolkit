@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """LangChain LLM Toolkit 命令行界面"""
 
+
 import typer
-from typing import Optional
-from langchain_llm_toolkit.llm_integration import LLMIntegration
-from langchain_llm_toolkit.conversation import ConversationManager
+
 from langchain_llm_toolkit.config.settings import settings
+from langchain_llm_toolkit.conversation import ConversationManager
+from langchain_llm_toolkit.llm_integration import LLMIntegration
 
 app = typer.Typer(help="LangChain LLM Toolkit 命令行工具")
 model_app = typer.Typer(help="模型管理")
@@ -22,8 +23,8 @@ current_temperature = settings.DEFAULT_TEMPERATURE
 @app.command()
 def generate(
     prompt: str,
-    model: Optional[str] = typer.Option(None, "--model", "-m", help="指定模型"),
-    temperature: Optional[float] = typer.Option(
+    model: str | None = typer.Option(None, "--model", "-m", help="指定模型"),
+    temperature: float | None = typer.Option(
         None, "--temperature", "-t", help="温度参数"
     ),
 ):
@@ -48,8 +49,8 @@ def generate(
 
 @app.command()
 def chat(
-    model: Optional[str] = typer.Option(None, "--model", "-m", help="指定模型"),
-    temperature: Optional[float] = typer.Option(
+    model: str | None = typer.Option(None, "--model", "-m", help="指定模型"),
+    temperature: float | None = typer.Option(
         None, "--temperature", "-t", help="温度参数"
     ),
 ):
@@ -99,7 +100,7 @@ def chat(
             typer.echo("\n再见！")
             break
         except Exception as e:
-            typer.echo(f"错误: {str(e)}", err=True)
+            typer.echo(f"错误: {e!s}", err=True)
 
 
 @model_app.command("list")

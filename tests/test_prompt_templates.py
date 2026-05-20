@@ -1,15 +1,16 @@
-import pytest
 from unittest.mock import Mock
 
+import pytest
+
 from langchain_llm_toolkit.prompt_templates import (
-    PromptTemplateType,
-    PromptTemplate,
-    RAGPromptBuilder,
-    ChatPromptBuilder,
     ROLE_TEMPLATES,
+    ChatPromptBuilder,
+    PromptTemplate,
+    PromptTemplateType,
+    RAGPromptBuilder,
+    get_chat_prompt_builder,
     get_prompt_template,
     get_rag_prompt_builder,
-    get_chat_prompt_builder,
 )
 
 

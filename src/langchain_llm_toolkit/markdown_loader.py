@@ -1,6 +1,7 @@
 import os
 import re
-from typing import List, Dict, Any
+from typing import Any
+
 from langchain_core.documents import Document
 
 
@@ -51,17 +52,17 @@ class MarkdownLoader:
         self.min_heading_level = max(1, min(6, min_heading_level))
         self.max_heading_level = max(1, min(6, max_heading_level))
 
-    def load(self, file_path: str) -> List[Document]:
+    def load(self, file_path: str) -> list[Document]:
         """加载 Markdown 文档"""
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"文件不存在: {file_path}")
 
-        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+        with open(file_path, encoding="utf-8", errors="ignore") as f:
             content = f.read()
 
         return self._parse_markdown(content, file_path)
 
-    def _parse_markdown(self, content: str, file_path: str) -> List[Document]:
+    def _parse_markdown(self, content: str, file_path: str) -> list[Document]:
         """解析 Markdown 内容"""
         front_matter = {}
         if self.extract_metadata:
@@ -82,7 +83,7 @@ class MarkdownLoader:
             return content, front_matter
         return content, {}
 
-    def _parse_yaml_front_matter(self, text: str) -> Dict[str, Any]:
+    def _parse_yaml_front_matter(self, text: str) -> dict[str, Any]:
         """解析 YAML front matter"""
         metadata = {}
         for line in text.split("\n"):
@@ -104,8 +105,8 @@ class MarkdownLoader:
         return metadata
 
     def _split_by_headings(
-        self, content: str, file_path: str, front_matter: Dict[str, Any]
-    ) -> List[Document]:
+        self, content: str, file_path: str, front_matter: dict[str, Any]
+    ) -> list[Document]:
         """按标题分割文档"""
         headings = list(self.HEADING_PATTERN.finditer(content))
 
@@ -165,7 +166,7 @@ class MarkdownLoader:
         return documents
 
     def _create_document(
-        self, content: str, file_path: str, front_matter: Dict[str, Any]
+        self, content: str, file_path: str, front_matter: dict[str, Any]
     ) -> Document:
         """创建单个文档"""
         metadata = {
@@ -194,7 +195,7 @@ class MarkdownLoader:
 
         return Document(page_content=content, metadata=metadata)
 
-    def _extract_code_blocks(self, content: str) -> List[Dict[str, str]]:
+    def _extract_code_blocks(self, content: str) -> list[dict[str, str]]:
         """提取代码块"""
         code_blocks = []
         for match in self.CODE_BLOCK_PATTERN.finditer(content):
@@ -209,7 +210,7 @@ class MarkdownLoader:
             )
         return code_blocks
 
-    def _extract_tables(self, content: str) -> List[Dict[str, Any]]:
+    def _extract_tables(self, content: str) -> list[dict[str, Any]]:
         """提取表格"""
         tables = []
         for match in self.TABLE_PATTERN.finditer(content):
@@ -231,7 +232,7 @@ class MarkdownLoader:
                 )
         return tables
 
-    def _extract_links(self, content: str) -> List[Dict[str, str]]:
+    def _extract_links(self, content: str) -> list[dict[str, str]]:
         """提取链接"""
         links = [
             {"text": match.group(1), "url": match.group(2)}
@@ -239,7 +240,7 @@ class MarkdownLoader:
         ]
         return links[:20]
 
-    def _extract_images(self, content: str) -> List[Dict[str, str]]:
+    def _extract_images(self, content: str) -> list[dict[str, str]]:
         """提取图片"""
         images = [
             {"alt": match.group(1), "url": match.group(2)}
@@ -247,7 +248,7 @@ class MarkdownLoader:
         ]
         return images[:10]
 
-    def get_document_outline(self, content: str) -> List[Dict[str, Any]]:
+    def get_document_outline(self, content: str) -> list[dict[str, Any]]:
         """获取文档大纲"""
         outline = []
         for match in self.HEADING_PATTERN.finditer(content):
@@ -261,7 +262,7 @@ class MarkdownLoader:
             )
         return outline
 
-    def get_statistics(self, content: str) -> Dict[str, Any]:
+    def get_statistics(self, content: str) -> dict[str, Any]:
         """获取文档统计信息"""
         code_blocks = self._extract_code_blocks(content)
         tables = self._extract_tables(content)

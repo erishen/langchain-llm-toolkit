@@ -1,5 +1,6 @@
+from unittest.mock import Mock, patch
+
 from typer.testing import CliRunner
-from unittest.mock import patch, Mock
 
 from langchain_llm_toolkit.cli import app
 

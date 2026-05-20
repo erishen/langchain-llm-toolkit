@@ -1,7 +1,7 @@
 import math
 import re
 from collections import Counter
-from typing import List, Dict, Tuple, Optional
+
 from langchain_core.documents import Document
 
 
@@ -28,21 +28,21 @@ class BM25:
         self.k1 = k1
         self.b = b
         self.epsilon = epsilon
-        self.doc_freqs: Dict[str, int] = {}
-        self.doc_len: List[int] = []
+        self.doc_freqs: dict[str, int] = {}
+        self.doc_len: list[int] = []
         self.avgdl: float = 0
         self.doc_count: int = 0
-        self.doc_term_freqs: List[Dict[str, int]] = []
-        self.idf: Dict[str, float] = {}
-        self.documents: List[Document] = []
+        self.doc_term_freqs: list[dict[str, int]] = []
+        self.idf: dict[str, float] = {}
+        self.documents: list[Document] = []
 
-    def _tokenize(self, text: str) -> List[str]:
+    def _tokenize(self, text: str) -> list[str]:
         """分词"""
         text = text.lower()
         tokens = re.findall(r"\w+", text)
         return tokens
 
-    def fit(self, documents: List[Document]):
+    def fit(self, documents: list[Document]):
         """训练 BM25 模型"""
         self.documents = documents
         self.doc_count = len(documents)
@@ -82,7 +82,7 @@ class BM25:
         for term in negative_idfs:
             self.idf[term] = eps
 
-    def get_scores(self, query: str) -> List[float]:
+    def get_scores(self, query: str) -> list[float]:
         """计算查询与所有文档的 BM25 分数"""
         query_tokens = self._tokenize(query)
         scores = []
@@ -108,11 +108,11 @@ class BM25:
 
         return scores
 
-    def search(self, query: str, k: int = 5) -> List[Tuple[Document, float]]:
+    def search(self, query: str, k: int = 5) -> list[tuple[Document, float]]:
         """搜索相关文档"""
         scores = self.get_scores(query)
 
-        scored_docs = list(zip(self.documents, scores))
+        scored_docs = list(zip(self.documents, scores, strict=False))
         scored_docs.sort(key=lambda x: x[1], reverse=True)
 
         return scored_docs[:k]
@@ -149,9 +149,9 @@ class HybridRetriever:
         self.semantic_weight = semantic_weight
         self.rrf_k = rrf_k
         self.bm25 = BM25()
-        self.documents: List[Document] = []
+        self.documents: list[Document] = []
 
-    def fit(self, documents: List[Document]):
+    def fit(self, documents: list[Document]):
         """训练 BM25 模型"""
         self.documents = documents
         self.bm25.fit(documents)
@@ -161,8 +161,8 @@ class HybridRetriever:
         query: str,
         vector_store,
         k: int = 5,
-        alpha: Optional[float] = None,
-    ) -> List[Tuple[Document, float]]:
+        alpha: float | None = None,
+    ) -> list[tuple[Document, float]]:
         """
         混合检索
 
@@ -195,14 +195,14 @@ class HybridRetriever:
 
     def _weighted_fusion(
         self,
-        keyword_results: List[Tuple[Document, float]],
-        semantic_results: List[Tuple[Document, float]],
+        keyword_results: list[tuple[Document, float]],
+        semantic_results: list[tuple[Document, float]],
         k: int,
         keyword_weight: float,
         semantic_weight: float,
-    ) -> List[Tuple[Document, float]]:
+    ) -> list[tuple[Document, float]]:
         """加权融合"""
-        doc_scores: Dict[str, Tuple[Document, float]] = {}
+        doc_scores: dict[str, tuple[Document, float]] = {}
 
         max_kw_score = max((score for _, score in keyword_results), default=1.0) or 1.0
         for doc, score in keyword_results:
@@ -230,12 +230,12 @@ class HybridRetriever:
 
     def _rrf_fusion(
         self,
-        keyword_results: List[Tuple[Document, float]],
-        semantic_results: List[Tuple[Document, float]],
+        keyword_results: list[tuple[Document, float]],
+        semantic_results: list[tuple[Document, float]],
         k: int,
-    ) -> List[Tuple[Document, float]]:
+    ) -> list[tuple[Document, float]]:
         """Reciprocal Rank Fusion"""
-        doc_scores: Dict[str, Tuple[Document, float]] = {}
+        doc_scores: dict[str, tuple[Document, float]] = {}
 
         for rank, (doc, _) in enumerate(keyword_results):
             doc_id = self._get_doc_id(doc)
@@ -256,14 +256,14 @@ class HybridRetriever:
 
     def _score_fusion(
         self,
-        keyword_results: List[Tuple[Document, float]],
-        semantic_results: List[Tuple[Document, float]],
+        keyword_results: list[tuple[Document, float]],
+        semantic_results: list[tuple[Document, float]],
         k: int,
         keyword_weight: float,
         semantic_weight: float,
-    ) -> List[Tuple[Document, float]]:
+    ) -> list[tuple[Document, float]]:
         """分数归一化融合"""
-        doc_scores: Dict[str, Tuple[Document, float]] = {}
+        doc_scores: dict[str, tuple[Document, float]] = {}
 
         kw_scores = [score for _, score in keyword_results]
         kw_min = min(kw_scores) if kw_scores else 0
@@ -343,8 +343,8 @@ class HybridRAGSystem:
         self,
         query: str,
         k: int = 5,
-        alpha: Optional[float] = None,
-    ) -> List[Tuple[Document, float]]:
+        alpha: float | None = None,
+    ) -> list[tuple[Document, float]]:
         """
         混合检索
 
@@ -370,7 +370,7 @@ class HybridRAGSystem:
         self,
         query: str,
         k: int = 3,
-        alpha: Optional[float] = None,
+        alpha: float | None = None,
         max_context_length: int = 4000,
     ):
         """

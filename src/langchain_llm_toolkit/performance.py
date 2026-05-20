@@ -1,12 +1,13 @@
+import asyncio
 import hashlib
 import json
-import time
-from typing import Any, Optional, Dict, Callable
-from functools import wraps
-from collections import OrderedDict
 import threading
-import asyncio
+import time
+from collections import OrderedDict
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from functools import wraps
+from typing import Any
 
 
 class LRUCache:
@@ -23,14 +24,14 @@ class LRUCache:
         self.max_size = max_size
         self.ttl_seconds = ttl_seconds
         self._cache: OrderedDict = OrderedDict()
-        self._timestamps: Dict[str, float] = {}
+        self._timestamps: dict[str, float] = {}
         self._lock = threading.RLock()
 
     def _hash_key(self, key: str) -> str:
         """生成缓存键的哈希"""
         return hashlib.md5(key.encode()).hexdigest()
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """获取缓存值"""
         hashed_key = self._hash_key(key)
 
@@ -77,7 +78,7 @@ class LRUCache:
             self._cache.clear()
             self._timestamps.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取缓存统计"""
         with self._lock:
             return {
@@ -111,7 +112,7 @@ class QueryCache:
         }
         return json.dumps(key_data, sort_keys=True)
 
-    def get(self, query: str, k: int = 3, **kwargs) -> Optional[Dict]:
+    def get(self, query: str, k: int = 3, **kwargs) -> dict | None:
         """获取缓存的查询结果"""
         key = self._make_key(query, k, **kwargs)
         result = self.cache.get(key)
@@ -123,7 +124,7 @@ class QueryCache:
 
         return result
 
-    def set(self, query: str, result: Dict, k: int = 3, **kwargs):
+    def set(self, query: str, result: dict, k: int = 3, **kwargs):
         """缓存查询结果"""
         key = self._make_key(query, k, **kwargs)
         self.cache.set(key, result)
@@ -135,7 +136,7 @@ class QueryCache:
             return 0.0
         return self._hit_count / total
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """获取统计信息"""
         return {
             **self.cache.get_stats(),
@@ -224,7 +225,7 @@ class PerformanceMonitor:
     """性能监控器"""
 
     def __init__(self):
-        self._metrics: Dict[str, list] = {}
+        self._metrics: dict[str, list] = {}
         self._lock = threading.RLock()
 
     def record(self, metric_name: str, value: float):
@@ -257,7 +258,7 @@ class PerformanceMonitor:
 
             return sum(values) / len(values)
 
-    def get_stats(self, metric_name: str) -> Dict[str, float]:
+    def get_stats(self, metric_name: str) -> dict[str, float]:
         """获取统计信息"""
         with self._lock:
             if metric_name not in self._metrics:
@@ -275,10 +276,10 @@ class PerformanceMonitor:
                 "max": max(values),
             }
 
-    def get_all_stats(self) -> Dict[str, Dict]:
+    def get_all_stats(self) -> dict[str, dict]:
         """获取所有指标的统计信息"""
         with self._lock:
-            return {name: self.get_stats(name) for name in self._metrics.keys()}
+            return {name: self.get_stats(name) for name in self._metrics}
 
 
 def measure_time(monitor: PerformanceMonitor, metric_name: str):
@@ -313,7 +314,7 @@ def measure_time(monitor: PerformanceMonitor, metric_name: str):
 query_cache = QueryCache()
 performance_monitor = PerformanceMonitor()
 
-_parallel_processor: Optional[ParallelProcessor] = None
+_parallel_processor: ParallelProcessor | None = None
 
 
 def get_parallel_processor() -> ParallelProcessor:

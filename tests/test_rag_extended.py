@@ -6,7 +6,6 @@ RAG 系统扩展测试
 import os
 import tempfile
 from datetime import timedelta
-from typing import List
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -24,10 +23,10 @@ from langchain_llm_toolkit.rag import (
 class MockEmbeddings(Embeddings):
     """Mock embeddings for testing"""
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
         return [np.random.rand(1536).tolist() for _ in texts]
 
-    def embed_query(self, text: str) -> List[float]:
+    def embed_query(self, text: str) -> list[float]:
         return np.random.rand(1536).tolist()
 
 
@@ -223,12 +222,11 @@ class TestRAGSystemVectorStore:
 
             with patch.object(
                 rag.text_splitter, "split_documents", return_value=documents
-            ):
-                with patch("langchain_llm_toolkit.rag.FAISS") as mock_faiss:
-                    mock_faiss.from_documents.return_value = MagicMock()
+            ), patch("langchain_llm_toolkit.rag.FAISS") as mock_faiss:
+                mock_faiss.from_documents.return_value = MagicMock()
 
-                    vector_store = rag.create_vector_store(documents)
-                    assert vector_store is not None
+                vector_store = rag.create_vector_store(documents)
+                assert vector_store is not None
 
 
 class TestRAGSystemMethods:

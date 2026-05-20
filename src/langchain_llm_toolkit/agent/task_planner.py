@@ -3,17 +3,18 @@
 提供任务分解、规划和执行管理功能
 """
 
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from langchain_llm_toolkit.agent.base import BaseAgent
 from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.logger import logger
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """任务状态"""
 
     PENDING = "pending"
@@ -29,12 +30,12 @@ class SubTask(BaseModel):
     id: str = Field(..., description="任务ID")
     description: str = Field(..., description="任务描述")
     status: TaskStatus = Field(default=TaskStatus.PENDING, description="任务状态")
-    dependencies: List[str] = Field(default_factory=list, description="依赖的任务ID")
-    result: Optional[str] = Field(None, description="执行结果")
-    error: Optional[str] = Field(None, description="错误信息")
+    dependencies: list[str] = Field(default_factory=list, description="依赖的任务ID")
+    result: str | None = Field(None, description="执行结果")
+    error: str | None = Field(None, description="错误信息")
     created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
-    started_at: Optional[datetime] = Field(None, description="开始时间")
-    completed_at: Optional[datetime] = Field(None, description="完成时间")
+    started_at: datetime | None = Field(None, description="开始时间")
+    completed_at: datetime | None = Field(None, description="完成时间")
 
     def start(self) -> None:
         """开始任务"""
@@ -58,22 +59,22 @@ class TaskPlan(BaseModel):
     """任务计划"""
 
     original_task: str = Field(..., description="原始任务")
-    subtasks: List[SubTask] = Field(default_factory=list, description="子任务列表")
+    subtasks: list[SubTask] = Field(default_factory=list, description="子任务列表")
     created_at: datetime = Field(default_factory=datetime.now, description="创建时间")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="元数据")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="元数据")
 
     def add_subtask(self, subtask: SubTask) -> None:
         """添加子任务"""
         self.subtasks.append(subtask)
 
-    def get_subtask(self, task_id: str) -> Optional[SubTask]:
+    def get_subtask(self, task_id: str) -> SubTask | None:
         """获取子任务"""
         for subtask in self.subtasks:
             if subtask.id == task_id:
                 return subtask
         return None
 
-    def get_ready_subtasks(self) -> List[SubTask]:
+    def get_ready_subtasks(self) -> list[SubTask]:
         """获取可以执行的子任务（依赖已完成）"""
         ready = []
         for subtask in self.subtasks:
@@ -92,11 +93,11 @@ class TaskPlan(BaseModel):
 
         return ready
 
-    def get_completed_subtasks(self) -> List[SubTask]:
+    def get_completed_subtasks(self) -> list[SubTask]:
         """获取已完成的子任务"""
         return [st for st in self.subtasks if st.status == TaskStatus.COMPLETED]
 
-    def get_failed_subtasks(self) -> List[SubTask]:
+    def get_failed_subtasks(self) -> list[SubTask]:
         """获取失败的子任务"""
         return [st for st in self.subtasks if st.status == TaskStatus.FAILED]
 
@@ -107,7 +108,7 @@ class TaskPlan(BaseModel):
             for st in self.subtasks
         )
 
-    def get_progress(self) -> Dict[str, int]:
+    def get_progress(self) -> dict[str, int]:
         """获取进度统计"""
         total = len(self.subtasks)
         if total == 0:
@@ -132,7 +133,7 @@ class TaskPlanner:
 
     def __init__(
         self,
-        llm: Optional[LLMIntegration] = None,
+        llm: LLMIntegration | None = None,
         max_subtasks: int = 10,
     ):
         """
@@ -146,7 +147,7 @@ class TaskPlanner:
         self.max_subtasks = max_subtasks
         logger.info(f"Initialized TaskPlanner with max_subtasks={max_subtasks}")
 
-    def create_plan(self, task: str, context: Optional[str] = None) -> TaskPlan:
+    def create_plan(self, task: str, context: str | None = None) -> TaskPlan:
         """
         创建任务计划
 
@@ -171,7 +172,7 @@ class TaskPlanner:
         logger.info(f"Created plan with {len(plan.subtasks)} subtasks")
         return plan
 
-    def _create_planning_prompt(self, task: str, context: Optional[str] = None) -> str:
+    def _create_planning_prompt(self, task: str, context: str | None = None) -> str:
         """创建规划提示"""
         prompt_parts = [
             "You are a task planner. Break down the following task into subtasks.",
@@ -275,7 +276,7 @@ class TaskPlanner:
 
     def execute_plan(
         self, plan: TaskPlan, agent: BaseAgent, **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         执行任务计划
 
@@ -371,7 +372,7 @@ class TaskPlanner:
 
     def _build_task_context(
         self, plan: TaskPlan, current_subtask: SubTask
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         构建任务上下文
 

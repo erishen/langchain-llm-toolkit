@@ -1,40 +1,40 @@
+import contextlib
 import json
-import time
-import tempfile
 import os
+import tempfile
+import time
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Request, Depends
+from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
-from fastapi import status
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 
+from langchain_llm_toolkit.auth import AuthManager, TokenData, get_current_user
+from langchain_llm_toolkit.conversation_store import ConversationStore
+from langchain_llm_toolkit.exceptions import (
+    APIConnectionError,
+    APIKeyMissingError,
+    APITimeoutError,
+    LLMToolkitError,
+    RateLimitExceededError,
+)
+from langchain_llm_toolkit.hybrid_retriever import HybridRAGSystem
+from langchain_llm_toolkit.llm_integration import LLMIntegration
+from langchain_llm_toolkit.logger import logger
 from langchain_llm_toolkit.models.schemas import (
-    GenerateRequest,
-    GenerateResponse,
     ChatRequest,
     ChatResponse,
+    GenerateRequest,
+    GenerateResponse,
+    HealthResponse,
+    ModelInfo,
+    ModelsResponse,
     RAGQueryRequest,
     RAGQueryResponse,
     RAGUploadResponse,
     SourceDocument,
-    ModelsResponse,
-    ModelInfo,
-    HealthResponse,
 )
-from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.rag import RAGSystem
-from langchain_llm_toolkit.hybrid_retriever import HybridRAGSystem
-from langchain_llm_toolkit.conversation_store import ConversationStore
-from langchain_llm_toolkit.auth import AuthManager, get_current_user, TokenData
-from langchain_llm_toolkit.logger import logger
-from langchain_llm_toolkit.exceptions import (
-    LLMToolkitError,
-    APIKeyMissingError,
-    APIConnectionError,
-    APITimeoutError,
-    RateLimitExceededError,
-)
 from langchain_llm_toolkit.rate_limiter import RateLimiter
 
 app = FastAPI(
@@ -154,12 +154,12 @@ async def generate_text(request: GenerateRequest, req: Request):
 
     except ValueError as e:
         logger.error(f"Validation error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error generating text: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/generate/stream", tags=["Generation"])
@@ -218,12 +218,12 @@ async def chat(request: ChatRequest):
 
     except ValueError as e:
         logger.error(f"Validation error: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error in chat: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/chat/stream", tags=["Chat"])
@@ -269,7 +269,7 @@ async def rag_query(request: RAGQueryRequest):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Vector store not found. Please upload documents first.",
-            )
+            ) from None
 
         answer, relevant_docs = rag_system.generate_answer(request.query, k=request.k)
 
@@ -288,7 +288,7 @@ async def rag_query(request: RAGQueryRequest):
         logger.error(f"Error in RAG query: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/rag/query/stream", tags=["RAG"])
@@ -351,7 +351,7 @@ async def rag_hybrid_query(request: RAGQueryRequest, alpha: float = 0.3):
         logger.error(f"Error in hybrid RAG query: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/rag/upload", response_model=RAGUploadResponse, tags=["RAG"])
@@ -399,7 +399,7 @@ async def rag_upload(file: UploadFile = File(...)):
         logger.error(f"Error uploading file: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.get("/api/v1/models", response_model=ModelsResponse, tags=["Models"])
@@ -467,7 +467,7 @@ async def list_models():
 @app.get("/api/v1/performance/stats", tags=["Performance"])
 async def get_performance_stats():
     """获取性能统计信息"""
-    from langchain_llm_toolkit.performance import query_cache, performance_monitor
+    from langchain_llm_toolkit.performance import performance_monitor, query_cache
 
     return {
         "cache": query_cache.get_stats(),
@@ -513,7 +513,7 @@ async def rag_info():
         logger.error(f"Error getting RAG info: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.delete("/api/v1/rag/clear", tags=["RAG"])
@@ -533,7 +533,7 @@ async def rag_clear():
         logger.error(f"Error clearing RAG: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 class DirectoryImportRequest(BaseModel):
@@ -578,14 +578,15 @@ async def rag_import_directory(request: DirectoryImportRequest):
         logger.error(f"Error importing directory: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/rag/import-files", tags=["RAG"])
 async def rag_import_files(files: list[UploadFile] = File(...)):
     """批量导入文件到 RAG 系统"""
-    from langchain_llm_toolkit.document_import_manager import document_import_manager
     import tempfile
+
+    from langchain_llm_toolkit.document_import_manager import document_import_manager
 
     try:
         temp_files = []
@@ -621,10 +622,8 @@ async def rag_import_files(files: list[UploadFile] = File(...)):
                         logger.error(f"添加文档到向量库失败: {result.file_path} - {e}")
 
         for temp_file in temp_files:
-            try:
+            with contextlib.suppress(Exception):
                 os.unlink(temp_file)
-            except Exception:
-                pass
 
         return {
             "success": report.failed_files == 0,
@@ -636,7 +635,7 @@ async def rag_import_files(files: list[UploadFile] = File(...)):
         logger.error(f"Error importing files: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/rag/scan-directory", tags=["RAG"])
@@ -659,7 +658,7 @@ async def rag_scan_directory(request: DirectoryImportRequest):
         logger.error(f"Error scanning directory: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/conversations", tags=["Conversations"])
@@ -668,6 +667,7 @@ async def create_conversation(title: str = "新对话"):
         store = get_conversation_store()
         import uuid
         from datetime import datetime
+
         from langchain_llm_toolkit.conversation_store import Conversation
 
         now = datetime.now().isoformat()
@@ -684,7 +684,7 @@ async def create_conversation(title: str = "新对话"):
         logger.error(f"Error creating conversation: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.get("/api/v1/conversations", tags=["Conversations"])
@@ -697,7 +697,7 @@ async def list_conversations(limit: int = 20, offset: int = 0):
         logger.error(f"Error listing conversations: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.get("/api/v1/conversations/stats", tags=["Conversations"])
@@ -709,7 +709,7 @@ async def conversation_stats():
         logger.error(f"Error getting stats: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.get("/api/v1/conversations/{conversation_id}", tags=["Conversations"])
@@ -728,7 +728,7 @@ async def get_conversation(conversation_id: str):
         logger.error(f"Error getting conversation: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.delete("/api/v1/conversations/{conversation_id}", tags=["Conversations"])
@@ -741,7 +741,7 @@ async def delete_conversation(conversation_id: str):
         logger.error(f"Error deleting conversation: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/auth/register", tags=["Auth"])
@@ -755,12 +755,12 @@ async def register(username: str, email: str, password: str):
             "username": user.username,
         }
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error registering user: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/auth/login", tags=["Auth"])
@@ -781,7 +781,7 @@ async def login(username: str, password: str):
         logger.error(f"Error logging in: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.post("/api/v1/auth/api-keys", tags=["Auth"])
@@ -796,7 +796,7 @@ async def create_api_key(
         logger.error(f"Error creating API key: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.get("/api/v1/auth/api-keys", tags=["Auth"])
@@ -809,7 +809,7 @@ async def list_api_keys(current_user: TokenData = Depends(get_current_user)):
         logger.error(f"Error listing API keys: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.delete("/api/v1/auth/api-keys/{key_id}", tags=["Auth"])
@@ -824,7 +824,7 @@ async def revoke_api_key(
         logger.error(f"Error revoking API key: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        )
+        ) from e
 
 
 @app.get("/api/v1/auth/me", tags=["Auth"])
@@ -886,6 +886,7 @@ async def get_pricing():
 
 def run_server(host: str = "127.0.0.1", port: int = 8000):
     import argparse
+
     import uvicorn
 
     parser = argparse.ArgumentParser(

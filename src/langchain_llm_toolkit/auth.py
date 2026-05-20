@@ -1,12 +1,13 @@
 import os
 import secrets
 import sqlite3
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
 from contextlib import contextmanager
-from fastapi import HTTPException, Security, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any
+
+from fastapi import Depends, HTTPException, Security
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
 
@@ -15,8 +16,8 @@ class TokenData(BaseModel):
 
     user_id: str
     username: str
-    scopes: List[str] = []
-    expires_at: Optional[str] = None
+    scopes: list[str] = []
+    expires_at: str | None = None
 
 
 class APIKeyData(BaseModel):
@@ -25,9 +26,9 @@ class APIKeyData(BaseModel):
     key_id: str
     user_id: str
     name: str
-    scopes: List[str] = []
+    scopes: list[str] = []
     created_at: str
-    last_used_at: Optional[str] = None
+    last_used_at: str | None = None
     is_active: bool = True
 
 
@@ -41,7 +42,7 @@ class User:
     hashed_password: str
     is_active: bool = True
     created_at: str = ""
-    scopes: List[str] = None
+    scopes: list[str] = None
 
     def __post_init__(self):
         if self.scopes is None:
@@ -51,7 +52,7 @@ class User:
 class AuthStore:
     """认证数据存储"""
 
-    def __init__(self, db_path: Optional[str] = None):
+    def __init__(self, db_path: str | None = None):
         self.db_path = db_path or os.environ.get("AUTH_DB_PATH", "./data/auth.db")
         os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self._init_db()
@@ -131,7 +132,7 @@ class AuthStore:
             conn.commit()
         return True
 
-    def get_user(self, user_id: str) -> Optional[User]:
+    def get_user(self, user_id: str) -> User | None:
         with self._get_connection() as conn:
             row = conn.execute(
                 "SELECT * FROM users WHERE id = ?", (user_id,)
@@ -140,7 +141,7 @@ class AuthStore:
                 return self._row_to_user(row)
         return None
 
-    def get_user_by_username(self, username: str) -> Optional[User]:
+    def get_user_by_username(self, username: str) -> User | None:
         with self._get_connection() as conn:
             row = conn.execute(
                 "SELECT * FROM users WHERE username = ?", (username,)
@@ -168,7 +169,7 @@ class AuthStore:
         key_hash: str,
         user_id: str,
         name: str,
-        scopes: List[str],
+        scopes: list[str],
     ) -> bool:
         with self._get_connection() as conn:
             conn.execute(
@@ -189,7 +190,7 @@ class AuthStore:
             conn.commit()
         return True
 
-    def get_api_key_by_hash(self, key_hash: str) -> Optional[Dict[str, Any]]:
+    def get_api_key_by_hash(self, key_hash: str) -> dict[str, Any] | None:
         with self._get_connection() as conn:
             row = conn.execute(
                 "SELECT * FROM api_keys WHERE key_hash = ? AND is_active = 1",
@@ -216,7 +217,7 @@ class AuthStore:
             )
             conn.commit()
 
-    def list_api_keys(self, user_id: str) -> List[Dict[str, Any]]:
+    def list_api_keys(self, user_id: str) -> list[dict[str, Any]]:
         with self._get_connection() as conn:
             rows = conn.execute(
                 "SELECT key_id, name, scopes, created_at, last_used_at "
@@ -250,7 +251,7 @@ class JWTHandler:
 
     def __init__(
         self,
-        secret_key: Optional[str] = None,
+        secret_key: str | None = None,
         algorithm: str = "HS256",
         access_token_expire_minutes: int = 30,
     ):
@@ -264,8 +265,8 @@ class JWTHandler:
         self,
         user_id: str,
         username: str,
-        scopes: List[str] = None,
-        expires_delta: Optional[timedelta] = None,
+        scopes: list[str] | None = None,
+        expires_delta: timedelta | None = None,
     ) -> str:
         import jwt
 
@@ -305,9 +306,9 @@ class JWTHandler:
                 expires_at=expires_at,
             )
         except ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Token 已过期")
+            raise HTTPException(status_code=401, detail="Token 已过期") from None
         except InvalidTokenError:
-            raise HTTPException(status_code=401, detail="无效的 Token")
+            raise HTTPException(status_code=401, detail="无效的 Token") from None
 
 
 class PasswordHandler:
@@ -342,8 +343,8 @@ class AuthManager:
 
     def __init__(
         self,
-        store: Optional[AuthStore] = None,
-        jwt_handler: Optional[JWTHandler] = None,
+        store: AuthStore | None = None,
+        jwt_handler: JWTHandler | None = None,
     ):
         self.store = store or AuthStore()
         self.jwt_handler = jwt_handler or JWTHandler()
@@ -354,7 +355,7 @@ class AuthManager:
         username: str,
         email: str,
         password: str,
-        scopes: List[str] = None,
+        scopes: list[str] | None = None,
     ) -> User:
         import uuid
 
@@ -374,7 +375,7 @@ class AuthManager:
         self.store.save_user(user)
         return user
 
-    def authenticate_user(self, username: str, password: str) -> Optional[User]:
+    def authenticate_user(self, username: str, password: str) -> User | None:
         user = self.store.get_user_by_username(username)
         if not user:
             return None
@@ -395,10 +396,10 @@ class AuthManager:
         self,
         user_id: str,
         name: str,
-        scopes: List[str] = None,
+        scopes: list[str] | None = None,
     ) -> str:
-        import uuid
         import hashlib
+        import uuid
 
         api_key = f"lk-{secrets.token_urlsafe(32)}"
         key_hash = hashlib.sha256(api_key.encode()).hexdigest()
@@ -414,7 +415,7 @@ class AuthManager:
 
         return api_key
 
-    def validate_api_key(self, api_key: str) -> Optional[Dict[str, Any]]:
+    def validate_api_key(self, api_key: str) -> dict[str, Any] | None:
         import hashlib
 
         key_hash = hashlib.sha256(api_key.encode()).hexdigest()
@@ -458,7 +459,7 @@ def get_current_user(
     )
 
 
-def require_scopes(required_scopes: List[str]):
+def require_scopes(required_scopes: list[str]):
     """检查用户是否具有所需权限"""
 
     def decorator(current_user: TokenData = Depends(get_current_user)):

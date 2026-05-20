@@ -4,8 +4,8 @@
 import argparse
 from pathlib import Path
 
-from langchain_llm_toolkit.rag import RAGSystem
 from langchain_llm_toolkit.metadata_generator import DocumentMetadataGenerator
+from langchain_llm_toolkit.rag import RAGSystem
 
 
 def _add_fallback_metadata(documents: list) -> list:
@@ -20,7 +20,7 @@ def _add_fallback_metadata(documents: list) -> list:
 
 def import_documents(
     docs_dir: str,
-    patterns: list = None,
+    patterns: list | None = None,
     embedding_model: str = "snowflake-arctic-embed2",
     llm_model: str = "ollama/gemma4",
     generate_metadata: bool = False,

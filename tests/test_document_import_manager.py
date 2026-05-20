@@ -6,7 +6,6 @@ Tests for Document Import Manager.
 import tempfile
 from pathlib import Path
 
-
 from langchain_llm_toolkit.document_import_manager import (
     DocumentImportManager,
     ImportReport,

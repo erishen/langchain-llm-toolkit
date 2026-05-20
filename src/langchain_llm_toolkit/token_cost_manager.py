@@ -3,12 +3,11 @@ Token Cost Manager - Token 成本管理器
 优化 LLM API 调用成本
 """
 
+import json
 import logging
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
-from collections import defaultdict
-import json
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -141,7 +140,7 @@ class CostEstimator:
 
         return 0.0
 
-    def get_model_pricing(self, model: str) -> Optional[ModelPricing]:
+    def get_model_pricing(self, model: str) -> ModelPricing | None:
         """获取模型定价"""
         model_key = (
             model.replace("ollama/", "") if model.startswith("ollama/") else model
@@ -156,7 +155,7 @@ class CostEstimator:
 class TokenCostManager:
     """Token 成本管理器"""
 
-    def __init__(self, storage_path: Optional[Path] = None):
+    def __init__(self, storage_path: Path | None = None):
         self.token_counter = TokenCounter()
         self.cost_estimator = CostEstimator()
         self.usage_history: list[TokenUsage] = []

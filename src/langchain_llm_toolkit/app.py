@@ -1,14 +1,16 @@
-# flake8: noqa: E501
-import streamlit as st
-from langchain_llm_toolkit.conversation import ConversationManager
-from langchain_llm_toolkit.rag import RAGSystem
-from langchain_llm_toolkit.conversation_store import ConversationStore, Conversation
-from langchain_llm_toolkit.auth import AuthManager
-from langchain_llm_toolkit.hybrid_retriever import HybridRAGSystem
+import contextlib
 import os
 import tempfile
 import time
 from datetime import datetime
+
+import streamlit as st
+
+from langchain_llm_toolkit.auth import AuthManager
+from langchain_llm_toolkit.conversation import ConversationManager
+from langchain_llm_toolkit.conversation_store import Conversation, ConversationStore
+from langchain_llm_toolkit.hybrid_retriever import HybridRAGSystem
+from langchain_llm_toolkit.rag import RAGSystem
 
 st.set_page_config(
     page_title="LangChain LLM Toolkit",
@@ -63,10 +65,8 @@ def init_rag_system():
             vector_store_type=st.session_state.vector_store_type,
             embedding_model=st.session_state.embedding_model,
         )
-        try:
+        with contextlib.suppress(Exception):
             st.session_state.rag_system.load_vector_store()
-        except Exception:
-            pass
 
 
 def stream_response(text: str, placeholder):
@@ -177,7 +177,7 @@ def render_chat_page():
                 )
 
             except Exception as e:
-                error_msg = f"❌ 错误: {str(e)}"
+                error_msg = f"❌ 错误: {e!s}"
                 placeholder.markdown(error_msg)
                 st.session_state.messages.append(
                     {"role": "assistant", "content": error_msg}
@@ -202,7 +202,7 @@ def render_rag_page():
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
-                if "sources" in message and message["sources"]:
+                if message.get("sources"):
                     with st.expander("📖 参考文档"):
                         for src in message["sources"]:
                             source_name = src.get("source", "未知来源")
@@ -269,7 +269,7 @@ def render_rag_page():
                                 st.markdown("")
 
                 except Exception as e:
-                    error_msg = f"❌ 错误: {str(e)}"
+                    error_msg = f"❌ 错误: {e!s}"
                     placeholder.markdown(error_msg)
 
     with col2:
@@ -577,7 +577,7 @@ def render_settings_page():
                         )
                         st.success(f"✅ 注册成功: {user.username}")
                     except ValueError as e:
-                        st.error(f"❌ {str(e)}")
+                        st.error(f"❌ {e!s}")
 
     with tab2:
         if not st.session_state.current_user:

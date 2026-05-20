@@ -1,8 +1,8 @@
 import logging
-import tempfile
 import os
+import tempfile
 
-from langchain_llm_toolkit.logger import setup_logging, logger
+from langchain_llm_toolkit.logger import logger, setup_logging
 
 
 class TestSetupLogging:
@@ -176,7 +176,7 @@ class TestLogger:
 
             logger.info("Test file message")
 
-            with open(log_file, "r") as f:
+            with open(log_file) as f:
                 content = f.read()
                 assert "Test file message" in content
 

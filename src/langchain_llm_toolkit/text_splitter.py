@@ -1,11 +1,11 @@
 """文档分块模块 - 支持多种分块策略"""
 
-from typing import List, Union
+
 from langchain_core.documents import Document
 from langchain_text_splitters import (
-    RecursiveCharacterTextSplitter,
     CharacterTextSplitter,
     MarkdownHeaderTextSplitter,
+    RecursiveCharacterTextSplitter,
 )
 
 
@@ -17,11 +17,11 @@ class TextSplitter:
 
     def split_documents(
         self,
-        documents: List[Document],
+        documents: list[Document],
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
         method: str = "recursive",
-    ) -> List[Document]:
+    ) -> list[Document]:
         """分割文档为更小的片段
 
         Args:
@@ -38,7 +38,7 @@ class TextSplitter:
         elif method == "semantic":
             return self._split_semantic(documents, chunk_size, chunk_overlap)
         else:
-            splitter: Union[RecursiveCharacterTextSplitter, CharacterTextSplitter]
+            splitter: RecursiveCharacterTextSplitter | CharacterTextSplitter
             if method == "recursive":
                 splitter = RecursiveCharacterTextSplitter(
                     chunk_size=chunk_size,
@@ -55,8 +55,8 @@ class TextSplitter:
             return splitter.split_documents(documents)
 
     def _split_markdown(
-        self, documents: List[Document], chunk_size: int, chunk_overlap: int
-    ) -> List[Document]:
+        self, documents: list[Document], chunk_size: int, chunk_overlap: int
+    ) -> list[Document]:
         """Markdown 分块 - 按标题层级分割
 
         优点：
@@ -95,8 +95,8 @@ class TextSplitter:
         return all_chunks
 
     def _split_semantic(
-        self, documents: List[Document], chunk_size: int, chunk_overlap: int
-    ) -> List[Document]:
+        self, documents: list[Document], chunk_size: int, chunk_overlap: int
+    ) -> list[Document]:
         """语义分块 - 按段落和句子边界分割
 
         优点：
@@ -137,7 +137,7 @@ class TextSplitter:
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
         method: str = "recursive",
-    ) -> List[str]:
+    ) -> list[str]:
         """分割文本为更小的片段
 
         Args:
@@ -155,12 +155,12 @@ class TextSplitter:
 
     def split_with_metadata(
         self,
-        documents: List[Document],
+        documents: list[Document],
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
         method: str = "recursive",
         preserve_metadata: bool = True,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """分割文档并保留元数据
 
         Args:

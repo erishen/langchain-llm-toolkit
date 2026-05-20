@@ -1,13 +1,12 @@
 """ReAct Agent - 实现 Reasoning + Acting 循环"""
 
-from typing import Optional
 import re
 
 from langchain_llm_toolkit.agent.base import (
-    BaseAgent,
+    AgentContext,
     AgentResponse,
     AgentStep,
-    AgentContext,
+    BaseAgent,
 )
 from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.logger import logger
@@ -32,7 +31,7 @@ class ReActAgent(BaseAgent):
 
     def __init__(
         self,
-        llm: Optional[LLMIntegration] = None,
+        llm: LLMIntegration | None = None,
         name: str = "ReActAgent",
         max_iterations: int = 10,
         verbose: bool = False,
@@ -115,7 +114,7 @@ class ReActAgent(BaseAgent):
             return match.group(1).strip()
         return text.strip()
 
-    def _parse_final_answer(self, text: str) -> Optional[str]:
+    def _parse_final_answer(self, text: str) -> str | None:
         """
         解析最终答案
 
@@ -220,24 +219,21 @@ class ReActAgent(BaseAgent):
                 # 解析工具调用
                 tool_call = self._parse_tool_call(response)
 
-                if not tool_call:
-                    # 没有工具调用，可能是直接回答
-                    if not self._has_final_answer(response):
-                        # 尝试将响应作为最终答案
-                        final_answer = response.strip()
-                        logger.info(
-                            "No tool call found, using response as final answer"
-                        )
+                if not tool_call and not self._has_final_answer(response):
+                    final_answer = response.strip()
+                    logger.info(
+                        "No tool call found, using response as final answer"
+                    )
 
-                        step = AgentStep(
-                            step_number=iteration + 1,
-                            thought=thought,
-                            action=None,
-                            action_input=None,
-                            observation=None,
-                        )
-                        context.add_step(step)
-                        break
+                    step = AgentStep(
+                        step_number=iteration + 1,
+                        thought=thought,
+                        action=None,
+                        action_input=None,
+                        observation=None,
+                    )
+                    context.add_step(step)
+                    break
 
                 # 执行工具
                 tool_name = tool_call["tool"]
@@ -282,7 +278,7 @@ class ReActAgent(BaseAgent):
 
         except Exception as e:
             logger.error(f"Error during ReAct execution: {e}")
-            final_answer = f"Error: {str(e)}"
+            final_answer = f"Error: {e!s}"
 
         # 设置最终答案
         context.final_answer = final_answer

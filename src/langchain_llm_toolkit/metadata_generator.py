@@ -7,6 +7,7 @@ import json
 import re
 
 from langchain_core.documents import Document
+
 from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.logger import logger
 
@@ -110,10 +111,7 @@ class DocumentMetadataGenerator:
         if heading_match:
             return heading_match.group(1).strip()
 
-        if "/" in source:
-            filename = source.rsplit("/", 1)[-1]
-        else:
-            filename = source
+        filename = source.rsplit("/", 1)[-1] if "/" in source else source
 
         title = re.sub(r"\.[^.]+$", "", filename)
         return title.replace("_", " ").replace("-", " ")
