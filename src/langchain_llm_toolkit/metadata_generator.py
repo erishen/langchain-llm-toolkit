@@ -4,12 +4,14 @@ Document Metadata Generator.
 """
 
 import json
+import logging
 import re
 
 from langchain_core.documents import Document
 
 from langchain_llm_toolkit.llm_integration import LLMIntegration
-from langchain_llm_toolkit.logger import logger
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentMetadataGenerator:
@@ -262,7 +264,7 @@ class DocumentMetadataGenerator:
         for i, doc in enumerate(documents):
             if show_progress:
                 source = doc.metadata.get("source", "unknown")
-                print(f"  [{i + 1}/{len(documents)}] 生成元数据: {source}")
+                logger.info(f"[{i + 1}/{len(documents)}] 生成元数据: {source}")
 
             metadata = self.generate_metadata(doc, max_content_length)
 

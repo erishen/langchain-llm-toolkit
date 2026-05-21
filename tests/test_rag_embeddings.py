@@ -241,9 +241,7 @@ class TestRAGSystemGenerateSummary(unittest.TestCase):
         rag = RAGSystem()
         rag.llm_integration = mock_llm
 
-        docs = [
-            Document(page_content="Long content here", metadata={"source": "test.txt"})
-        ]
+        docs = [Document(page_content="Long content here", metadata={"source": "test.txt"})]
         result = rag.generate_summary(docs)
 
         self.assertEqual(result, "This is a summary")

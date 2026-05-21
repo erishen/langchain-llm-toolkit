@@ -1,5 +1,6 @@
 """ReAct Agent - 实现 Reasoning + Acting 循环"""
 
+import logging
 import re
 
 from langchain_llm_toolkit.agent.base import (
@@ -9,7 +10,8 @@ from langchain_llm_toolkit.agent.base import (
     BaseAgent,
 )
 from langchain_llm_toolkit.llm_integration import LLMIntegration
-from langchain_llm_toolkit.logger import logger
+
+logger = logging.getLogger(__name__)
 
 
 class ReActAgent(BaseAgent):
@@ -125,9 +127,7 @@ class ReActAgent(BaseAgent):
             最终答案或 None
         """
         # 匹配 Final Answer: ...
-        match = re.search(
-            r"Final Answer:\s*(.*?)(?=$)", text, re.DOTALL | re.IGNORECASE
-        )
+        match = re.search(r"Final Answer:\s*(.*?)(?=$)", text, re.DOTALL | re.IGNORECASE)
         if match:
             return match.group(1).strip()
 
@@ -185,16 +185,16 @@ class ReActAgent(BaseAgent):
                 prompt = self._create_react_prompt(task, context)
 
                 if self.verbose:
-                    print(f"\n{'=' * 50}")
-                    print(f"Iteration {iteration + 1}")
-                    print(f"{'=' * 50}")
-                    print(f"Prompt:\n{prompt[:500]}...")
+                    logger.debug(f"\n{'=' * 50}")
+                    logger.debug(f"Iteration {iteration + 1}")
+                    logger.debug(f"{'=' * 50}")
+                    logger.debug(f"Prompt:\n{prompt[:500]}...")
 
                 # 调用 LLM
                 response = self.llm.generate(prompt)
 
                 if self.verbose:
-                    print(f"\nLLM Response:\n{response}")
+                    logger.debug(f"\nLLM Response:\n{response}")
 
                 # 解析思考过程
                 thought = self._parse_thought(response)
@@ -221,9 +221,7 @@ class ReActAgent(BaseAgent):
 
                 if not tool_call and not self._has_final_answer(response):
                     final_answer = response.strip()
-                    logger.info(
-                        "No tool call found, using response as final answer"
-                    )
+                    logger.info("No tool call found, using response as final answer")
 
                     step = AgentStep(
                         step_number=iteration + 1,
@@ -262,9 +260,9 @@ class ReActAgent(BaseAgent):
                 context.add_step(step)
 
                 if self.verbose:
-                    print(f"\nTool: {tool_name}")
-                    print(f"Input: {tool_input}")
-                    print(f"Observation: {observation[:200]}...")
+                    logger.debug(f"\nTool: {tool_name}")
+                    logger.debug(f"Input: {tool_input}")
+                    logger.debug(f"Observation: {observation[:200]}...")
 
             else:
                 # 达到最大迭代次数

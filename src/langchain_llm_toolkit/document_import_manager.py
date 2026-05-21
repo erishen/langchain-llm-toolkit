@@ -120,9 +120,7 @@ class DocumentImportManager:
 
         if parallel and len(file_paths) > 1:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                futures = {
-                    executor.submit(self.import_file, fp): fp for fp in file_paths
-                }
+                futures = {executor.submit(self.import_file, fp): fp for fp in file_paths}
 
                 for future in as_completed(futures):
                     result = future.result()

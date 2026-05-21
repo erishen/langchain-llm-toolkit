@@ -64,9 +64,7 @@ class TestTextSplitter:
 
 这是标题三的内容。
 """
-        documents = [
-            Document(page_content=markdown_content, metadata={"source": "test"})
-        ]
+        documents = [Document(page_content=markdown_content, metadata={"source": "test"})]
 
         chunks = splitter.split_documents(
             documents, chunk_size=500, chunk_overlap=50, method="markdown"

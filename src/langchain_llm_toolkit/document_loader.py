@@ -1,9 +1,12 @@
+import logging
 import os
 
 import magic
 from langchain_core.documents import Document
 
 from langchain_llm_toolkit.markdown_loader import MarkdownLoader
+
+logger = logging.getLogger(__name__)
 
 
 class DocumentLoader:
@@ -72,7 +75,7 @@ class DocumentLoader:
                 documents = self.load_document(file_path)
                 all_documents.extend(documents)
             except Exception as e:
-                print(f"加载文件 {file_path} 失败: {e}")
+                logger.error(f"加载文件 {file_path} 失败: {e}")
         return all_documents
 
     def _load_pdf(self, file_path: str) -> list[Document]:
@@ -104,9 +107,7 @@ class DocumentLoader:
         """加载 TXT 文档"""
         with open(file_path, encoding="utf-8", errors="ignore") as file:
             text = file.read()
-            doc = Document(
-                page_content=text, metadata={"source": file_path, "type": "txt"}
-            )
+            doc = Document(page_content=text, metadata={"source": file_path, "type": "txt"})
             return [doc]
 
     def _load_markdown(self, file_path: str) -> list[Document]:
@@ -120,9 +121,7 @@ class DocumentLoader:
 
             docx = DocxDocument(file_path)
             text = "\n".join([para.text for para in docx.paragraphs])
-            doc = Document(
-                page_content=text, metadata={"source": file_path, "type": "docx"}
-            )
+            doc = Document(page_content=text, metadata={"source": file_path, "type": "docx"})
             return [doc]
         except ImportError:
             raise ImportError("需要安装 python-docx 来处理 DOCX 文件") from None

@@ -75,9 +75,7 @@ def test_complete_document_processing():
 
         # 分割文档
         splitter = TextSplitter()
-        split_docs = splitter.split_documents(
-            documents, chunk_size=150, chunk_overlap=30
-        )
+        split_docs = splitter.split_documents(documents, chunk_size=150, chunk_overlap=30)
         print(f"成功分割文档，获取到 {len(split_docs)} 个片段")
 
         # 显示分割结果

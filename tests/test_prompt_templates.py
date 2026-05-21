@@ -167,9 +167,7 @@ class TestRAGPromptBuilder:
         """测试使用字符串文档构建问答提示"""
         builder = RAGPromptBuilder()
 
-        result = builder.build_qa_prompt(
-            query="测试问题", documents=["字符串文档1", "字符串文档2"]
-        )
+        result = builder.build_qa_prompt(query="测试问题", documents=["字符串文档1", "字符串文档2"])
 
         assert "测试问题" in result
         assert "字符串文档1" in result
@@ -215,9 +213,7 @@ class TestRAGPromptBuilder:
         doc = Mock()
         doc.page_content = "测试文档内容"
 
-        result = builder.build_extraction_prompt(
-            documents=[doc], extract_type="关键信息"
-        )
+        result = builder.build_extraction_prompt(documents=[doc], extract_type="关键信息")
 
         assert "测试文档内容" in result
         assert "关键信息" in result

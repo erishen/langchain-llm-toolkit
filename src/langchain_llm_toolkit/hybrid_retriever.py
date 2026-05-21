@@ -99,9 +99,7 @@ class BM25:
                 idf = self.idf.get(token, 0)
 
                 numerator = tf * (self.k1 + 1)
-                denominator = tf + self.k1 * (
-                    1 - self.b + self.b * doc_len / self.avgdl
-                )
+                denominator = tf + self.k1 * (1 - self.b + self.b * doc_len / self.avgdl)
                 score += idf * numerator / denominator
 
             scores.append(score)
@@ -210,9 +208,7 @@ class HybridRetriever:
             normalized_score = score / max_kw_score
             doc_scores[doc_id] = (doc, normalized_score * keyword_weight)
 
-        max_sem_score = (
-            max((score for _, score in semantic_results), default=1.0) or 1.0
-        )
+        max_sem_score = max((score for _, score in semantic_results), default=1.0) or 1.0
         for doc, score in semantic_results:
             doc_id = self._get_doc_id(doc)
             normalized_score = 1 - (score / max_sem_score)

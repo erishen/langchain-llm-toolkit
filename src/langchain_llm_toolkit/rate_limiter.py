@@ -27,9 +27,7 @@ class RateLimiter:
         """清理过期的请求记录"""
         current_time = time.time()
         cutoff_time = current_time - self.window_seconds
-        self.requests[key] = [
-            req_time for req_time in self.requests[key] if req_time > cutoff_time
-        ]
+        self.requests[key] = [req_time for req_time in self.requests[key] if req_time > cutoff_time]
 
     def is_allowed(self, key: str = "default") -> bool:
         """
@@ -93,9 +91,7 @@ class RateLimiter:
         """
         if not self.is_allowed(key):
             reset_time = self.get_reset_time(key)
-            retry_after = (
-                int(reset_time - time.time()) if reset_time else self.window_seconds
-            )
+            retry_after = int(reset_time - time.time()) if reset_time else self.window_seconds
             raise RateLimitExceededError("API", retry_after)
 
         self.record_request(key)
@@ -166,9 +162,7 @@ class MultiTierRateLimiter:
             if not limiter.is_allowed(key):
                 reset_time = limiter.get_reset_time(key)
                 retry_after = (
-                    int(reset_time - time.time())
-                    if reset_time
-                    else limiter.window_seconds
+                    int(reset_time - time.time()) if reset_time else limiter.window_seconds
                 )
                 raise RateLimitExceededError(f"API ({name} limit)", retry_after)
 

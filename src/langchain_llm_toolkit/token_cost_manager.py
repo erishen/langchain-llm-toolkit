@@ -128,9 +128,7 @@ class CostEstimator:
         output_tokens: int,
     ) -> float:
         """估算成本"""
-        model_key = (
-            model.replace("ollama/", "") if model.startswith("ollama/") else model
-        )
+        model_key = model.replace("ollama/", "") if model.startswith("ollama/") else model
 
         for key, pricing in self.pricing.items():
             if model_key in key or key in model_key:
@@ -142,9 +140,7 @@ class CostEstimator:
 
     def get_model_pricing(self, model: str) -> ModelPricing | None:
         """获取模型定价"""
-        model_key = (
-            model.replace("ollama/", "") if model.startswith("ollama/") else model
-        )
+        model_key = model.replace("ollama/", "") if model.startswith("ollama/") else model
 
         for key, pricing in self.pricing.items():
             if model_key in key or key in model_key:
@@ -208,9 +204,7 @@ class TokenCostManager:
         report = CostReport()
 
         cutoff = datetime.now().timestamp() - (days * 24 * 60 * 60)
-        recent_usage = [
-            u for u in self.usage_history if u.timestamp.timestamp() > cutoff
-        ]
+        recent_usage = [u for u in self.usage_history if u.timestamp.timestamp() > cutoff]
 
         report.total_requests = len(recent_usage)
 
@@ -253,16 +247,14 @@ class TokenCostManager:
         for model in report.by_model:
             pricing = self.cost_estimator.get_model_pricing(model)
             if pricing and pricing.input_price > 5:
-                tips.append(
-                    f"🔄 {model} 成本较高，可考虑切换到 DeepSeek-V4 (节省 ~95%)"
-                )
+                tips.append(f"🔄 {model} 成本较高，可考虑切换到 DeepSeek-V4 (节省 ~95%)")
 
         if report.total_input_tokens > 100000:
             tips.append("📝 输入 token 较多，建议优化 prompt 长度")
 
-        avg_tokens_per_request = (
-            report.total_input_tokens + report.total_output_tokens
-        ) / max(report.total_requests, 1)
+        avg_tokens_per_request = (report.total_input_tokens + report.total_output_tokens) / max(
+            report.total_requests, 1
+        )
         if avg_tokens_per_request > 2000:
             tips.append("⚡ 平均每请求 token 较多，建议启用缓存减少重复请求")
 

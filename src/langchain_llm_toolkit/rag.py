@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 from datetime import datetime, timedelta
 from typing import ClassVar
@@ -11,9 +12,10 @@ from qdrant_client import QdrantClient
 
 from langchain_llm_toolkit.document_loader import DocumentLoader
 from langchain_llm_toolkit.llm_integration import LLMIntegration
-from langchain_llm_toolkit.logger import logger
 from langchain_llm_toolkit.prompt_templates import PromptTemplateType, RAGPromptBuilder
 from langchain_llm_toolkit.text_splitter import TextSplitter
+
+logger = logging.getLogger(__name__)
 
 
 class QueryCache:
@@ -164,9 +166,7 @@ class RAGSystem:
     def setup_embeddings(self):
         """设置嵌入模型"""
         if self.embedding_type == "ollama":
-            ollama_base_url = os.environ.get(
-                "OLLAMA_BASE_URL", "http://localhost:11434"
-            )
+            ollama_base_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
             self.embeddings = OllamaEmbeddingsWrapper(
                 model=self.embedding_model, base_url=ollama_base_url, num_ctx=8192
             )
@@ -237,9 +237,7 @@ class RAGSystem:
         # 确保 embeddings 已初始化
         assert self.embeddings is not None, "Embeddings must be initialized"
 
-        vector_store = FAISS.from_documents(
-            documents=documents, embedding=self.embeddings
-        )
+        vector_store = FAISS.from_documents(documents=documents, embedding=self.embeddings)
         return vector_store
 
     def add_documents(self, documents: list[Document]):
@@ -282,12 +280,8 @@ class RAGSystem:
                 return cached
 
         if score_threshold > 0:
-            results = self.vector_store.similarity_search_with_score(
-                query=query, k=k * 2
-            )
-            filtered = [
-                (doc, score) for doc, score in results if score >= score_threshold
-            ]
+            results = self.vector_store.similarity_search_with_score(query=query, k=k * 2)
+            filtered = [(doc, score) for doc, score in results if score >= score_threshold]
             docs = [doc for doc, _ in filtered[:k]]
         else:
             docs = self.vector_store.similarity_search(query=query, k=k)
@@ -297,9 +291,7 @@ class RAGSystem:
 
         return docs
 
-    def retrieve_documents_with_scores(
-        self, query: str, k: int = 3, score_threshold: float = 0.0
-    ):
+    def retrieve_documents_with_scores(self, query: str, k: int = 3, score_threshold: float = 0.0):
         """检索相关文档并返回相似度分数
 
         Args:
@@ -316,9 +308,7 @@ class RAGSystem:
         results = self.vector_store.similarity_search_with_score(query=query, k=k * 2)
 
         if score_threshold > 0:
-            results = [
-                (doc, score) for doc, score in results if score >= score_threshold
-            ]
+            results = [(doc, score) for doc, score in results if score >= score_threshold]
 
         return results[:k]
 
@@ -355,9 +345,7 @@ class RAGSystem:
 
         try:
             response = self.llm_integration.generate(rerank_prompt)
-            indices = [
-                int(x.strip()) - 1 for x in response.split(",") if x.strip().isdigit()
-            ]
+            indices = [int(x.strip()) - 1 for x in response.split(",") if x.strip().isdigit()]
             indices = [i for i in indices if 0 <= i < len(documents)]
             while len(indices) < top_k and len(indices) < len(documents):
                 for i in range(len(documents)):
@@ -407,9 +395,7 @@ class RAGSystem:
 
         logger.info(f"Generating answer for query: {query[:50]}...")
 
-        relevant_docs = self.retrieve_documents(
-            query, k * 2 if use_rerank else k, score_threshold
-        )
+        relevant_docs = self.retrieve_documents(query, k * 2 if use_rerank else k, score_threshold)
 
         if not relevant_docs:
             logger.warning("No relevant documents found")
@@ -438,9 +424,7 @@ class RAGSystem:
         logger.info(f"Generated answer successfully in {elapsed_time:.2f}s")
         return answer, relevant_docs
 
-    def generate_summary(
-        self, documents: list[Document], max_context_length: int = 4000
-    ):
+    def generate_summary(self, documents: list[Document], max_context_length: int = 4000):
         """
         生成文档摘要
 
@@ -571,9 +555,7 @@ class RAGSystem:
                 logger.info(f"Qdrant 向量存储已从服务器加载: {self.qdrant_url}")
             else:
                 if not os.path.exists(self.qdrant_persist_dir):
-                    raise ValueError(
-                        f"Qdrant 存储目录不存在: {self.qdrant_persist_dir}"
-                    )
+                    raise ValueError(f"Qdrant 存储目录不存在: {self.qdrant_persist_dir}")
 
                 client = QdrantClient(path=self.qdrant_persist_dir)
                 logger.info(f"Qdrant 向量存储已从 {self.qdrant_persist_dir} 加载")
@@ -590,14 +572,14 @@ class RAGSystem:
         """删除向量存储集合（仅 Qdrant）"""
         if self.vector_store_type == "qdrant":
             if self.vector_store is None:
-                print("向量存储未初始化")
+                logger.warning("向量存储未初始化")
                 return
             try:
                 client = self.vector_store.client
                 client.delete_collection(self.qdrant_collection_name)
-                print(f"已删除集合: {self.qdrant_collection_name}")
+                logger.info(f"已删除集合: {self.qdrant_collection_name}")
             except Exception as e:
-                print(f"删除集合失败: {e}")
+                logger.error(f"删除集合失败: {e}")
 
     def delete_documents_by_source(self, source: str) -> int:
         """按来源删除文档（仅 Qdrant）
@@ -713,9 +695,7 @@ class RAGSystem:
                     )
                 )
 
-            search_filter = (
-                rest.Filter(must=must_conditions) if must_conditions else None
-            )
+            search_filter = rest.Filter(must=must_conditions) if must_conditions else None
 
             results = self.vector_store.similarity_search_with_score(
                 query=query,
@@ -866,9 +846,7 @@ class RAGSystem:
                     doc_value = doc.metadata.get(key)
                     if doc_value == value or (isinstance(doc_value, list) and value in doc_value):
                         match_count += 1
-                metadata_score = (
-                    match_count / total_conditions if total_conditions > 0 else 1.0
-                )
+                metadata_score = match_count / total_conditions if total_conditions > 0 else 1.0
 
             combined_score = alpha * vector_score + (1 - alpha) * metadata_score
             scored_results.append((doc, combined_score, vector_score, metadata_score))
@@ -953,21 +931,16 @@ class RAGSystem:
 
 def test_rag_system():
     """测试 RAG 系统"""
-    print("测试 RAG 系统（Qdrant 版本）...")
+    logger.info("测试 RAG 系统（Qdrant 版本）...")
 
-    # 初始化 RAG 系统
     rag_system = RAGSystem(vector_store_type="qdrant")
 
-    # 加载示例文档
-    print("\n1. 加载示例文档...")
+    logger.info("\n1. 加载示例文档...")
     test_file = "test_document.txt"
 
-    # 创建测试文档
     with open(test_file, "w", encoding="utf-8") as f:
         f.write("LangChain 是一个用于开发基于语言模型的应用程序的框架。\n\n")
-        f.write(
-            "它提供了一系列工具和组件，使得开发者可以更轻松地构建复杂的 LLM 应用。\n\n"
-        )
+        f.write("它提供了一系列工具和组件，使得开发者可以更轻松地构建复杂的 LLM 应用。\n\n")
         f.write("LangChain 的主要组件包括：\n")
         f.write("1. 文档加载器：用于加载各种格式的文档\n")
         f.write("2. 文本分割器：用于将长文本分割为更小的片段\n")
@@ -979,70 +952,58 @@ def test_rag_system():
             "它结合了检索和生成功能，使得语言模型可以基于外部知识生成更准确的回答。"
         )
 
-    # 加载和处理文档
     documents = rag_system.load_and_process_documents([test_file])
-    print(f"加载了 {len(documents)} 个文档")
+    logger.info(f"加载了 {len(documents)} 个文档")
 
-    # 创建向量存储
-    print("\n2. 创建向量存储（Qdrant）...")
+    logger.info("\n2. 创建向量存储（Qdrant）...")
     rag_system.create_vector_store(documents)
-    print("向量存储创建成功")
+    logger.info("向量存储创建成功")
 
-    # 获取集合信息
-    print("\n3. 获取向量存储信息...")
+    logger.info("\n3. 获取向量存储信息...")
     info = rag_system.get_collection_info()
-    print(f"集合信息: {info}")
+    logger.info(f"集合信息: {info}")
 
-    # 测试检索
-    print("\n4. 测试检索功能...")
+    logger.info("\n4. 测试检索功能...")
     query = "LangChain 的主要组件有哪些？"
     relevant_docs = rag_system.retrieve_documents(query)
-    print(f"检索到 {len(relevant_docs)} 个相关文档")
+    logger.info(f"检索到 {len(relevant_docs)} 个相关文档")
     for i, doc in enumerate(relevant_docs):
-        print(f"\n相关文档 {i + 1}:")
-        print(
-            doc.page_content[:100] + "..."
-            if len(doc.page_content) > 100
-            else doc.page_content
+        logger.info(f"\n相关文档 {i + 1}:")
+        logger.info(
+            doc.page_content[:100] + "..." if len(doc.page_content) > 100 else doc.page_content
         )
 
-    # 测试带分数的检索
-    print("\n5. 测试带分数的检索...")
+    logger.info("\n5. 测试带分数的检索...")
     results_with_scores = rag_system.retrieve_documents_with_scores(query)
     for i, (doc, score) in enumerate(results_with_scores):
-        print(f"文档 {i + 1} - 相似度分数: {score:.4f}")
-        print(doc.page_content[:80] + "...")
+        logger.info(f"文档 {i + 1} - 相似度分数: {score:.4f}")
+        logger.info(doc.page_content[:80] + "...")
 
-    # 测试生成回答
-    print("\n6. 测试生成回答功能...")
+    logger.info("\n6. 测试生成回答功能...")
     answer, _ = rag_system.generate_answer(query)
-    print(f"问题: {query}")
-    print(f"回答: {answer}")
+    logger.info(f"问题: {query}")
+    logger.info(f"回答: {answer}")
 
-    # 测试另一个问题
     query2 = "什么是 RAG？"
     answer2, _ = rag_system.generate_answer(query2)
-    print(f"\n问题: {query2}")
-    print(f"回答: {answer2}")
+    logger.info(f"\n问题: {query2}")
+    logger.info(f"回答: {answer2}")
 
-    # 保存向量存储
-    print("\n7. 保存向量存储...")
+    logger.info("\n7. 保存向量存储...")
     rag_system.save_vector_store("vector_store")
-    print("向量存储保存成功")
+    logger.info("向量存储保存成功")
 
-    # 加载向量存储
-    print("\n8. 加载向量存储...")
+    logger.info("\n8. 加载向量存储...")
     rag_system2 = RAGSystem(vector_store_type="qdrant")
     rag_system2.load_vector_store("vector_store")
-    print("向量存储加载成功")
+    logger.info("向量存储加载成功")
 
-    # 测试加载后的向量存储
-    print("\n9. 测试加载后的向量存储...")
+    logger.info("\n9. 测试加载后的向量存储...")
     answer3, _ = rag_system2.generate_answer(query)
-    print(f"问题: {query}")
-    print(f"回答: {answer3}")
+    logger.info(f"问题: {query}")
+    logger.info(f"回答: {answer3}")
 
-    print("\n测试完成！")
+    logger.info("\n测试完成！")
 
 
 if __name__ == "__main__":

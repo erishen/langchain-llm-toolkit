@@ -32,9 +32,7 @@ class TestGenerateRequest:
 
     def test_custom_parameters(self):
         """测试自定义参数"""
-        request = GenerateRequest(
-            prompt="测试", model="gpt-4o", temperature=1.2, timeout=60
-        )
+        request = GenerateRequest(prompt="测试", model="gpt-4o", temperature=1.2, timeout=60)
         assert request.prompt == "测试"
         assert request.model == "gpt-4o"
         assert request.temperature == 1.2
@@ -241,9 +239,7 @@ class TestRAGUploadResponse:
 
     def test_valid_response(self):
         """测试有效响应"""
-        response = RAGUploadResponse(
-            message="处理成功", filename="test.pdf", documents_count=5
-        )
+        response = RAGUploadResponse(message="处理成功", filename="test.pdf", documents_count=5)
         assert response.message == "处理成功"
         assert response.filename == "test.pdf"
         assert response.documents_count == 5
@@ -255,9 +251,7 @@ class TestModelInfo:
 
     def test_valid_model_info(self):
         """测试有效模型信息"""
-        info = ModelInfo(
-            name="ollama/gemma3", type="local", description="Ollama gemma3 模型"
-        )
+        info = ModelInfo(name="ollama/gemma3", type="local", description="Ollama gemma3 模型")
         assert info.name == "ollama/gemma3"
         assert info.type == "local"
         assert info.description == "Ollama gemma3 模型"

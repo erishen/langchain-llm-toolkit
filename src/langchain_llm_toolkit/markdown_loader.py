@@ -18,9 +18,7 @@ class MarkdownLoader:
 
     HEADING_PATTERN = re.compile(r"^(#{1,6})\s+(.+)$", re.MULTILINE)
     CODE_BLOCK_PATTERN = re.compile(r"```(\w*)\n(.*?)```", re.DOTALL)
-    TABLE_PATTERN = re.compile(
-        r"^\|.+\|$\n^\|[-:| ]+\|$\n(?:^\|.+\|$\n?)+", re.MULTILINE
-    )
+    TABLE_PATTERN = re.compile(r"^\|.+\|$\n^\|[-:| ]+\|$\n(?:^\|.+\|$\n?)+", re.MULTILINE)
     LINK_PATTERN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
     IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
     FRONT_MATTER_PATTERN = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
@@ -279,7 +277,5 @@ class MarkdownLoader:
             "table_count": len(tables),
             "link_count": len(links),
             "image_count": len(images),
-            "code_languages": list(
-                set(cb["language"] for cb in code_blocks if cb["language"])
-            ),
+            "code_languages": list(set(cb["language"] for cb in code_blocks if cb["language"])),
         }

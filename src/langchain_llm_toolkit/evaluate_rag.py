@@ -7,16 +7,19 @@
 3. 响应时间
 """
 
+import logging
 import time
 
 from langchain_llm_toolkit.rag import RAGSystem
 
+logger = logging.getLogger(__name__)
+
 
 def evaluate_retrieval(rag: RAGSystem, test_cases: list):
     """评估检索质量"""
-    print("\n" + "=" * 60)
-    print("检索质量评估")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("检索质量评估")
+    logger.info("=" * 60)
 
     total_recall = 0
     total_precision = 0
@@ -56,16 +59,16 @@ def evaluate_retrieval(rag: RAGSystem, test_cases: list):
         total_mrr += mrr
         total_time += elapsed
 
-        print(f"\n[{i}] 问题: {query}")
-        print(f"    召回率: {recall:.2%} | 精确率: {precision:.2%} | MRR: {mrr:.2f}")
-        print(f"    检索文档数: {len(docs)} | 耗时: {elapsed:.2f}s")
+        logger.info(f"\n[{i}] 问题: {query}")
+        logger.info(f"    召回率: {recall:.2%} | 精确率: {precision:.2%} | MRR: {mrr:.2f}")
+        logger.info(f"    检索文档数: {len(docs)} | 耗时: {elapsed:.2f}s")
 
     n = len(test_cases)
-    print("\n平均指标:")
-    print(f"  召回率: {total_recall / n:.2%}")
-    print(f"  精确率: {total_precision / n:.2%}")
-    print(f"  MRR: {total_mrr / n:.2f}")
-    print(f"  平均耗时: {total_time / n:.2f}s")
+    logger.info("\n平均指标:")
+    logger.info(f"  召回率: {total_recall / n:.2%}")
+    logger.info(f"  精确率: {total_precision / n:.2%}")
+    logger.info(f"  MRR: {total_mrr / n:.2f}")
+    logger.info(f"  平均耗时: {total_time / n:.2f}s")
 
     return {
         "recall": total_recall / n,
@@ -77,9 +80,9 @@ def evaluate_retrieval(rag: RAGSystem, test_cases: list):
 
 def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = False):
     """评估生成质量"""
-    print("\n" + "=" * 60)
-    print(f"生成质量评估 {'(使用重排序)' if use_rerank else ''}")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info(f"生成质量评估 {'(使用重排序)' if use_rerank else ''}")
+    logger.info("=" * 60)
 
     total_relevance = 0
     total_accuracy = 0
@@ -110,23 +113,19 @@ def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = Fal
         total_completeness += completeness
         total_time += elapsed
 
-        print(f"\n[{i}] 问题: {query}")
-        print(
-            f"    回答: {answer[:200]}..."
-            if len(answer) > 200
-            else f"    回答: {answer}"
-        )
-        print(
+        logger.info(f"\n[{i}] 问题: {query}")
+        logger.info(f"    回答: {answer[:200]}..." if len(answer) > 200 else f"    回答: {answer}")
+        logger.info(
             f"    相关性: {relevance:.2%} | 准确性: {accuracy:.2%} | 完整性: {completeness:.2%}"
         )
-        print(f"    耗时: {elapsed:.2f}s | 文档数: {len(docs)}")
+        logger.info(f"    耗时: {elapsed:.2f}s | 文档数: {len(docs)}")
 
     n = len(test_cases)
-    print("\n平均指标:")
-    print(f"  相关性: {total_relevance / n:.2%}")
-    print(f"  准确性: {total_accuracy / n:.2%}")
-    print(f"  完整性: {total_completeness / n:.2%}")
-    print(f"  平均耗时: {total_time / n:.2f}s")
+    logger.info("\n平均指标:")
+    logger.info(f"  相关性: {total_relevance / n:.2%}")
+    logger.info(f"  准确性: {total_accuracy / n:.2%}")
+    logger.info(f"  完整性: {total_completeness / n:.2%}")
+    logger.info(f"  平均耗时: {total_time / n:.2f}s")
 
     return {
         "relevance": total_relevance / n,
@@ -137,10 +136,10 @@ def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = Fal
 
 
 def main():
-    print("RAG 效果评估工具")
-    print("=" * 60)
+    logger.info("RAG 效果评估工具")
+    logger.info("=" * 60)
 
-    print("\n初始化 RAG 系统...")
+    logger.info("\n初始化 RAG 系统...")
     rag = RAGSystem(
         vector_store_type="qdrant",
         embedding_type="ollama",
@@ -173,35 +172,34 @@ def main():
     generation_metrics = evaluate_generation(rag, test_cases, use_rerank=False)
 
     # 总结
-    print("\n" + "=" * 60)
-    print("评估总结")
-    print("=" * 60)
-    print("\n检索质量:")
-    print(f"  召回率: {retrieval_metrics['recall']:.2%}")
-    print(f"  精确率: {retrieval_metrics['precision']:.2%}")
-    print(f"  MRR: {retrieval_metrics['mrr']:.2f}")
-    print("\n生成质量:")
-    print(f"  相关性: {generation_metrics['relevance']:.2%}")
-    print(f"  准确性: {generation_metrics['accuracy']:.2%}")
-    print(f"  完整性: {generation_metrics['completeness']:.2%}")
+    logger.info("\n" + "=" * 60)
+    logger.info("评估总结")
+    logger.info("=" * 60)
+    logger.info("\n检索质量:")
+    logger.info(f"  召回率: {retrieval_metrics['recall']:.2%}")
+    logger.info(f"  精确率: {retrieval_metrics['precision']:.2%}")
+    logger.info(f"  MRR: {retrieval_metrics['mrr']:.2f}")
+    logger.info("\n生成质量:")
+    logger.info(f"  相关性: {generation_metrics['relevance']:.2%}")
+    logger.info(f"  准确性: {generation_metrics['accuracy']:.2%}")
+    logger.info(f"  完整性: {generation_metrics['completeness']:.2%}")
 
-    # 综合评分
     overall_score = (
         retrieval_metrics["recall"] * 0.3
         + retrieval_metrics["precision"] * 0.2
         + generation_metrics["accuracy"] * 0.3
         + generation_metrics["completeness"] * 0.2
     )
-    print(f"\n综合评分: {overall_score:.2%}")
+    logger.info(f"\n综合评分: {overall_score:.2%}")
 
     if overall_score >= 0.7:
-        print("评级: 优秀 ⭐⭐⭐⭐⭐")
+        logger.info("评级: 优秀 ⭐⭐⭐⭐⭐")
     elif overall_score >= 0.5:
-        print("评级: 良好 ⭐⭐⭐⭐")
+        logger.info("评级: 良好 ⭐⭐⭐⭐")
     elif overall_score >= 0.3:
-        print("评级: 一般 ⭐⭐⭐")
+        logger.info("评级: 一般 ⭐⭐⭐")
     else:
-        print("评级: 需改进 ⭐⭐")
+        logger.info("评级: 需改进 ⭐⭐")
 
 
 if __name__ == "__main__":

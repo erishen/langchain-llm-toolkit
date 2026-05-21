@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """LangChain LLM Toolkit 命令行界面"""
 
-
 import typer
 
 from langchain_llm_toolkit.config.settings import settings
@@ -24,9 +23,7 @@ current_temperature = settings.DEFAULT_TEMPERATURE
 def generate(
     prompt: str,
     model: str | None = typer.Option(None, "--model", "-m", help="指定模型"),
-    temperature: float | None = typer.Option(
-        None, "--temperature", "-t", help="温度参数"
-    ),
+    temperature: float | None = typer.Option(None, "--temperature", "-t", help="温度参数"),
 ):
     """生成文本响应"""
     llm = LLMIntegration()
@@ -50,9 +47,7 @@ def generate(
 @app.command()
 def chat(
     model: str | None = typer.Option(None, "--model", "-m", help="指定模型"),
-    temperature: float | None = typer.Option(
-        None, "--temperature", "-t", help="温度参数"
-    ),
+    temperature: float | None = typer.Option(None, "--temperature", "-t", help="温度参数"),
 ):
     """进入聊天模式"""
     conversation_manager = ConversationManager()
@@ -132,10 +127,7 @@ def list_models():
     typer.echo("  - ollama/deepseek-v3")
     typer.echo("  - ollama/deepseek-r1")
 
-    typer.echo(
-        "\n当前默认模型: "
-        + typer.style(current_model, fg=typer.colors.GREEN, bold=True)
-    )
+    typer.echo("\n当前默认模型: " + typer.style(current_model, fg=typer.colors.GREEN, bold=True))
 
 
 @model_app.command("set")
@@ -143,9 +135,7 @@ def set_model(model: str):
     """设置默认模型"""
     global current_model
     current_model = model
-    typer.echo(
-        f"默认模型已设置为: {typer.style(model, fg=typer.colors.GREEN, bold=True)}"
-    )
+    typer.echo(f"默认模型已设置为: {typer.style(model, fg=typer.colors.GREEN, bold=True)}")
 
 
 @temperature_app.command("set")

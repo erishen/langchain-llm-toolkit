@@ -18,16 +18,14 @@ class CalculatorTool(Tool):
 
     name = "calculator"
     description = (
-        "Perform mathematical calculations. "
-        "Supports basic operations, functions, and constants."
+        "Perform mathematical calculations. Supports basic operations, functions, and constants."
     )
     parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="expression",
             type=str,
             description=(
-                "Mathematical expression to evaluate "
-                "(e.g., '2 + 2', 'sin(pi/2)', 'sqrt(16)')"
+                "Mathematical expression to evaluate (e.g., '2 + 2', 'sin(pi/2)', 'sqrt(16)')"
             ),
             required=True,
         ),
@@ -125,9 +123,7 @@ class WebSearchTool(Tool):
 
             url = f"https://html.duckduckgo.com/html/?q={quote_plus(query)}"
 
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-            }
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
             response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
@@ -135,12 +131,8 @@ class WebSearchTool(Tool):
             # 解析结果
             results = []
             # 简单的正则提取
-            titles = re.findall(
-                r'<a[^>]*class="result__a"[^>]*>(.*?)</a>', response.text
-            )
-            snippets = re.findall(
-                r'<a[^>]*class="result__snippet"[^>]*>(.*?)</a>', response.text
-            )
+            titles = re.findall(r'<a[^>]*class="result__a"[^>]*>(.*?)</a>', response.text)
+            snippets = re.findall(r'<a[^>]*class="result__snippet"[^>]*>(.*?)</a>', response.text)
 
             for i, (title, snippet) in enumerate(
                 zip(titles[:num_results], snippets[:num_results], strict=False)
@@ -496,9 +488,7 @@ class WikipediaTool(Tool):
 
             if "extract" in page:
                 extract = page["extract"]
-                wiki_url = (
-                    f"https://en.wikipedia.org/wiki/{page_title.replace(' ', '_')}"
-                )
+                wiki_url = f"https://en.wikipedia.org/wiki/{page_title.replace(' ', '_')}"
                 return f"Wikipedia: {page_title}\n\n{extract}\n\nRead more: {wiki_url}"
             else:
                 return f"Wikipedia: {page_title}\n\nNo summary available."
