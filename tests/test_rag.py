@@ -26,7 +26,16 @@ class MockEmbeddings(Embeddings):
         return result
 
 
-@unittest.skip("Qdrant 本地模式不支持并发测试，请在实际使用中测试")
+def _has_qdrant():
+    try:
+        import qdrant_client  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
+@unittest.skipUnless(_has_qdrant(), "需要安装 qdrant-client")
 class TestRAGSystemQdrant(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
