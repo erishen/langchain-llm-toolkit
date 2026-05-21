@@ -3,7 +3,7 @@ import tempfile
 from datetime import timedelta
 
 import pytest
-
+from fastapi import HTTPException
 from langchain_llm_toolkit.auth import (
     AuthManager,
     AuthStore,
@@ -104,7 +104,7 @@ class TestJWTHandler:
 
         token = handler1.create_token("user-1", "user1")
 
-        with pytest.raises(Exception):
+        with pytest.raises(HTTPException):
             handler2.decode_token(token)
 
 

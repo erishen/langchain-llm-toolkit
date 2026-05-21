@@ -1,8 +1,7 @@
 from unittest.mock import Mock, patch
 
-from typer.testing import CliRunner
-
 from langchain_llm_toolkit.cli import app
+from typer.testing import CliRunner
 
 runner = CliRunner()
 

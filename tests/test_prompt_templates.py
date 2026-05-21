@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-
 from langchain_llm_toolkit.prompt_templates import (
     ROLE_TEMPLATES,
     ChatPromptBuilder,

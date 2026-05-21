@@ -32,8 +32,9 @@ class TestLLMIntegration(unittest.TestCase):
         self.llm.set_model("ollama/gemma3")
 
         prompt = "Hello, who are you?"
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as ctx:
             self.llm.generate(prompt)
+        self.assertIn("API 错误", str(ctx.exception))
 
     @patch("litellm.completion")
     def test_generate_success_litellm(self, mock_completion):
@@ -58,8 +59,9 @@ class TestLLMIntegration(unittest.TestCase):
         self.llm.set_model("gpt-4o")
 
         prompt = "Hello, who are you?"
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as ctx:
             self.llm.generate(prompt)
+        self.assertIn("API 错误", str(ctx.exception))
 
     @patch("requests.post")
     def test_chat_success_ollama(self, mock_post):
