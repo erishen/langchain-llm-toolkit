@@ -2,7 +2,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
 from langchain_llm_toolkit.api import app
 
 

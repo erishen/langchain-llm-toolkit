@@ -7,7 +7,6 @@ from unittest.mock import Mock, patch
 import numpy as np
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
-
 from langchain_llm_toolkit.rag import RAGSystem
 
 
@@ -353,7 +352,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
         """测试空文档列表"""
         rag_system = self._create_rag_system()
 
-        with self.assertRaises(Exception):
+        with self.assertRaises((ValueError, IndexError)):
             rag_system.create_vector_store([])
 
     def test_large_document(self):

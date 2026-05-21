@@ -1,8 +1,6 @@
 from datetime import datetime
 
 import pytest
-from pydantic import ValidationError
-
 from langchain_llm_toolkit.models.schemas import (
     ChatMessage,
     ChatRequest,
@@ -17,6 +15,7 @@ from langchain_llm_toolkit.models.schemas import (
     RAGUploadResponse,
     SourceDocument,
 )
+from pydantic import ValidationError
 
 
 class TestGenerateRequest:

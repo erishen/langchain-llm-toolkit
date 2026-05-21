@@ -3,7 +3,6 @@
 from unittest.mock import patch
 
 import pytest
-
 from langchain_llm_toolkit.agent import (
     AgentContext,
     AgentResponse,

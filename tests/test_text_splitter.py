@@ -5,7 +5,6 @@ Tests for Text Splitter.
 
 import pytest
 from langchain_core.documents import Document
-
 from langchain_llm_toolkit.text_splitter import (
     TextSplitter,
     get_optimal_chunk_params,
