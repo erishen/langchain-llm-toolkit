@@ -102,33 +102,51 @@ class TestQueryCache:
         assert len(cache._cache) == 0
 
 
+def _ollama_available():
+    try:
+        import requests
+
+        resp = requests.get("http://localhost:11434/api/tags", timeout=2)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
+ollama_skip = pytest.mark.skipif(not _ollama_available(), reason="需要 Ollama 服务运行")
+
+
 class TestOllamaEmbeddingsWrapper:
     """测试 Ollama Embeddings 包装器"""
 
-    @pytest.mark.skip(reason="需要 ollama 模块安装")
+    @ollama_skip
     def test_init_default(self):
-        """测试默认初始化"""
-        pass
+        wrapper = OllamaEmbeddingsWrapper()
+        assert wrapper.model == "nomic-embed-text"
 
-    @pytest.mark.skip(reason="需要 ollama 模块安装")
+    @ollama_skip
     def test_init_custom(self):
-        """测试自定义初始化"""
-        pass
+        wrapper = OllamaEmbeddingsWrapper(model="snowflake-arctic-embed2")
+        assert wrapper.model == "snowflake-arctic-embed2"
 
-    @pytest.mark.skip(reason="需要 ollama 模块安装")
+    @ollama_skip
     def test_embed_query(self):
-        """测试嵌入查询"""
-        pass
+        wrapper = OllamaEmbeddingsWrapper()
+        result = wrapper.embed_query("hello world")
+        assert isinstance(result, list)
+        assert len(result) > 0
 
-    @pytest.mark.skip(reason="需要 ollama 模块安装")
+    @ollama_skip
     def test_embed_documents(self):
-        """测试嵌入多个文档"""
-        pass
+        wrapper = OllamaEmbeddingsWrapper()
+        result = wrapper.embed_documents(["hello", "world"])
+        assert isinstance(result, list)
+        assert len(result) == 2
 
-    @pytest.mark.skip(reason="需要 ollama 模块安装")
+    @ollama_skip
     def test_embed_query_with_num_ctx(self):
-        """测试带 num_ctx 的嵌入查询"""
-        pass
+        wrapper = OllamaEmbeddingsWrapper(model="nomic-embed-text", num_ctx=2048)
+        result = wrapper.embed_query("test query")
+        assert isinstance(result, list)
 
     def test_models_need_num_ctx(self):
         """测试需要 num_ctx 的模型"""
@@ -185,10 +203,11 @@ class TestRAGSystemInit:
 class TestRAGSystemSetup:
     """测试 RAG 系统设置"""
 
-    @pytest.mark.skip(reason="需要 ollama 模块安装")
+    @ollama_skip
     def test_setup_embeddings_ollama(self):
-        """测试设置 Ollama 嵌入"""
-        pass
+        rag = RAGSystem(embedding_type="ollama")
+        embeddings = rag.setup_embeddings()
+        assert embeddings is not None
 
     def test_setup_embeddings_openai(self):
         """测试设置 OpenAI 嵌入"""
