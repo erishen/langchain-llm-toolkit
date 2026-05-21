@@ -1,3 +1,4 @@
+import logging
 import os
 
 os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "true")
@@ -21,8 +22,9 @@ from langchain_llm_toolkit.exceptions import (
     APITimeoutError,
     RateLimitExceededError,
 )
-from langchain_llm_toolkit.logger import logger
 from langchain_llm_toolkit.rate_limiter import RateLimiter
+
+logger = logging.getLogger(__name__)
 
 
 def _get_litellm():
@@ -143,9 +145,7 @@ class LLMIntegration:
 
             # 检查缓存
             if self.enable_cache and self.cache:
-                cached_response = self.cache.get_response(
-                    prompt, self.model, self.temperature
-                )
+                cached_response = self.cache.get_response(prompt, self.model, self.temperature)
                 if cached_response:
                     logger.info(f"Cache hit for prompt: {prompt[:50]}...")
                     return cached_response
@@ -382,74 +382,64 @@ class LLMIntegration:
 
 
 def test_llm_integration():
-    print("Testing LLM Integration...")
-    print("Note: You need to set OPENAI_API_KEY in .env file for actual API calls")
+    logger.info("Testing LLM Integration...")
+    logger.info("Note: You need to set OPENAI_API_KEY in .env file for actual API calls")
 
-    # 初始化集成
     llm_integration = LLMIntegration()
 
-    # 测试基本生成
-    print("\n1. Testing basic generation:")
+    logger.info("\n1. Testing basic generation:")
     prompt = "Hello, who are you?"
     response = llm_integration.generate(prompt)
-    print(f"Prompt: {prompt}")
-    print(f"Response: {response}")
+    logger.info(f"Prompt: {prompt}")
+    logger.info(f"Response: {response}")
 
-    # 测试聊天模式
-    print("\n2. Testing chat mode:")
+    logger.info("\n2. Testing chat mode:")
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "What's the capital of France?"},
     ]
     response = llm_integration.chat(messages)
-    print(f"Messages: {messages}")
-    print(f"Response: {response}")
+    logger.info(f"Messages: {messages}")
+    logger.info(f"Response: {response}")
 
-    # 测试模型切换
-    print("\n3. Testing model switching:")
+    logger.info("\n3. Testing model switching:")
     llm_integration.set_model("gpt-3.5-turbo")
     response = llm_integration.generate("Tell me a short joke.")
-    print(f"Response from gpt-3.5-turbo: {response}")
+    logger.info(f"Response from gpt-3.5-turbo: {response}")
 
-    # 测试 Ollama 模型
-    print("\n4. Testing Ollama model:")
+    logger.info("\n4. Testing Ollama model:")
     llm_integration.set_model("ollama/llama3")
     response = llm_integration.generate("Tell me a short joke.")
-    print(f"Response from Ollama (llama3): {response}")
+    logger.info(f"Response from Ollama (llama3): {response}")
 
-    # 测试 Ollama gemma3 模型
-    print("\n5. Testing Ollama gemma3 model:")
+    logger.info("\n5. Testing Ollama gemma3 model:")
     llm_integration.set_model("ollama/gemma3")
     response = llm_integration.generate("Hello, what is your name?")
-    print(f"Response from Ollama (gemma3): {response}")
+    logger.info(f"Response from Ollama (gemma3): {response}")
 
-    # 测试温度参数调整
-    print("\n6. Testing temperature adjustment:")
+    logger.info("\n6. Testing temperature adjustment:")
     llm_integration.set_temperature(0.7)
     response = llm_integration.generate("What is 2 + 2?")
-    print(f"Response with temperature 0.7: {response}")
+    logger.info(f"Response with temperature 0.7: {response}")
 
-    # 测试流式生成
-    print("\n7. Testing stream generation:")
+    logger.info("\n7. Testing stream generation:")
     llm_integration.set_model("ollama/gemma3")
-    print("Stream response: ", end="")
-    for chunk in llm_integration.generate_stream("Count from 1 to 5"):
-        print(chunk, end="", flush=True)
-    print()
+    logger.info("Stream response: ")
+    stream_chunks = list(llm_integration.generate_stream("Count from 1 to 5"))
+    logger.info("".join(stream_chunks))
 
-    # 测试输入验证
-    print("\n8. Testing input validation:")
+    logger.info("\n8. Testing input validation:")
     try:
         llm_integration.generate("")
     except ValueError as e:
-        print(f"✓ Caught expected error: {e}")
+        logger.info(f"✓ Caught expected error: {e}")
 
     try:
         llm_integration.set_temperature(3.0)
     except ValueError as e:
-        print(f"✓ Caught expected error: {e}")
+        logger.info(f"✓ Caught expected error: {e}")
 
-    print("\nTesting completed!")
+    logger.info("\nTesting completed!")
 
 
 if __name__ == "__main__":

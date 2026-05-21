@@ -1,4 +1,8 @@
+import logging
+
 from langchain_llm_toolkit.llm_integration import LLMIntegration
+
+logger = logging.getLogger(__name__)
 
 
 class ConversationManager:
@@ -48,54 +52,48 @@ class ConversationManager:
 
 # 测试函数
 def test_conversation():
-    print("Testing Conversation Manager...")
-    print("Note: You need to set OPENAI_API_KEY in .env file for actual API calls")
+    logger.info("Testing Conversation Manager...")
+    logger.info("Note: You need to set OPENAI_API_KEY in .env file for actual API calls")
 
-    # 初始化对话管理器
     conversation_manager = ConversationManager()
 
-    # 测试基本对话
-    print("\n1. Testing basic conversation:")
+    logger.info("\n1. Testing basic conversation:")
     user_input1 = "Hello, what's your name?"
     response1 = conversation_manager.converse(user_input1)
-    print(f"User: {user_input1}")
-    print(f"Assistant: {response1}")
+    logger.info(f"User: {user_input1}")
+    logger.info(f"Assistant: {response1}")
 
-    # 测试上下文记忆
-    print("\n2. Testing context memory:")
+    logger.info("\n2. Testing context memory:")
     user_input2 = "What did I just ask you?"
     response2 = conversation_manager.converse(user_input2)
-    print(f"User: {user_input2}")
-    print(f"Assistant: {response2}")
+    logger.info(f"User: {user_input2}")
+    logger.info(f"Assistant: {response2}")
 
-    # 测试多轮对话
-    print("\n3. Testing multi-turn conversation:")
+    logger.info("\n3. Testing multi-turn conversation:")
     user_input3 = "Tell me a short story about a cat"
     response3 = conversation_manager.converse(user_input3)
-    print(f"User: {user_input3}")
-    print(f"Assistant: {response3}")
+    logger.info(f"User: {user_input3}")
+    logger.info(f"Assistant: {response3}")
 
     user_input4 = "What was the story about?"
     response4 = conversation_manager.converse(user_input4)
-    print(f"User: {user_input4}")
-    print(f"Assistant: {response4}")
+    logger.info(f"User: {user_input4}")
+    logger.info(f"Assistant: {response4}")
 
-    # 测试清空历史
-    print("\n4. Testing history clearing:")
+    logger.info("\n4. Testing history clearing:")
     conversation_manager.clear_history()
     user_input5 = "Do you remember the story?"
     response5 = conversation_manager.converse(user_input5)
-    print(f"User: {user_input5}")
-    print(f"Assistant: {response5}")
+    logger.info(f"User: {user_input5}")
+    logger.info(f"Assistant: {response5}")
 
-    # 测试获取历史
-    print("\n5. Testing history retrieval:")
+    logger.info("\n5. Testing history retrieval:")
     history = conversation_manager.get_history()
-    print("Conversation history:")
+    logger.info("Conversation history:")
     for msg in history:
-        print(f"{msg['role']}: {msg['content'][:50]}...")
+        logger.info(f"{msg['role']}: {msg['content'][:50]}...")
 
-    print("\nTesting completed!")
+    logger.info("\nTesting completed!")
 
 
 if __name__ == "__main__":

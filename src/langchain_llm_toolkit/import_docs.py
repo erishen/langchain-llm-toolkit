@@ -2,10 +2,13 @@
 """批量导入文档到 RAG 知识库"""
 
 import argparse
+import logging
 from pathlib import Path
 
 from langchain_llm_toolkit.metadata_generator import DocumentMetadataGenerator
 from langchain_llm_toolkit.rag import RAGSystem
+
+logger = logging.getLogger(__name__)
 
 
 def _add_fallback_metadata(documents: list) -> list:
@@ -39,13 +42,13 @@ def import_documents(
 
     docs_path = Path(docs_dir)
     if not docs_path.exists():
-        print(f"Error: 目录不存在 {docs_dir}")
+        logger.error(f"目录不存在 {docs_dir}")
         return
 
-    print("正在初始化 RAG 系统...")
-    print(f"  嵌入模型: {embedding_model}")
-    print(f"  LLM 模型: {llm_model}")
-    print(f"  生成元数据: {'是' if generate_metadata else '否'}")
+    logger.info("正在初始化 RAG 系统...")
+    logger.info(f"  嵌入模型: {embedding_model}")
+    logger.info(f"  LLM 模型: {llm_model}")
+    logger.info(f"  生成元数据: {'是' if generate_metadata else '否'}")
 
     rag = RAGSystem(
         vector_store_type="qdrant",
@@ -63,10 +66,10 @@ def import_documents(
         all_files.extend(docs_path.rglob(pattern))
 
     all_files = sorted(set(all_files))
-    print(f"找到 {len(all_files)} 个文件")
+    logger.info(f"找到 {len(all_files)} 个文件")
 
     if not all_files:
-        print("没有找到匹配的文件")
+        logger.info("没有找到匹配的文件")
         return
 
     success_count = 0
@@ -74,16 +77,14 @@ def import_documents(
 
     for i, file_path in enumerate(all_files, 1):
         try:
-            print(f"[{i}/{len(all_files)}] 处理: {file_path.relative_to(docs_path)}")
+            logger.info(f"[{i}/{len(all_files)}] 处理: {file_path.relative_to(docs_path)}")
 
             documents = rag.load_and_process_documents([str(file_path)])
 
             # 始终添加元数据（使用备用方法或 LLM）
             if generate_metadata and metadata_generator:
-                print("  生成元数据 (LLM)...")
-                documents = metadata_generator.generate_batch(
-                    documents, show_progress=False
-                )
+                logger.info("生成元数据 (LLM)...")
+                documents = metadata_generator.generate_batch(documents, show_progress=False)
             else:
                 documents = _add_fallback_metadata(documents)
 
@@ -95,18 +96,18 @@ def import_documents(
             success_count += 1
 
         except Exception as e:
-            print(f"  Error: {e}")
+            logger.error(f"处理文件失败: {e}")
             failed_count += 1
 
     rag.save_vector_store()
 
-    print("\n导入完成!")
-    print(f"  成功: {success_count}")
-    print(f"  失败: {failed_count}")
+    logger.info("导入完成!")
+    logger.info(f"  成功: {success_count}")
+    logger.info(f"  失败: {failed_count}")
 
     try:
         info = rag.get_collection_info()
-        print(f"  向量数: {info.get('points_count', 'N/A')}")
+        logger.info(f"  向量数: {info.get('points_count', 'N/A')}")
     except Exception:
         pass
 
@@ -125,9 +126,7 @@ def main():
         """,
     )
     parser.add_argument("docs_dir", help="文档目录路径")
-    parser.add_argument(
-        "patterns", nargs="*", default=["*.md"], help="文件模式 (默认: *.md)"
-    )
+    parser.add_argument("patterns", nargs="*", default=["*.md"], help="文件模式 (默认: *.md)")
     parser.add_argument(
         "--embedding-model",
         "-e",

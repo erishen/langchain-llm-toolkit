@@ -220,9 +220,10 @@ class TestRAGSystemVectorStore:
                 Document(page_content="Test document 2", metadata={"source": "test"}),
             ]
 
-            with patch.object(
-                rag.text_splitter, "split_documents", return_value=documents
-            ), patch("langchain_llm_toolkit.rag.FAISS") as mock_faiss:
+            with (
+                patch.object(rag.text_splitter, "split_documents", return_value=documents),
+                patch("langchain_llm_toolkit.rag.FAISS") as mock_faiss,
+            ):
                 mock_faiss.from_documents.return_value = MagicMock()
 
                 vector_store = rag.create_vector_store(documents)
@@ -244,9 +245,7 @@ class TestRAGSystemMethods:
 
             documents = [Document(page_content="Test", metadata={})]
 
-            with patch.object(
-                rag.text_splitter, "split_documents", return_value=documents
-            ):
+            with patch.object(rag.text_splitter, "split_documents", return_value=documents):
                 rag.add_documents(documents)
                 rag.vector_store.add_documents.assert_called_once()
 

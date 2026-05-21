@@ -135,9 +135,7 @@ async def generate_text(request: GenerateRequest, req: Request):
     start_time = time.time()
 
     try:
-        logger.info(
-            f"Generate request - model: {request.model}, prompt: {request.prompt[:50]}..."
-        )
+        logger.info(f"Generate request - model: {request.model}, prompt: {request.prompt[:50]}...")
 
         llm = LLMIntegration(timeout=request.timeout)
         llm.set_model(request.model)
@@ -148,18 +146,14 @@ async def generate_text(request: GenerateRequest, req: Request):
         elapsed_time = time.time() - start_time
         logger.info(f"Generate completed in {elapsed_time:.2f}s")
 
-        return GenerateResponse(
-            response=response, model=request.model, elapsed_time=elapsed_time
-        )
+        return GenerateResponse(response=response, model=request.model, elapsed_time=elapsed_time)
 
     except ValueError as e:
         logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error generating text: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/generate/stream", tags=["Generation"])
@@ -168,8 +162,7 @@ async def generate_text_stream(request: GenerateRequest):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
-                "Streaming only supported for Ollama models "
-                "(model name must start with 'ollama/')"
+                "Streaming only supported for Ollama models (model name must start with 'ollama/')"
             ),
         )
 
@@ -196,34 +189,26 @@ async def chat(request: ChatRequest):
     start_time = time.time()
 
     try:
-        logger.info(
-            f"Chat request - model: {request.model}, messages: {len(request.messages)}"
-        )
+        logger.info(f"Chat request - model: {request.model}, messages: {len(request.messages)}")
 
         llm = LLMIntegration(timeout=request.timeout)
         llm.set_model(request.model)
         llm.set_temperature(request.temperature)
 
-        messages = [
-            {"role": msg.role, "content": msg.content} for msg in request.messages
-        ]
+        messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
         response = llm.chat(messages)
 
         elapsed_time = time.time() - start_time
         logger.info(f"Chat completed in {elapsed_time:.2f}s")
 
-        return ChatResponse(
-            response=response, model=request.model, elapsed_time=elapsed_time
-        )
+        return ChatResponse(response=response, model=request.model, elapsed_time=elapsed_time)
 
     except ValueError as e:
         logger.error(f"Validation error: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error in chat: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/chat/stream", tags=["Chat"])
@@ -240,9 +225,7 @@ async def chat_stream(request: ChatRequest):
             llm.set_model(request.model)
             llm.set_temperature(request.temperature)
 
-            messages = [
-                {"role": msg.role, "content": msg.content} for msg in request.messages
-            ]
+            messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
 
             for chunk in llm.chat_stream(messages):
                 yield f"data: {json.dumps({'content': chunk})}\n\n"
@@ -274,8 +257,7 @@ async def rag_query(request: RAGQueryRequest):
         answer, relevant_docs = rag_system.generate_answer(request.query, k=request.k)
 
         sources = [
-            SourceDocument(content=doc.page_content, metadata=doc.metadata)
-            for doc in relevant_docs
+            SourceDocument(content=doc.page_content, metadata=doc.metadata) for doc in relevant_docs
         ]
 
         logger.info(f"RAG query completed, found {len(sources)} sources")
@@ -286,9 +268,7 @@ async def rag_query(request: RAGQueryRequest):
         raise
     except Exception as e:
         logger.error(f"Error in RAG query: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/rag/query/stream", tags=["RAG"])
@@ -336,22 +316,17 @@ async def rag_hybrid_query(request: RAGQueryRequest, alpha: float = 0.3):
         hybrid_rag = get_hybrid_rag()
         hybrid_rag.rag.load_vector_store("vector_store")
 
-        answer, relevant_docs = hybrid_rag.generate_answer(
-            request.query, k=request.k, alpha=alpha
-        )
+        answer, relevant_docs = hybrid_rag.generate_answer(request.query, k=request.k, alpha=alpha)
 
         sources = [
-            SourceDocument(content=doc.page_content, metadata=doc.metadata)
-            for doc in relevant_docs
+            SourceDocument(content=doc.page_content, metadata=doc.metadata) for doc in relevant_docs
         ]
 
         return RAGQueryResponse(answer=answer, sources=sources)
 
     except Exception as e:
         logger.error(f"Error in hybrid RAG query: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/rag/upload", response_model=RAGUploadResponse, tags=["RAG"])
@@ -397,9 +372,7 @@ async def rag_upload(file: UploadFile = File(...)):
         raise
     except Exception as e:
         logger.error(f"Error uploading file: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.get("/api/v1/models", response_model=ModelsResponse, tags=["Models"])
@@ -511,9 +484,7 @@ async def rag_info():
             }
     except Exception as e:
         logger.error(f"Error getting RAG info: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.delete("/api/v1/rag/clear", tags=["RAG"])
@@ -531,9 +502,7 @@ async def rag_clear():
 
     except Exception as e:
         logger.error(f"Error clearing RAG: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 class DirectoryImportRequest(BaseModel):
@@ -560,9 +529,7 @@ async def rag_import_directory(request: DirectoryImportRequest):
             for result in report.results:
                 if result.success:
                     try:
-                        documents = document_import_manager.loader.load_document(
-                            result.file_path
-                        )
+                        documents = document_import_manager.loader.load_document(result.file_path)
                         rag_system.add_documents(documents)
                         report.total_chunks += len(documents)
                     except Exception as e:
@@ -576,9 +543,7 @@ async def rag_import_directory(request: DirectoryImportRequest):
 
     except Exception as e:
         logger.error(f"Error importing directory: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/rag/import-files", tags=["RAG"])
@@ -613,9 +578,7 @@ async def rag_import_files(files: list[UploadFile] = File(...)):
             for i, result in enumerate(report.results):
                 if result.success and i < len(temp_files):
                     try:
-                        documents = document_import_manager.loader.load_document(
-                            temp_files[i]
-                        )
+                        documents = document_import_manager.loader.load_document(temp_files[i])
                         rag_system.add_documents(documents)
                         report.total_chunks += len(documents)
                     except Exception as e:
@@ -633,9 +596,7 @@ async def rag_import_files(files: list[UploadFile] = File(...)):
 
     except Exception as e:
         logger.error(f"Error importing files: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/rag/scan-directory", tags=["RAG"])
@@ -656,9 +617,7 @@ async def rag_scan_directory(request: DirectoryImportRequest):
 
     except Exception as e:
         logger.error(f"Error scanning directory: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/conversations", tags=["Conversations"])
@@ -682,9 +641,7 @@ async def create_conversation(title: str = "新对话"):
         return conversation.to_dict()
     except Exception as e:
         logger.error(f"Error creating conversation: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.get("/api/v1/conversations", tags=["Conversations"])
@@ -695,9 +652,7 @@ async def list_conversations(limit: int = 20, offset: int = 0):
         return {"conversations": [c.to_dict() for c in conversations]}
     except Exception as e:
         logger.error(f"Error listing conversations: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.get("/api/v1/conversations/stats", tags=["Conversations"])
@@ -707,9 +662,7 @@ async def conversation_stats():
         return store.get_stats()
     except Exception as e:
         logger.error(f"Error getting stats: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.get("/api/v1/conversations/{conversation_id}", tags=["Conversations"])
@@ -726,9 +679,7 @@ async def get_conversation(conversation_id: str):
         raise
     except Exception as e:
         logger.error(f"Error getting conversation: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.delete("/api/v1/conversations/{conversation_id}", tags=["Conversations"])
@@ -739,9 +690,7 @@ async def delete_conversation(conversation_id: str):
         return {"message": "Conversation deleted"}
     except Exception as e:
         logger.error(f"Error deleting conversation: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/auth/register", tags=["Auth"])
@@ -758,9 +707,7 @@ async def register(username: str, email: str, password: str):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error registering user: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/auth/login", tags=["Auth"])
@@ -779,24 +726,18 @@ async def login(username: str, password: str):
         raise
     except Exception as e:
         logger.error(f"Error logging in: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.post("/api/v1/auth/api-keys", tags=["Auth"])
-async def create_api_key(
-    name: str, current_user: TokenData = Depends(get_current_user)
-):
+async def create_api_key(name: str, current_user: TokenData = Depends(get_current_user)):
     try:
         manager = get_auth_manager()
         api_key = manager.create_api_key(current_user.user_id, name)
         return {"api_key": api_key, "name": name}
     except Exception as e:
         logger.error(f"Error creating API key: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.get("/api/v1/auth/api-keys", tags=["Auth"])
@@ -807,24 +748,18 @@ async def list_api_keys(current_user: TokenData = Depends(get_current_user)):
         return {"api_keys": keys}
     except Exception as e:
         logger.error(f"Error listing API keys: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.delete("/api/v1/auth/api-keys/{key_id}", tags=["Auth"])
-async def revoke_api_key(
-    key_id: str, current_user: TokenData = Depends(get_current_user)
-):
+async def revoke_api_key(key_id: str, current_user: TokenData = Depends(get_current_user)):
     try:
         manager = get_auth_manager()
         manager.store.revoke_api_key(key_id)
         return {"message": "API key revoked"}
     except Exception as e:
         logger.error(f"Error revoking API key: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
-        ) from e
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
 @app.get("/api/v1/auth/me", tags=["Auth"])
@@ -889,15 +824,9 @@ def run_server(host: str = "127.0.0.1", port: int = 8000):
 
     import uvicorn
 
-    parser = argparse.ArgumentParser(
-        description="启动 LangChain LLM Toolkit API 服务器"
-    )
-    parser.add_argument(
-        "--host", type=str, default=host, help="服务器地址 (默认: 127.0.0.1)"
-    )
-    parser.add_argument(
-        "--port", type=int, default=port, help="服务器端口 (默认: 8000)"
-    )
+    parser = argparse.ArgumentParser(description="启动 LangChain LLM Toolkit API 服务器")
+    parser.add_argument("--host", type=str, default=host, help="服务器地址 (默认: 127.0.0.1)")
+    parser.add_argument("--port", type=int, default=port, help="服务器端口 (默认: 8000)")
     args = parser.parse_args()
 
     uvicorn.run(app, host=args.host, port=args.port)

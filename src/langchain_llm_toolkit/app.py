@@ -172,16 +172,12 @@ def render_chat_page():
                 else:
                     placeholder.markdown(response)
 
-                st.session_state.messages.append(
-                    {"role": "assistant", "content": response}
-                )
+                st.session_state.messages.append({"role": "assistant", "content": response})
 
             except Exception as e:
                 error_msg = f"❌ 错误: {e!s}"
                 placeholder.markdown(error_msg)
-                st.session_state.messages.append(
-                    {"role": "assistant", "content": error_msg}
-                )
+                st.session_state.messages.append({"role": "assistant", "content": error_msg})
 
 
 def render_rag_page():
@@ -208,9 +204,7 @@ def render_rag_page():
                             source_name = src.get("source", "未知来源")
                             content = src.get("content", "")
                             st.markdown(f"**📄 {source_name}**")
-                            st.markdown(
-                                f"> {content[:400]}{'...' if len(content) > 400 else ''}"
-                            )
+                            st.markdown(f"> {content[:400]}{'...' if len(content) > 400 else ''}")
                             st.markdown("")
 
         if prompt := st.chat_input("输入你的问题..."):
@@ -233,9 +227,7 @@ def render_rag_page():
                         hybrid = HybridRAGSystem(st.session_state.rag_system)
                         answer, docs = hybrid.generate_answer(prompt)
                     else:
-                        answer, docs = st.session_state.rag_system.generate_answer(
-                            prompt
-                        )
+                        answer, docs = st.session_state.rag_system.generate_answer(prompt)
 
                     if st.session_state.use_streaming:
                         stream_response(answer, placeholder)
@@ -285,9 +277,7 @@ def render_rag_page():
                 temp_file.close()
 
                 init_rag_system()
-                docs = st.session_state.rag_system.load_and_process_documents(
-                    [temp_file.name]
-                )
+                docs = st.session_state.rag_system.load_and_process_documents([temp_file.name])
                 st.session_state.rag_system.create_vector_store(docs)
                 st.session_state.rag_system.save_vector_store()
 
@@ -440,9 +430,7 @@ def render_documents_page():
         col1, col2 = st.columns(2)
         with col1:
             vector_type = st.radio("向量存储类型", ["Qdrant（推荐）", "FAISS"], index=0)
-            st.session_state.vector_store_type = (
-                "qdrant" if "Qdrant" in vector_type else "faiss"
-            )
+            st.session_state.vector_store_type = "qdrant" if "Qdrant" in vector_type else "faiss"
 
         with col2:
             st.slider("分块大小", 200, 2000, 500, 100)
@@ -464,9 +452,7 @@ def render_documents_page():
                 with open(file_path, "wb") as f:
                     f.write(uploaded_file.getbuffer())
 
-                docs = st.session_state.rag_system.load_and_process_documents(
-                    [file_path]
-                )
+                docs = st.session_state.rag_system.load_and_process_documents([file_path])
                 st.session_state.rag_system.create_vector_store(docs)
 
                 st.session_state.uploaded_docs.append(
@@ -549,9 +535,7 @@ def render_settings_page():
                 login_pass = st.text_input("密码", type="password", key="login_pass")
 
                 if st.button("登录"):
-                    user = st.session_state.auth_manager.authenticate_user(
-                        login_user, login_pass
-                    )
+                    user = st.session_state.auth_manager.authenticate_user(login_user, login_pass)
                     if user:
                         token = st.session_state.auth_manager.create_access_token(user)
                         st.session_state.current_user = {
@@ -595,9 +579,7 @@ def render_settings_page():
                     col1.markdown(f"🔑 **{key['name']}**")
                     col2.markdown(f"🕐 {key.get('created_at', 'N/A')[:10]}")
                     if col3.button("删除", key=f"del_{key['key_id']}"):
-                        st.session_state.auth_manager.store.revoke_api_key(
-                            key["key_id"]
-                        )
+                        st.session_state.auth_manager.store.revoke_api_key(key["key_id"])
                         st.rerun()
 
             st.markdown("---")

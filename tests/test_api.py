@@ -610,9 +610,7 @@ class TestAuthEndpoints:
         mock_auth.create_access_token.return_value = "test_token"
         mock_get_auth.return_value = mock_auth
 
-        response = client.post(
-            "/api/v1/auth/login?username=testuser&password=password123"
-        )
+        response = client.post("/api/v1/auth/login?username=testuser&password=password123")
 
         assert response.status_code == 200
         data = response.json()
@@ -626,9 +624,7 @@ class TestAuthEndpoints:
         mock_auth.authenticate_user.return_value = None
         mock_get_auth.return_value = mock_auth
 
-        response = client.post(
-            "/api/v1/auth/login?username=testuser&password=wrongpassword"
-        )
+        response = client.post("/api/v1/auth/login?username=testuser&password=wrongpassword")
 
         assert response.status_code == 401
 
