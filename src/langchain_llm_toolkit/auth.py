@@ -413,7 +413,7 @@ class AuthManager:
         return key_data
 
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
