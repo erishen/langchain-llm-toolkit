@@ -33,6 +33,23 @@ def _get_litellm():
     return litellm
 
 
+PROVIDER_MAP: dict[str, str] = {
+    "deepseek": "deepseek",
+    "claude": "anthropic",
+    "gemini": "gemini",
+    "gpt": "openai",
+}
+
+def _resolve_provider(model: str) -> str:
+    if "/" in model:
+        return model
+    prefix = model.split("-")[0]
+    provider = PROVIDER_MAP.get(prefix)
+    if provider:
+        return f"{provider}/{model}"
+    return model
+
+
 class LLMIntegration:
     def __init__(
         self,
@@ -203,9 +220,10 @@ class LLMIntegration:
     def _generate_litellm(self, prompt: str, timeout: int) -> str:
         """使用 LiteLLM 生成文本"""
         litellm = _get_litellm()
-        logger.debug(f"Calling LiteLLM with model: {self.model}")
+        model = _resolve_provider(self.model)
+        logger.debug(f"Calling LiteLLM with model: {model}")
         response = litellm.completion(
-            model=self.model,
+            model=model,
             prompt=prompt,
             temperature=self.temperature,
             max_tokens=1000,
@@ -340,9 +358,10 @@ class LLMIntegration:
     def _chat_litellm(self, messages: list, timeout: int) -> str:
         """使用 LiteLLM 进行聊天"""
         litellm = _get_litellm()
-        logger.debug(f"Calling LiteLLM chat with model: {self.model}")
+        model = _resolve_provider(self.model)
+        logger.debug(f"Calling LiteLLM chat with model: {model}")
         response = litellm.completion(
-            model=self.model,
+            model=model,
             messages=messages,
             temperature=self.temperature,
             max_tokens=1000,
