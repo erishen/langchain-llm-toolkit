@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     LANGSMITH_API_KEY: str | None = None
 
     # Model Settings
-    DEFAULT_MODEL: str = "gpt-4o"
+    DEFAULT_MODEL: str = "deepseek-chat"
     DEFAULT_TEMPERATURE: float = 0.7
 
     # Ollama Settings

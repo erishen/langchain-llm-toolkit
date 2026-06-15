@@ -384,19 +384,9 @@ async def list_models():
             description="Ollama - gemma4 模型（本地运行，推荐）",
         ),
         ModelInfo(
-            name="ollama/gemma3",
+            name="ollama/llama4-scout",
             type="local",
-            description="Ollama - gemma3 模型（本地运行）",
-        ),
-        ModelInfo(
-            name="ollama/llama3.1:8b",
-            type="local",
-            description="Ollama - llama3.1 8B 模型（本地运行）",
-        ),
-        ModelInfo(
-            name="ollama/deepseek-r1:7b",
-            type="local",
-            description="Ollama - deepseek-r1 7B 模型（本地运行）",
+            description="Ollama - Llama 4 Scout 模型（本地运行，10M上下文）",
         ),
         ModelInfo(
             name="ollama/deepseek-v3",
@@ -404,34 +394,49 @@ async def list_models():
             description="Ollama - deepseek-v3 模型（本地运行）",
         ),
         ModelInfo(
-            name="gpt-5.3",
-            type="cloud",
-            description="OpenAI - GPT-5.3 模型（最新，需要 API Key）",
+            name="ollama/deepseek-r1:7b",
+            type="local",
+            description="Ollama - deepseek-r1 7B 模型（本地运行）",
         ),
         ModelInfo(
-            name="gpt-4o",
-            type="cloud",
-            description="OpenAI - GPT-4o 模型（需要 API Key）",
+            name="ollama/qwen3-coder",
+            type="local",
+            description="Ollama - Qwen3 Coder 模型（本地运行，编码最强）",
         ),
         ModelInfo(
-            name="gpt-3.5-turbo",
+            name="gpt-5.5",
             type="cloud",
-            description="OpenAI - GPT-3.5 Turbo 模型（需要 API Key）",
+            description="OpenAI - GPT-5.5 模型（最新，需要 API Key）",
+        ),
+        ModelInfo(
+            name="claude-opus-4-7",
+            type="cloud",
+            description="Anthropic - Claude Opus 4.7 模型（编码+Agent最强，需要 API Key）",
+        ),
+        ModelInfo(
+            name="claude-sonnet-4-6",
+            type="cloud",
+            description="Anthropic - Claude Sonnet 4.6 模型（写作最强，需要 API Key）",
+        ),
+        ModelInfo(
+            name="gemini-3.1-pro",
+            type="cloud",
+            description="Google - Gemini 3.1 Pro 模型（推理94.3%，性价比最高，需要 API Key）",
         ),
         ModelInfo(
             name="deepseek-chat",
             type="cloud",
-            description="DeepSeek - V4 模型（最新，需要 API Key）",
+            description="DeepSeek - V4 Pro 模型（编码81%，极致性价比，需要 API Key）",
         ),
         ModelInfo(
             name="deepseek-reasoner",
             type="cloud",
-            description="DeepSeek - R1 推理模型（需要 API Key）",
+            description="DeepSeek - R2 推理模型（需要 API Key）",
         ),
         ModelInfo(
-            name="claude-3-opus",
+            name="qwen-3.6-plus",
             type="cloud",
-            description="Anthropic - Claude 3 Opus 模型（需要 API Key）",
+            description="Alibaba - Qwen 3.6 Plus 模型（开源最强编码，需要 API Key）",
         ),
     ]
     return ModelsResponse(models=models)
