@@ -101,8 +101,7 @@ def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = Fal
 
         relevance = 1.0
         accuracy = (
-            sum(1 for kw in expected_keywords if kw.lower() in answer_lower)
-            / len(expected_keywords)
+            sum(1 for kw in expected_keywords if kw.lower() in answer_lower) / len(expected_keywords)
             if expected_keywords
             else 0
         )
@@ -115,9 +114,7 @@ def evaluate_generation(rag: RAGSystem, test_cases: list, use_rerank: bool = Fal
 
         logger.info(f"\n[{i}] 问题: {query}")
         logger.info(f"    回答: {answer[:200]}..." if len(answer) > 200 else f"    回答: {answer}")
-        logger.info(
-            f"    相关性: {relevance:.2%} | 准确性: {accuracy:.2%} | 完整性: {completeness:.2%}"
-        )
+        logger.info(f"    相关性: {relevance:.2%} | 准确性: {accuracy:.2%} | 完整性: {completeness:.2%}")
         logger.info(f"    耗时: {elapsed:.2f}s | 文档数: {len(docs)}")
 
     n = len(test_cases)

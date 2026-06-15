@@ -154,9 +154,7 @@ class TokenCostManager:
         self.cost_estimator = CostEstimator()
         self.usage_history: list[TokenUsage] = []
         self.storage_path = storage_path
-        self._daily_stats: dict[str, dict] = defaultdict(
-            lambda: {"requests": 0, "tokens": 0, "cost": 0.0}
-        )
+        self._daily_stats: dict[str, dict] = defaultdict(lambda: {"requests": 0, "tokens": 0, "cost": 0.0})
 
         if storage_path and storage_path.exists():
             self._load_history()
@@ -190,10 +188,7 @@ class TokenCostManager:
         if self.storage_path:
             self._save_usage(usage)
 
-        logger.debug(
-            f"Recorded usage: model={model}, input={input_tokens}, "
-            f"output={output_tokens}, cost=${cost:.6f}"
-        )
+        logger.debug(f"Recorded usage: model={model}, input={input_tokens}, output={output_tokens}, cost=${cost:.6f}")
 
         return usage
 
@@ -269,9 +264,7 @@ class TokenCostManager:
     ) -> dict:
         """估算请求成本"""
         input_tokens = self.token_counter.count_messages_tokens(messages, model)
-        estimated_cost = self.cost_estimator.estimate_cost(
-            model, input_tokens, estimated_output_tokens
-        )
+        estimated_cost = self.cost_estimator.estimate_cost(model, input_tokens, estimated_output_tokens)
 
         return {
             "model": model,

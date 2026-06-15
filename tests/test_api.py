@@ -2,6 +2,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+
 from langchain_llm_toolkit.api import app
 
 
@@ -126,9 +127,7 @@ class TestGenerateEndpoints:
 
     def test_generate_stream_non_ollama_model(self, client):
         """测试非 Ollama 模型的流式生成"""
-        response = client.post(
-            "/api/v1/generate/stream", json={"prompt": "测试", "model": "gpt-4o"}
-        )
+        response = client.post("/api/v1/generate/stream", json={"prompt": "测试", "model": "gpt-4o"})
 
         assert response.status_code == 400
         assert "Streaming only supported for Ollama models" in response.json()["detail"]
@@ -199,9 +198,7 @@ class TestChatEndpoints:
         mock_llm.chat.side_effect = ValueError("Invalid messages")
         mock_llm_class.return_value = mock_llm
 
-        response = client.post(
-            "/api/v1/chat", json={"messages": [{"role": "user", "content": "测试"}]}
-        )
+        response = client.post("/api/v1/chat", json={"messages": [{"role": "user", "content": "测试"}]})
 
         assert response.status_code == 400
 
@@ -572,9 +569,7 @@ class TestAuthEndpoints:
         )
         mock_get_auth.return_value = mock_auth
 
-        response = client.post(
-            "/api/v1/auth/register?username=testuser&email=test@example.com&password=password123"
-        )
+        response = client.post("/api/v1/auth/register?username=testuser&email=test@example.com&password=password123")
 
         assert response.status_code == 200
         data = response.json()
@@ -587,9 +582,7 @@ class TestAuthEndpoints:
         mock_auth.create_user.side_effect = ValueError("用户名已存在")
         mock_get_auth.return_value = mock_auth
 
-        response = client.post(
-            "/api/v1/auth/register?username=testuser&email=test@example.com&password=password123"
-        )
+        response = client.post("/api/v1/auth/register?username=testuser&email=test@example.com&password=password123")
 
         assert response.status_code == 400
 

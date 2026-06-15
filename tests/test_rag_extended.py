@@ -12,6 +12,7 @@ import numpy as np
 import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
+
 from langchain_llm_toolkit.rag import (
     OllamaEmbeddingsWrapper,
     QueryCache,

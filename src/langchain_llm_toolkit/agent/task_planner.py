@@ -102,10 +102,7 @@ class TaskPlan(BaseModel):
 
     def is_complete(self) -> bool:
         """检查是否所有任务都已完成"""
-        return all(
-            st.status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED]
-            for st in self.subtasks
-        )
+        return all(st.status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED] for st in self.subtasks)
 
     def get_progress(self) -> dict[str, int]:
         """获取进度统计"""

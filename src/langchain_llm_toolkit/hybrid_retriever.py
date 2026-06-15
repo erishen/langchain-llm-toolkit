@@ -181,15 +181,11 @@ class HybridRetriever:
         semantic_results = vector_store.similarity_search_with_score(query, k=k * 2)
 
         if self.fusion_method == "weighted":
-            return self._weighted_fusion(
-                keyword_results, semantic_results, k, keyword_weight, semantic_weight
-            )
+            return self._weighted_fusion(keyword_results, semantic_results, k, keyword_weight, semantic_weight)
         elif self.fusion_method == "rrf":
             return self._rrf_fusion(keyword_results, semantic_results, k)
         else:
-            return self._score_fusion(
-                keyword_results, semantic_results, k, keyword_weight, semantic_weight
-            )
+            return self._score_fusion(keyword_results, semantic_results, k, keyword_weight, semantic_weight)
 
     def _weighted_fusion(
         self,

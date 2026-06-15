@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+
 from langchain_llm_toolkit.prompt_templates import (
     ROLE_TEMPLATES,
     ChatPromptBuilder,
@@ -58,9 +59,7 @@ class TestPromptTemplate:
     def test_render_rag_qa(self):
         """测试渲染 RAG QA 模板"""
         template = PromptTemplate()
-        result = template.render(
-            PromptTemplateType.RAG_QA, context="这是测试上下文", query="这是测试问题"
-        )
+        result = template.render(PromptTemplateType.RAG_QA, context="这是测试上下文", query="这是测试问题")
         assert "这是测试上下文" in result
         assert "这是测试问题" in result
         assert "{context}" not in result
@@ -182,9 +181,7 @@ class TestRAGPromptBuilder:
         doc2 = Mock()
         doc2.page_content = "b" * 3000
 
-        result = builder.build_qa_prompt(
-            query="测试", documents=[doc1, doc2], max_context_length=2500
-        )
+        result = builder.build_qa_prompt(query="测试", documents=[doc1, doc2], max_context_length=2500)
 
         assert "a" * 2000 in result
         assert "b" * 3000 not in result

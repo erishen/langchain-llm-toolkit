@@ -148,10 +148,7 @@ class ReActAgent(BaseAgent):
         Returns:
             是否包含最终答案
         """
-        return bool(
-            re.search(r"Final Answer:", text, re.IGNORECASE)
-            or re.search(r"Answer:", text, re.IGNORECASE)
-        )
+        return bool(re.search(r"Final Answer:", text, re.IGNORECASE) or re.search(r"Answer:", text, re.IGNORECASE))
 
     def run(self, task: str, **kwargs) -> AgentResponse:
         """
@@ -270,8 +267,7 @@ class ReActAgent(BaseAgent):
                 if not final_answer:
                     last_thought = reasoning_steps[-1] if reasoning_steps else "None"
                     final_answer = (
-                        f"I couldn't complete the task within "
-                        f"{self.max_iterations} steps. Last thought: {last_thought}"
+                        f"I couldn't complete the task within {self.max_iterations} steps. Last thought: {last_thought}"
                     )
 
         except Exception as e:

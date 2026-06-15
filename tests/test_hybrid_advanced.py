@@ -23,9 +23,7 @@ class TestHybridRAGSystem(unittest.TestCase):
 
         mock_rag = MagicMock()
         mock_rag.vector_store = MagicMock()
-        mock_rag.vector_store.similarity_search.return_value = [
-            Document(page_content="test", metadata={})
-        ]
+        mock_rag.vector_store.similarity_search.return_value = [Document(page_content="test", metadata={})]
 
         system = HybridRAGSystem(mock_rag)
         system.fit()

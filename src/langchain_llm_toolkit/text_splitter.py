@@ -45,17 +45,13 @@ class TextSplitter:
                     separators=["\n\n", "\n", "。", "！", "？", "；", " ", ""],
                 )
             elif method == "character":
-                splitter = CharacterTextSplitter(
-                    chunk_size=chunk_size, chunk_overlap=chunk_overlap, separator=""
-                )
+                splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap, separator="")
             else:
                 raise ValueError(f"不支持的分割方法: {method}")
 
             return splitter.split_documents(documents)
 
-    def _split_markdown(
-        self, documents: list[Document], chunk_size: int, chunk_overlap: int
-    ) -> list[Document]:
+    def _split_markdown(self, documents: list[Document], chunk_size: int, chunk_overlap: int) -> list[Document]:
         """Markdown 分块 - 按标题层级分割
 
         优点：
@@ -93,9 +89,7 @@ class TextSplitter:
 
         return all_chunks
 
-    def _split_semantic(
-        self, documents: list[Document], chunk_size: int, chunk_overlap: int
-    ) -> list[Document]:
+    def _split_semantic(self, documents: list[Document], chunk_size: int, chunk_overlap: int) -> list[Document]:
         """语义分块 - 按段落和句子边界分割
 
         优点：

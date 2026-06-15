@@ -145,9 +145,7 @@ class ConversationStore:
     def get_conversation(self, conversation_id: str) -> Conversation | None:
         """获取对话"""
         with self._get_connection() as conn:
-            row = conn.execute(
-                "SELECT * FROM conversations WHERE id = ?", (conversation_id,)
-            ).fetchone()
+            row = conn.execute("SELECT * FROM conversations WHERE id = ?", (conversation_id,)).fetchone()
 
             if row:
                 return Conversation(
@@ -333,9 +331,7 @@ class ConversationManagerWithPersistence:
         """进行对话"""
         self.add_message("user", user_input)
 
-        messages = [
-            {"role": m.role, "content": m.content} for m in self.current_conversation.messages
-        ]
+        messages = [{"role": m.role, "content": m.content} for m in self.current_conversation.messages]
         response = self.llm.chat(messages)
 
         self.add_message("assistant", response)

@@ -161,9 +161,7 @@ class MultiTierRateLimiter:
         for name, limiter in self.limiters.items():
             if not limiter.is_allowed(key):
                 reset_time = limiter.get_reset_time(key)
-                retry_after = (
-                    int(reset_time - time.time()) if reset_time else limiter.window_seconds
-                )
+                retry_after = int(reset_time - time.time()) if reset_time else limiter.window_seconds
                 raise RateLimitExceededError(f"API ({name} limit)", retry_after)
 
         for limiter in self.limiters.values():

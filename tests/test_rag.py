@@ -7,6 +7,7 @@ from unittest.mock import Mock, patch
 import numpy as np
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
+
 from langchain_llm_toolkit.rag import RAGSystem
 
 
@@ -404,9 +405,7 @@ class TestRAGSystemFAISS(unittest.TestCase):
 
         rag_system = self._create_rag_system()
 
-        docs = [
-            Document(page_content=f"文档{i}", metadata={"source": f"doc{i}.txt"}) for i in range(5)
-        ]
+        docs = [Document(page_content=f"文档{i}", metadata={"source": f"doc{i}.txt"}) for i in range(5)]
 
         rag_system.create_vector_store(docs)
 
