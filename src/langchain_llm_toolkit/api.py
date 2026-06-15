@@ -124,7 +124,7 @@ async def health_check():
 
 
 @app.post("/api/v1/generate", response_model=GenerateResponse, tags=["Generation"])
-    async def generate_text(request: GenerateRequest, req: Request, current_user: TokenData = Depends(get_current_user)):
+async def generate_text(request: GenerateRequest, req: Request, current_user: TokenData = Depends(get_current_user)):
     client_ip = req.client.host if req.client else "unknown"
     try:
         rate_limiter.check_rate_limit(f"generate:{client_ip}")
