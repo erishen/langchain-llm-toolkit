@@ -48,20 +48,18 @@ class CostReport:
 
 
 MODEL_PRICING: dict[str, ModelPricing] = {
-    "gpt-5.3": ModelPricing(input_price=5.0, output_price=15.0),
-    "gpt-4o": ModelPricing(input_price=2.5, output_price=10.0),
-    "gpt-4": ModelPricing(input_price=30.0, output_price=60.0),
-    "gpt-3.5-turbo": ModelPricing(input_price=0.5, output_price=1.5),
-    "deepseek-chat": ModelPricing(input_price=0.14, output_price=0.28),
+    "gpt-5.5": ModelPricing(input_price=5.0, output_price=30.0),
+    "claude-opus-4-7": ModelPricing(input_price=5.0, output_price=25.0),
+    "claude-sonnet-4-6": ModelPricing(input_price=3.0, output_price=15.0),
+    "gemini-3.1-pro": ModelPricing(input_price=2.0, output_price=12.0),
+    "deepseek-chat": ModelPricing(input_price=0.30, output_price=0.50),
     "deepseek-reasoner": ModelPricing(input_price=0.55, output_price=2.19),
-    "claude-3-opus": ModelPricing(input_price=15.0, output_price=75.0),
-    "claude-3-sonnet": ModelPricing(input_price=3.0, output_price=15.0),
-    "gemini-pro": ModelPricing(input_price=0.5, output_price=1.5),
+    "qwen-3.6-plus": ModelPricing(input_price=1.50, output_price=4.50),
     "ollama/gemma4": ModelPricing(input_price=0.0, output_price=0.0),
-    "ollama/gemma3": ModelPricing(input_price=0.0, output_price=0.0),
-    "ollama/llama3.1:8b": ModelPricing(input_price=0.0, output_price=0.0),
+    "ollama/llama4-scout": ModelPricing(input_price=0.0, output_price=0.0),
     "ollama/deepseek-r1:7b": ModelPricing(input_price=0.0, output_price=0.0),
     "ollama/deepseek-v3": ModelPricing(input_price=0.0, output_price=0.0),
+    "ollama/qwen3-coder": ModelPricing(input_price=0.0, output_price=0.0),
 }
 
 

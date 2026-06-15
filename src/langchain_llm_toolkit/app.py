@@ -115,15 +115,17 @@ def render_sidebar():
         st.subheader("⚙️ 模型配置")
         model_options = {
             "Ollama - gemma4 (推荐)": "ollama/gemma4",
-            "Ollama - gemma3": "ollama/gemma3",
-            "Ollama - llama3.1": "ollama/llama3.1:8b",
+            "Ollama - llama4-scout (10M上下文)": "ollama/llama4-scout",
             "Ollama - deepseek-r1": "ollama/deepseek-r1:7b",
             "Ollama - deepseek-v3": "ollama/deepseek-v3",
-            "OpenAI - gpt-5.3 (最新)": "gpt-5.3",
-            "OpenAI - gpt-4o": "gpt-4o",
-            "OpenAI - gpt-3.5-turbo": "gpt-3.5-turbo",
-            "DeepSeek - V4 (最新)": "deepseek-chat",
-            "DeepSeek - R1 推理": "deepseek-reasoner",
+            "Ollama - qwen3-coder (编码最强)": "ollama/qwen3-coder",
+            "OpenAI - GPT-5.5 (最新)": "gpt-5.5",
+            "Anthropic - Claude Opus 4.7 (编码+Agent)": "claude-opus-4-7",
+            "Anthropic - Claude Sonnet 4.6 (写作)": "claude-sonnet-4-6",
+            "Google - Gemini 3.1 Pro (推理)": "gemini-3.1-pro",
+            "DeepSeek - V4 Pro (性价比)": "deepseek-chat",
+            "DeepSeek - R2 (推理)": "deepseek-reasoner",
+            "Alibaba - Qwen 3.6 Plus (开源编码)": "qwen-3.6-plus",
         }
         selected_model = st.selectbox("模型", list(model_options.keys()), index=0)
         model = model_options[selected_model]

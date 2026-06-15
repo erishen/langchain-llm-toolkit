@@ -103,29 +103,28 @@ def list_models():
     """列出支持的模型"""
     typer.echo("支持的模型:")
     typer.echo("\nOpenAI 模型:")
-    typer.echo("  - gpt-5.3 (最新)")
-    typer.echo("  - gpt-4o")
-    typer.echo("  - gpt-4")
-    typer.echo("  - gpt-3.5-turbo")
-
-    typer.echo("\nDeepSeek 模型:")
-    typer.echo("  - deepseek-chat (V4 最新)")
-    typer.echo("  - deepseek-reasoner (R1 推理)")
+    typer.echo("  - gpt-5.5 (最新)")
 
     typer.echo("\nAnthropic 模型:")
-    typer.echo("  - claude-3-opus")
-    typer.echo("  - claude-3-sonnet")
+    typer.echo("  - claude-opus-4-7 (编码+Agent最强)")
+    typer.echo("  - claude-sonnet-4-6 (写作最强)")
 
     typer.echo("\nGoogle 模型:")
-    typer.echo("  - gemini-pro")
+    typer.echo("  - gemini-3.1-pro (推理94.3%，性价比最高)")
+
+    typer.echo("\nDeepSeek 模型:")
+    typer.echo("  - deepseek-chat (V4 Pro，极致性价比)")
+    typer.echo("  - deepseek-reasoner (R2 推理)")
+
+    typer.echo("\nAlibaba 模型:")
+    typer.echo("  - qwen-3.6-plus (开源最强编码)")
 
     typer.echo("\nOllama 本地模型:")
-    typer.echo("  - ollama/llama3")
-    typer.echo("  - ollama/mistral")
-    typer.echo("  - ollama/phi3")
-    typer.echo("  - ollama/gemma")
+    typer.echo("  - ollama/gemma4 (推荐)")
+    typer.echo("  - ollama/llama4-scout (10M上下文)")
     typer.echo("  - ollama/deepseek-v3")
     typer.echo("  - ollama/deepseek-r1")
+    typer.echo("  - ollama/qwen3-coder (编码最强)")
 
     typer.echo("\n当前默认模型: " + typer.style(current_model, fg=typer.colors.GREEN, bold=True))
 
