@@ -421,22 +421,35 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Security(security),
     api_key: str = Security(api_key_header),
 ) -> TokenData:
-    """获取当前用户（支持 JWT 和 API Key）"""
-    auth_manager = AuthManager()
+    """获取当前用户（支持 JWT、API Key 和 INTERNAL_API_KEY）"""
+    internal_key = os.environ.get("INTERNAL_API_KEY")
 
+    token = None
     if credentials:
-        return auth_manager.jwt_handler.decode_token(credentials.credentials)
+        token = credentials.credentials
+    elif api_key:
+        token = api_key
 
-    if api_key:
-        key_data = auth_manager.validate_api_key(api_key)
-        if key_data:
-            user = auth_manager.store.get_user(key_data["user_id"])
-            if user:
-                return TokenData(
-                    user_id=user.id,
-                    username=user.username,
-                    scopes=key_data.get("scopes", []),
-                )
+    if token and internal_key and token == internal_key:
+        return TokenData(user_id="internal", username="internal", scopes=["*"])
+
+    if token:
+        auth_manager = AuthManager()
+        if credentials:
+            try:
+                return auth_manager.jwt_handler.decode_token(token)
+            except HTTPException:
+                pass
+        if api_key:
+            key_data = auth_manager.validate_api_key(token)
+            if key_data:
+                user = auth_manager.store.get_user(key_data["user_id"])
+                if user:
+                    return TokenData(
+                        user_id=user.id,
+                        username=user.username,
+                        scopes=key_data.get("scopes", []),
+                    )
 
     raise HTTPException(
         status_code=401,

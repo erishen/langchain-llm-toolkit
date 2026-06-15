@@ -124,7 +124,7 @@ async def health_check():
 
 
 @app.post("/api/v1/generate", response_model=GenerateResponse, tags=["Generation"])
-async def generate_text(request: GenerateRequest, req: Request):
+    async def generate_text(request: GenerateRequest, req: Request, current_user: TokenData = Depends(get_current_user)):
     client_ip = req.client.host if req.client else "unknown"
     try:
         rate_limiter.check_rate_limit(f"generate:{client_ip}")
@@ -157,7 +157,7 @@ async def generate_text(request: GenerateRequest, req: Request):
 
 
 @app.post("/api/v1/generate/stream", tags=["Generation"])
-async def generate_text_stream(request: GenerateRequest):
+async def generate_text_stream(request: GenerateRequest, current_user: TokenData = Depends(get_current_user)):
     if not request.model.startswith("ollama/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -183,7 +183,7 @@ async def generate_text_stream(request: GenerateRequest):
 
 
 @app.post("/api/v1/chat", response_model=ChatResponse, tags=["Chat"])
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, current_user: TokenData = Depends(get_current_user)):
     start_time = time.time()
 
     try:
@@ -210,7 +210,7 @@ async def chat(request: ChatRequest):
 
 
 @app.post("/api/v1/chat/stream", tags=["Chat"])
-async def chat_stream(request: ChatRequest):
+async def chat_stream(request: ChatRequest, current_user: TokenData = Depends(get_current_user)):
     if not request.model.startswith("ollama/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -238,7 +238,7 @@ async def chat_stream(request: ChatRequest):
 
 
 @app.post("/api/v1/rag/query", response_model=RAGQueryResponse, tags=["RAG"])
-async def rag_query(request: RAGQueryRequest):
+async def rag_query(request: RAGQueryRequest, current_user: TokenData = Depends(get_current_user)):
     try:
         logger.info(f"RAG query: {request.query[:50]}...")
 
@@ -268,7 +268,7 @@ async def rag_query(request: RAGQueryRequest):
 
 
 @app.post("/api/v1/rag/query/stream", tags=["RAG"])
-async def rag_query_stream(request: RAGQueryRequest):
+async def rag_query_stream(request: RAGQueryRequest, current_user: TokenData = Depends(get_current_user)):
     async def generate():
         try:
             rag_system = get_rag_system()
