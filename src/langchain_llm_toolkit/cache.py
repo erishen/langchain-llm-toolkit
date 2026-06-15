@@ -140,9 +140,7 @@ def cached(
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
-            cache_key = (
-                f"{key_prefix}:{func.__name__}:{cache_manager._generate_key(*args, **kwargs)}"
-            )
+            cache_key = f"{key_prefix}:{func.__name__}:{cache_manager._generate_key(*args, **kwargs)}"
 
             result = cache_manager.get(cache_key)
             if result is not None:

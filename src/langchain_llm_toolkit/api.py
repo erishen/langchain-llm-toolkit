@@ -161,9 +161,7 @@ async def generate_text_stream(request: GenerateRequest):
     if not request.model.startswith("ollama/"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Streaming only supported for Ollama models (model name must start with 'ollama/')"
-            ),
+            detail=("Streaming only supported for Ollama models (model name must start with 'ollama/')"),
         )
 
     async def generate():
@@ -256,9 +254,7 @@ async def rag_query(request: RAGQueryRequest):
 
         answer, relevant_docs = rag_system.generate_answer(request.query, k=request.k)
 
-        sources = [
-            SourceDocument(content=doc.page_content, metadata=doc.metadata) for doc in relevant_docs
-        ]
+        sources = [SourceDocument(content=doc.page_content, metadata=doc.metadata) for doc in relevant_docs]
 
         logger.info(f"RAG query completed, found {len(sources)} sources")
 
@@ -282,11 +278,7 @@ async def rag_query_stream(request: RAGQueryRequest):
 
             sources_data = [
                 {
-                    "content": (
-                        doc.page_content[:200] + "..."
-                        if len(doc.page_content) > 200
-                        else doc.page_content
-                    ),
+                    "content": (doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content),
                     "source": doc.metadata.get("source", "unknown"),
                 }
                 for doc in relevant_docs
@@ -318,9 +310,7 @@ async def rag_hybrid_query(request: RAGQueryRequest, alpha: float = 0.3):
 
         answer, relevant_docs = hybrid_rag.generate_answer(request.query, k=request.k, alpha=alpha)
 
-        sources = [
-            SourceDocument(content=doc.page_content, metadata=doc.metadata) for doc in relevant_docs
-        ]
+        sources = [SourceDocument(content=doc.page_content, metadata=doc.metadata) for doc in relevant_docs]
 
         return RAGQueryResponse(answer=answer, sources=sources)
 
@@ -335,9 +325,7 @@ async def rag_upload(file: UploadFile = File(...)):
         logger.info(f"Uploading file: {file.filename}")
 
         if not file.filename:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Filename is required"
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Filename is required")
 
         allowed_extensions = [".pdf", ".txt", ".docx", ".md"]
         file_ext = os.path.splitext(file.filename)[1].lower()
@@ -676,9 +664,7 @@ async def get_conversation(conversation_id: str):
         store = get_conversation_store()
         conversation = store.get_conversation(conversation_id)
         if not conversation:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
         return conversation.to_dict()
     except HTTPException:
         raise
@@ -721,9 +707,7 @@ async def login(username: str, password: str):
         manager = get_auth_manager()
         user = manager.authenticate_user(username, password)
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
         token = manager.create_access_token(user)
         return {"access_token": token, "token_type": "bearer", "user_id": user.id}

@@ -74,9 +74,7 @@ def stream_response(text: str, placeholder):
     displayed = ""
     for char in text:
         displayed += char
-        placeholder.markdown(
-            f'<div class="streaming-text">{displayed}▌</div>', unsafe_allow_html=True
-        )
+        placeholder.markdown(f'<div class="streaming-text">{displayed}▌</div>', unsafe_allow_html=True)
         time.sleep(0.01)
     placeholder.markdown(displayed)
 
@@ -257,9 +255,7 @@ def render_rag_page():
                                 source = doc.metadata.get("source", "未知来源")
                                 content = doc.page_content
                                 st.markdown(f"**📄 来源 {i + 1}:** `{source}`")
-                                st.markdown(
-                                    f"> {content[:500]}{'...' if len(content) > 500 else ''}"
-                                )
+                                st.markdown(f"> {content[:500]}{'...' if len(content) > 500 else ''}")
                                 st.markdown("")
 
                 except Exception as e:
@@ -272,9 +268,7 @@ def render_rag_page():
 
         if uploaded_file and st.button("处理文档"):
             with st.spinner("处理中..."):
-                temp_file = tempfile.NamedTemporaryFile(
-                    delete=False, suffix=os.path.splitext(uploaded_file.name)[1]
-                )
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1])
                 temp_file.write(uploaded_file.getbuffer())
                 temp_file.close()
 
@@ -312,8 +306,7 @@ def render_conversations_page():
         title = st.text_input("对话标题", "新对话")
         if st.button("保存当前对话"):
             conv = Conversation(
-                id=st.session_state.current_conversation_id
-                or datetime.now().strftime("%Y%m%d%H%M%S"),
+                id=st.session_state.current_conversation_id or datetime.now().strftime("%Y%m%d%H%M%S"),
                 title=title,
                 messages=[],
                 created_at=datetime.now().isoformat(),
@@ -340,9 +333,7 @@ def render_conversations_page():
         for conv in conversations:
             if st.button(f"📝 {conv.title[:20]}", key=f"load_{conv.id}"):
                 st.session_state.current_conversation_id = conv.id
-                st.session_state.messages = [
-                    {"role": m.role, "content": m.content} for m in conv.messages
-                ]
+                st.session_state.messages = [{"role": m.role, "content": m.content} for m in conv.messages]
                 st.rerun()
 
     with col2:
@@ -365,9 +356,7 @@ def render_conversations_page():
 
         if st.session_state.current_conversation_id:
             st.subheader("🔍 当前对话")
-            conv = st.session_state.conversation_store.get_conversation(
-                st.session_state.current_conversation_id
-            )
+            conv = st.session_state.conversation_store.get_conversation(st.session_state.current_conversation_id)
             if conv:
                 st.markdown(f"**标题**: {conv.title}")
                 st.markdown(f"**创建时间**: {conv.created_at}")
@@ -558,9 +547,7 @@ def render_settings_page():
 
                 if st.button("注册"):
                     try:
-                        user = st.session_state.auth_manager.create_user(
-                            reg_user, reg_email, reg_pass
-                        )
+                        user = st.session_state.auth_manager.create_user(reg_user, reg_email, reg_pass)
                         st.success(f"✅ 注册成功: {user.username}")
                     except ValueError as e:
                         st.error(f"❌ {e!s}")
@@ -571,9 +558,7 @@ def render_settings_page():
         else:
             st.subheader("API Keys")
 
-            keys = st.session_state.auth_manager.store.list_api_keys(
-                st.session_state.current_user["id"]
-            )
+            keys = st.session_state.auth_manager.store.list_api_keys(st.session_state.current_user["id"])
 
             if keys:
                 for key in keys:
@@ -602,9 +587,7 @@ def render_settings_page():
             "对话数据库路径",
             value=os.environ.get("CONVERSATION_DB_PATH", "./data/conversations.db"),
         )
-        rag_path = st.text_input(
-            "RAG 存储路径", value=os.environ.get("RAG_QDRANT_PATH", "./qdrant_storage")
-        )
+        rag_path = st.text_input("RAG 存储路径", value=os.environ.get("RAG_QDRANT_PATH", "./qdrant_storage"))
 
         if st.button("保存设置"):
             os.environ["CONVERSATION_DB_PATH"] = db_path

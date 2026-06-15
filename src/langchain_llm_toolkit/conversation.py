@@ -10,8 +10,7 @@ class ConversationManager:
         self.llm_integration: LLMIntegration = LLMIntegration()
         self.history = []
         self.system_prompt = (
-            "You are a helpful assistant. "
-            "Maintain context and respond appropriately to the user's queries."
+            "You are a helpful assistant. Maintain context and respond appropriately to the user's queries."
         )
 
     def converse(self, user_input: str) -> str:

@@ -189,10 +189,7 @@ class BaseAgent(ABC):
             tool_name = action_match.group(1).strip()
             input_str = action_match.group(2).strip()
             try:
-                if input_str.startswith("{"):
-                    input_data = json.loads(input_str)
-                else:
-                    input_data = {"query": input_str}
+                input_data = json.loads(input_str) if input_str.startswith("{") else {"query": input_str}
             except json.JSONDecodeError:
                 input_data = {"query": input_str}
             return {"tool": tool_name, "input": input_data}

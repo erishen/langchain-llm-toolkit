@@ -5,6 +5,7 @@ Tests for Text Splitter.
 
 import pytest
 from langchain_core.documents import Document
+
 from langchain_llm_toolkit.text_splitter import (
     TextSplitter,
     get_optimal_chunk_params,
@@ -27,9 +28,7 @@ class TestTextSplitter:
             Document(page_content="这是第二段内容。" * 50, metadata={"source": "test"}),
         ]
 
-        chunks = splitter.split_documents(
-            documents, chunk_size=100, chunk_overlap=20, method="recursive"
-        )
+        chunks = splitter.split_documents(documents, chunk_size=100, chunk_overlap=20, method="recursive")
 
         assert len(chunks) > 0
         for chunk in chunks:
@@ -42,9 +41,7 @@ class TestTextSplitter:
             Document(page_content="Test content " * 20, metadata={"source": "test"}),
         ]
 
-        chunks = splitter.split_documents(
-            documents, chunk_size=100, chunk_overlap=10, method="character"
-        )
+        chunks = splitter.split_documents(documents, chunk_size=100, chunk_overlap=10, method="character")
 
         assert len(chunks) > 0
 
@@ -65,9 +62,7 @@ class TestTextSplitter:
 """
         documents = [Document(page_content=markdown_content, metadata={"source": "test"})]
 
-        chunks = splitter.split_documents(
-            documents, chunk_size=500, chunk_overlap=50, method="markdown"
-        )
+        chunks = splitter.split_documents(documents, chunk_size=500, chunk_overlap=50, method="markdown")
 
         assert len(chunks) > 0
 
@@ -81,9 +76,7 @@ class TestTextSplitter:
             ),
         ]
 
-        chunks = splitter.split_documents(
-            documents, chunk_size=20, chunk_overlap=5, method="semantic"
-        )
+        chunks = splitter.split_documents(documents, chunk_size=20, chunk_overlap=5, method="semantic")
 
         assert len(chunks) > 0
 

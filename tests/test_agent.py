@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+
 from langchain_llm_toolkit.agent import (
     AgentContext,
     AgentResponse,
@@ -251,11 +252,7 @@ class TestBaseAgent:
         """测试解析 Action 格式的工具调用"""
         agent = MockAgent()
         # 注意：Action: 和 Action Input: 需要在同一行结束和开始
-        text = (
-            "Thought: I need to calculate something.\n"
-            "Action: calculator\n"
-            'Action Input: {"expression": "10 * 5"}'
-        )
+        text = 'Thought: I need to calculate something.\nAction: calculator\nAction Input: {"expression": "10 * 5"}'
 
         result = agent._parse_tool_call(text)
 

@@ -177,6 +177,7 @@ class TestRAGSystemRerank(unittest.TestCase):
 
     def setUp(self):
         from langchain_core.documents import Document
+
         from langchain_llm_toolkit.rag import RAGSystem
 
         self.rag = RAGSystem()
@@ -230,6 +231,7 @@ class TestRAGSystemGenerateSummary(unittest.TestCase):
     def test_generate_summary(self, mock_llm_class):
         """测试生成摘要"""
         from langchain_core.documents import Document
+
         from langchain_llm_toolkit.rag import RAGSystem
 
         mock_llm = MagicMock()
@@ -253,6 +255,7 @@ class TestRAGSystemExtractInformation(unittest.TestCase):
     def test_extract_information(self, mock_llm_class):
         """测试信息提取"""
         from langchain_core.documents import Document
+
         from langchain_llm_toolkit.rag import RAGSystem
 
         mock_llm = MagicMock()

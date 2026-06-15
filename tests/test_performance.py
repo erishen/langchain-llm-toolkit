@@ -7,9 +7,7 @@ os.environ["LITELLM_MODE"] = "PRODUCTION"
 
 import pytest
 
-_perf_path = os.path.join(
-    os.path.dirname(__file__), "..", "src", "langchain_llm_toolkit", "performance.py"
-)
+_perf_path = os.path.join(os.path.dirname(__file__), "..", "src", "langchain_llm_toolkit", "performance.py")
 _spec = importlib.util.spec_from_file_location("performance", _perf_path)
 perf = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(perf)

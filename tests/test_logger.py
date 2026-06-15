@@ -73,8 +73,7 @@ class TestSetupLogging:
         root_logger = setup_logging()
 
         has_console_handler = any(
-            isinstance(handler, logging.StreamHandler)
-            and not isinstance(handler, logging.handlers.RotatingFileHandler)
+            isinstance(handler, logging.StreamHandler) and not isinstance(handler, logging.handlers.RotatingFileHandler)
             for handler in root_logger.handlers
         )
 
@@ -87,8 +86,7 @@ class TestSetupLogging:
             root_logger = setup_logging(log_file=log_file)
 
             has_file_handler = any(
-                isinstance(handler, logging.handlers.RotatingFileHandler)
-                for handler in root_logger.handlers
+                isinstance(handler, logging.handlers.RotatingFileHandler) for handler in root_logger.handlers
             )
 
             assert has_file_handler

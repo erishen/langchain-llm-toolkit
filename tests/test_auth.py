@@ -4,6 +4,7 @@ from datetime import timedelta
 
 import pytest
 from fastapi import HTTPException
+
 from langchain_llm_toolkit.auth import (
     AuthManager,
     AuthStore,

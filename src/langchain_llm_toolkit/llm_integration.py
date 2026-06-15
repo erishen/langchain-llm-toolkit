@@ -62,9 +62,7 @@ class LLMIntegration:
 
         self.enable_cache = enable_cache
         self.cache = ResponseCache(ttl=cache_ttl) if enable_cache else None
-        self.rate_limiter = RateLimiter(
-            max_requests=rate_limit_requests, window_seconds=rate_limit_window
-        )
+        self.rate_limiter = RateLimiter(max_requests=rate_limit_requests, window_seconds=rate_limit_window)
 
         logger.info(
             f"Initialized LLMIntegration with model={self.model}, temperature={self.temperature}, "
@@ -112,9 +110,7 @@ class LLMIntegration:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10),
         retry=retry_if_exception_type((requests.RequestException, ConnectionError)),
-        before_sleep=lambda retry_state: logger.warning(
-            f"Retrying... attempt {retry_state.attempt_number}"
-        ),
+        before_sleep=lambda retry_state: logger.warning(f"Retrying... attempt {retry_state.attempt_number}"),
     )
     def generate(self, prompt: str, timeout: int | None = None) -> str:
         """
@@ -220,18 +216,14 @@ class LLMIntegration:
         if hasattr(response.choices[0], "text"):
             text = response.choices[0].text
             return str(text).strip() if text else ""
-        elif hasattr(response.choices[0], "message") and hasattr(
-            response.choices[0].message, "content"
-        ):
+        elif hasattr(response.choices[0], "message") and hasattr(response.choices[0].message, "content"):
             content = response.choices[0].message.content
             return str(content).strip() if content else ""
         else:
             logger.warning(f"Unexpected response format: {response}")
             return f"Error: Unexpected response format: {response}"
 
-    def generate_stream(
-        self, prompt: str, timeout: int | None = None
-    ) -> Generator[str, None, None]:
+    def generate_stream(self, prompt: str, timeout: int | None = None) -> Generator[str, None, None]:
         """
         流式生成文本（仅支持 Ollama）
 
@@ -246,9 +238,7 @@ class LLMIntegration:
             self._validate_prompt(prompt)
 
             if not self.model.startswith("ollama/"):
-                logger.warning(
-                    "Streaming only supported for Ollama models, falling back to regular generation"
-                )
+                logger.warning("Streaming only supported for Ollama models, falling back to regular generation")
                 yield self.generate(prompt, timeout)
                 return
 

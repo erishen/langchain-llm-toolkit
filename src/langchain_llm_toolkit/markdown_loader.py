@@ -102,9 +102,7 @@ class MarkdownLoader:
                 metadata[key] = value
         return metadata
 
-    def _split_by_headings(
-        self, content: str, file_path: str, front_matter: dict[str, Any]
-    ) -> list[Document]:
+    def _split_by_headings(self, content: str, file_path: str, front_matter: dict[str, Any]) -> list[Document]:
         """按标题分割文档"""
         headings = list(self.HEADING_PATTERN.finditer(content))
 
@@ -141,9 +139,7 @@ class MarkdownLoader:
                 code_blocks = self._extract_code_blocks(section_content)
                 if code_blocks:
                     metadata["code_blocks"] = code_blocks
-                    metadata["code_languages"] = list(
-                        set(cb["language"] for cb in code_blocks if cb["language"])
-                    )
+                    metadata["code_languages"] = list(set(cb["language"] for cb in code_blocks if cb["language"]))
 
             if self.extract_tables:
                 tables = self._extract_tables(section_content)
@@ -163,9 +159,7 @@ class MarkdownLoader:
 
         return documents
 
-    def _create_document(
-        self, content: str, file_path: str, front_matter: dict[str, Any]
-    ) -> Document:
+    def _create_document(self, content: str, file_path: str, front_matter: dict[str, Any]) -> Document:
         """创建单个文档"""
         metadata = {
             **front_matter,
@@ -232,18 +226,12 @@ class MarkdownLoader:
 
     def _extract_links(self, content: str) -> list[dict[str, str]]:
         """提取链接"""
-        links = [
-            {"text": match.group(1), "url": match.group(2)}
-            for match in self.LINK_PATTERN.finditer(content)
-        ]
+        links = [{"text": match.group(1), "url": match.group(2)} for match in self.LINK_PATTERN.finditer(content)]
         return links[:20]
 
     def _extract_images(self, content: str) -> list[dict[str, str]]:
         """提取图片"""
-        images = [
-            {"alt": match.group(1), "url": match.group(2)}
-            for match in self.IMAGE_PATTERN.finditer(content)
-        ]
+        images = [{"alt": match.group(1), "url": match.group(2)} for match in self.IMAGE_PATTERN.finditer(content)]
         return images[:10]
 
     def get_document_outline(self, content: str) -> list[dict[str, Any]]:

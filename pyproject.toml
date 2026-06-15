@@ -3,7 +3,7 @@ name = "langchain-llm-toolkit"
 version = "0.1.0"
 description = "一个基于 LangChain 和 LiteLLM 的完整 LLM 工具集，支持文本生成、聊天对话和 RAG 文档问答"
 authors = [
-    { name = "Erishen Sun", email = "erishen@qq.com" }
+    { name = "Erishen Sun" }
 ]
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -23,31 +23,31 @@ classifiers = [
 
 dependencies = [
     "investkit-utils",
-    "langchain>=0.3.0,<0.4.0",
-    "langchain-core>=0.3.0,<0.4.0",
-    "langchain-community>=0.3.0,<0.4.0",
-    "langchain-openai>=0.2.0,<0.4.0",
-    "langchain-ollama>=0.2.0,<0.4.0",
-    "langchain-text-splitters>=0.3.0,<0.4.0",
-    "litellm>=1.50.0",
-    "faiss-cpu>=1.7.0",
-    "qdrant-client>=1.9.0,<1.13.0",
-    "pypdf>=5.0.0",
-    "python-docx>=0.8.11",
-    "python-magic>=0.4.27",
-    "streamlit>=1.30.0",
-    "fastapi>=0.110.0",
-    "uvicorn>=0.27.0",
-    "python-multipart>=0.0.9",
-    "typer>=0.9.0",
-    "rich>=13.0.0",
-    "pydantic>=2.0.0",
-    "python-dotenv>=1.0.0",
-    "PyJWT>=2.8.0",
-    "tenacity>=8.0.0",
-    "requests>=2.31.0",
-    "ollama>=0.4.0,<0.6.0",
-    "tiktoken>=0.5.0",
+    "langchain>=0.3.0,<1.0.0",
+    "langchain-core>=0.3.0,<1.0.0",
+    "langchain-community>=0.3.0,<1.0.0",
+    "langchain-openai>=0.2.0,<1.0.0",
+    "langchain-ollama>=0.2.0,<1.0.0",
+    "langchain-text-splitters>=0.3.0,<1.0.0",
+    "litellm>=1.50.0,<2.0.0",
+    "faiss-cpu>=1.7.0,<2.0.0",
+    "qdrant-client>=1.9.0,<2.0.0",
+    "pypdf>=5.0.0,<6.0.0",
+    "python-docx>=0.8.11,<2.0.0",
+    "python-magic>=0.4.27,<1.0.0",
+    "streamlit>=1.30.0,<2.0.0",
+    "fastapi>=0.110.0,<1.0.0",
+    "uvicorn>=0.27.0,<1.0.0",
+    "python-multipart>=0.0.9,<1.0.0",
+    "typer>=0.9.0,<1.0.0",
+    "rich>=13.0.0,<15.0.0",
+    "pydantic>=2.0.0,<3.0.0",
+    "python-dotenv>=1.0.0,<2.0.0",
+    "PyJWT>=2.8.0,<3.0.0",
+    "tenacity>=8.0.0,<10.0.0",
+    "requests>=2.31.0,<3.0.0",
+    "ollama>=0.4.0,<1.0.0",
+    "tiktoken>=0.5.0,<1.0.0",
 ]
 
 [project.optional-dependencies]
@@ -81,6 +81,12 @@ dev-dependencies = [
     "types-requests>=2.31.0",
     "bandit>=1.9.0",
 ]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint.isort]
+known-first-party = ["langchain_llm_toolkit"]
 
 [tool.mypy]
 python_version = "3.11"

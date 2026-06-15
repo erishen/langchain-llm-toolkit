@@ -197,9 +197,7 @@ class RAGPromptBuilder:
     def __init__(self):
         self.template_manager: PromptTemplate = PromptTemplate()
 
-    def build_qa_prompt(
-        self, query: str, documents: list[Any], max_context_length: int = 4000
-    ) -> str:
+    def build_qa_prompt(self, query: str, documents: list[Any], max_context_length: int = 4000) -> str:
         """
         构建问答提示
 
@@ -249,9 +247,7 @@ class RAGPromptBuilder:
 
         return self.template_manager.render(PromptTemplateType.RAG_SUMMARY, context=context)
 
-    def build_extraction_prompt(
-        self, documents: list[Any], extract_type: str, max_context_length: int = 4000
-    ) -> str:
+    def build_extraction_prompt(self, documents: list[Any], extract_type: str, max_context_length: int = 4000) -> str:
         """构建提取提示"""
         context_parts = []
         current_length = 0
@@ -267,9 +263,7 @@ class RAGPromptBuilder:
 
         context = "\n\n".join(context_parts)
 
-        return self.template_manager.render(
-            PromptTemplateType.RAG_EXTRACT, context=context, extract_type=extract_type
-        )
+        return self.template_manager.render(PromptTemplateType.RAG_EXTRACT, context=context, extract_type=extract_type)
 
 
 class ChatPromptBuilder:

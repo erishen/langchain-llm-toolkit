@@ -81,9 +81,7 @@ class OllamaEmbeddingsWrapper(Embeddings):
         embeddings = []
         for text in texts:
             if self._use_options:
-                response = self._client.embeddings(
-                    model=self.model, prompt=text, options={"num_ctx": self.num_ctx}
-                )
+                response = self._client.embeddings(model=self.model, prompt=text, options={"num_ctx": self.num_ctx})
             else:
                 response = self._client.embeddings(model=self.model, prompt=text)
             embeddings.append(response["embedding"])
@@ -92,9 +90,7 @@ class OllamaEmbeddingsWrapper(Embeddings):
     def embed_query(self, text: str) -> list[float]:
         """嵌入查询"""
         if self._use_options:
-            response = self._client.embeddings(
-                model=self.model, prompt=text, options={"num_ctx": self.num_ctx}
-            )
+            response = self._client.embeddings(model=self.model, prompt=text, options={"num_ctx": self.num_ctx})
         else:
             response = self._client.embeddings(model=self.model, prompt=text)
         return response["embedding"]
@@ -144,15 +140,9 @@ class RAGSystem:
         self.qdrant_url = qdrant_url or os.environ.get("QDRANT_URL")
         self.qdrant_api_key = qdrant_api_key or os.environ.get("QDRANT_API_KEY")
 
-        self.qdrant_collection_name = collection_name or os.environ.get(
-            "RAG_COLLECTION_NAME", "langchain_documents"
-        )
-        self.qdrant_persist_dir = qdrant_persist_dir or os.environ.get(
-            "RAG_QDRANT_PATH", "./qdrant_storage"
-        )
-        self.faiss_persist_dir = faiss_persist_dir or os.environ.get(
-            "RAG_FAISS_PATH", "./vector_store"
-        )
+        self.qdrant_collection_name = collection_name or os.environ.get("RAG_COLLECTION_NAME", "langchain_documents")
+        self.qdrant_persist_dir = qdrant_persist_dir or os.environ.get("RAG_QDRANT_PATH", "./qdrant_storage")
+        self.faiss_persist_dir = faiss_persist_dir or os.environ.get("RAG_FAISS_PATH", "./vector_store")
 
         logger.info(
             f"Initialized RAG system with vector store type: {vector_store_type}, "
@@ -312,9 +302,7 @@ class RAGSystem:
 
         return results[:k]
 
-    def rerank_documents(
-        self, query: str, documents: list[Document], top_k: int = 3
-    ) -> list[Document]:
+    def rerank_documents(self, query: str, documents: list[Document], top_k: int = 3) -> list[Document]:
         """重排序文档 - 使用 LLM 对检索结果进行重排序
 
         Args:
@@ -437,9 +425,7 @@ class RAGSystem:
         """
         logger.info(f"Generating summary for {len(documents)} documents")
 
-        prompt = self.prompt_builder.build_summary_prompt(
-            documents=documents, max_context_length=max_context_length
-        )
+        prompt = self.prompt_builder.build_summary_prompt(documents=documents, max_context_length=max_context_length)
 
         summary = self.llm_integration.generate(prompt)
         logger.info("Summary generated successfully")
@@ -969,9 +955,7 @@ def test_rag_system():
     logger.info(f"检索到 {len(relevant_docs)} 个相关文档")
     for i, doc in enumerate(relevant_docs):
         logger.info(f"\n相关文档 {i + 1}:")
-        logger.info(
-            doc.page_content[:100] + "..." if len(doc.page_content) > 100 else doc.page_content
-        )
+        logger.info(doc.page_content[:100] + "..." if len(doc.page_content) > 100 else doc.page_content)
 
     logger.info("\n5. 测试带分数的检索...")
     results_with_scores = rag_system.retrieve_documents_with_scores(query)

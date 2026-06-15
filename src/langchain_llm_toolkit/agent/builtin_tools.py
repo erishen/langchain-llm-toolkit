@@ -17,16 +17,12 @@ class CalculatorTool(Tool):
     """计算器工具 - 执行数学计算"""
 
     name = "calculator"
-    description = (
-        "Perform mathematical calculations. Supports basic operations, functions, and constants."
-    )
+    description = "Perform mathematical calculations. Supports basic operations, functions, and constants."
     parameters: ClassVar[list[ToolParameter]] = [
         ToolParameter(
             name="expression",
             type=str,
-            description=(
-                "Mathematical expression to evaluate (e.g., '2 + 2', 'sin(pi/2)', 'sqrt(16)')"
-            ),
+            description=("Mathematical expression to evaluate (e.g., '2 + 2', 'sin(pi/2)', 'sqrt(16)')"),
             required=True,
         ),
     ]
@@ -134,9 +130,7 @@ class WebSearchTool(Tool):
             titles = re.findall(r'<a[^>]*class="result__a"[^>]*>(.*?)</a>', response.text)
             snippets = re.findall(r'<a[^>]*class="result__snippet"[^>]*>(.*?)</a>', response.text)
 
-            for i, (title, snippet) in enumerate(
-                zip(titles[:num_results], snippets[:num_results], strict=False)
-            ):
+            for i, (title, snippet) in enumerate(zip(titles[:num_results], snippets[:num_results], strict=False)):
                 # 清理 HTML 标签
                 title = re.sub(r"<[^>]+>", "", title)
                 snippet = re.sub(r"<[^>]+>", "", snippet)

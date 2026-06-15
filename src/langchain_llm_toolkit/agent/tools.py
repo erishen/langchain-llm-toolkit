@@ -104,8 +104,7 @@ class Tool(ABC):
                     kwargs[param.name] = param.type(value)
                 except (ValueError, TypeError):
                     raise ValueError(
-                        f"Parameter '{param.name}' should be of type {param.type.__name__}, "
-                        f"got {type(value).__name__}"
+                        f"Parameter '{param.name}' should be of type {param.type.__name__}, got {type(value).__name__}"
                     ) from None
 
     def get_schema(self) -> dict[str, Any]:

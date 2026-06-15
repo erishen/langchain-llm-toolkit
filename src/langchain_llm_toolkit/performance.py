@@ -247,11 +247,7 @@ class PerformanceMonitor:
                 return 0.0
 
             now = time.time()
-            values = [
-                m["value"]
-                for m in self._metrics[metric_name]
-                if now - m["timestamp"] <= window_seconds
-            ]
+            values = [m["value"] for m in self._metrics[metric_name] if now - m["timestamp"] <= window_seconds]
 
             if not values:
                 return 0.0
