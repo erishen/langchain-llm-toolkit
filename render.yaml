@@ -4,11 +4,13 @@ services:
     runtime: python
     repo: https://github.com/erishen/langchain-llm-toolkit
     plan: free
-    buildCommand: pip install -U uv && uv sync --no-dev --no-cache
+    buildCommand: pip install -U uv && uv sync --reinstall-package langchain-llm-toolkit --no-dev --no-cache
     startCommand: uv run langchain-api --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: INTERNAL_API_KEY
         sync: false
       - key: APP_ENV
         value: production
