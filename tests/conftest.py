@@ -1,11 +1,6 @@
+"""Pytest configuration for langchain-llm-toolkit tests."""
+
 import os
-import sys
-import warnings
 
-os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "true"
-os.environ["LITELLM_MODE"] = "PRODUCTION"
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-warnings.filterwarnings("ignore", message="builtin type.*has no __module__ attribute")
+# Set INTERNAL_API_KEY for API tests that need auth bypass
+os.environ.setdefault("INTERNAL_API_KEY", "test-key-12345")

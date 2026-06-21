@@ -640,11 +640,15 @@ class RAGSystem:
             try:
                 client = self.vector_store.client
                 info = client.get_collection(self.qdrant_collection_name)
-                return {
-                    "points_count": info.points_count,
-                    "vectors_count": info.vectors_count,
-                    "status": info.status.value,
-                }
+                result = {"status": str(info.status)}
+                if hasattr(info, "points_count"):
+                    result["points_count"] = info.points_count
+                if hasattr(info, "vectors_count"):
+                    result["vectors_count"] = info.vectors_count
+                # Fallback: try count from collection info
+                if "points_count" not in result and hasattr(info, "points_count"):
+                    result["points_count"] = info.points_count
+                return result
             except Exception as e:
                 return {"error": str(e)}
         else:
