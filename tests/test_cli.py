@@ -33,10 +33,10 @@ class TestGenerateCommand:
         mock_llm.generate.return_value = "自定义模型响应"
         mock_llm_class.return_value = mock_llm
 
-        result = runner.invoke(app, ["generate", "测试", "--model", "gpt-4o"])
+        result = runner.invoke(app, ["generate", "测试", "--model", "deepseek-chat"])
 
         assert result.exit_code == 0
-        assert "gpt-4o" in result.output
+        assert "deepseek-chat" in result.output
         assert "自定义模型响应" in result.output
 
     @patch("langchain_llm_toolkit.cli.LLMIntegration")
@@ -118,18 +118,18 @@ class TestModelCommands:
         assert result.exit_code == 0
         assert "支持的模型" in result.output
         assert "OpenAI 模型" in result.output
-        assert "gpt-4o" in result.output
+        assert "deepseek-chat" in result.output
         assert "Anthropic 模型" in result.output
-        assert "claude-3-opus" in result.output
+        assert "claude-opus-4-7" in result.output
         assert "Ollama 本地模型" in result.output
-        assert "ollama/llama3" in result.output
+        assert "ollama/gemma4" in result.output
 
     def test_set_model(self):
         """测试设置模型"""
-        result = runner.invoke(app, ["model", "set", "gpt-4o"])
+        result = runner.invoke(app, ["model", "set", "deepseek-chat"])
 
         assert result.exit_code == 0
-        assert "gpt-4o" in result.output
+        assert "deepseek-chat" in result.output
         assert "默认模型已设置" in result.output
 
 

@@ -46,7 +46,7 @@ class TestGenerateEndpoints:
             "/api/v1/generate",
             json={
                 "prompt": "你好",
-                "model": "ollama/gemma3",
+                "model": "deepseek-chat",
                 "temperature": 0.7,
                 "timeout": 30,
             },
@@ -55,10 +55,10 @@ class TestGenerateEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert "response" in data
-        assert data["model"] == "ollama/gemma3"
+        assert data["model"] == "deepseek-chat"
         assert "elapsed_time" in data
 
-        mock_llm.set_model.assert_called_once_with("ollama/gemma3")
+        mock_llm.set_model.assert_called_once_with("deepseek-chat")
         mock_llm.set_temperature.assert_called_once_with(0.7)
         mock_llm.generate.assert_called_once_with("你好")
 
@@ -74,7 +74,7 @@ class TestGenerateEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["response"] == "默认参数响应"
-        assert data["model"] == "ollama/gemma3"
+        assert data["model"] == "deepseek-chat"
 
     def test_generate_text_empty_prompt(self, client):
         """测试空提示词"""
@@ -119,7 +119,7 @@ class TestGenerateEndpoints:
 
         response = client.post(
             "/api/v1/generate/stream",
-            json={"prompt": "测试流式", "model": "ollama/gemma3"},
+            json={"prompt": "测试流式", "model": "deepseek-chat"},
         )
 
         assert response.status_code == 200
@@ -127,7 +127,7 @@ class TestGenerateEndpoints:
 
     def test_generate_stream_non_ollama_model(self, client):
         """测试非 Ollama 模型的流式生成"""
-        response = client.post("/api/v1/generate/stream", json={"prompt": "测试", "model": "gpt-4o"})
+        response = client.post("/api/v1/generate/stream", json={"prompt": "测试", "model": "deepseek-chat"})
 
         assert response.status_code == 400
         assert "Streaming only supported for Ollama models" in response.json()["detail"]
@@ -147,7 +147,7 @@ class TestChatEndpoints:
             "/api/v1/chat",
             json={
                 "messages": [{"role": "user", "content": "你好"}],
-                "model": "ollama/gemma3",
+                "model": "deepseek-chat",
                 "temperature": 0.7,
             },
         )
@@ -155,7 +155,7 @@ class TestChatEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["response"] == "聊天响应"
-        assert data["model"] == "ollama/gemma3"
+        assert data["model"] == "deepseek-chat"
 
         mock_llm.chat.assert_called_once_with([{"role": "user", "content": "你好"}])
 
@@ -345,8 +345,8 @@ class TestModelsEndpoint:
         assert len(data["models"]) > 0
 
         model_names = [m["name"] for m in data["models"]]
-        assert "ollama/gemma3" in model_names
-        assert "gpt-4o" in model_names
+        assert "deepseek-chat" in model_names
+        assert "deepseek-chat" in model_names
 
         for model in data["models"]:
             assert "name" in model
@@ -383,7 +383,7 @@ class TestStreamingEndpoints:
 
         response = client.post(
             "/api/v1/generate/stream",
-            json={"prompt": "测试", "model": "ollama/gemma3"},
+            json={"prompt": "测试", "model": "deepseek-chat"},
         )
 
         assert response.status_code == 200
@@ -393,7 +393,7 @@ class TestStreamingEndpoints:
         """测试非 Ollama 模型的流式生成"""
         response = client.post(
             "/api/v1/generate/stream",
-            json={"prompt": "测试", "model": "gpt-4o"},
+            json={"prompt": "测试", "model": "deepseek-chat"},
         )
 
         assert response.status_code == 400
@@ -410,7 +410,7 @@ class TestStreamingEndpoints:
             "/api/v1/chat/stream",
             json={
                 "messages": [{"role": "user", "content": "你好"}],
-                "model": "ollama/gemma3",
+                "model": "deepseek-chat",
             },
         )
 
@@ -423,7 +423,7 @@ class TestStreamingEndpoints:
             "/api/v1/chat/stream",
             json={
                 "messages": [{"role": "user", "content": "你好"}],
-                "model": "gpt-4o",
+                "model": "deepseek-chat",
             },
         )
 
