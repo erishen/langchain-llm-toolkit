@@ -10,7 +10,25 @@ from langchain_core.embeddings import Embeddings
 from langchain_openai import OpenAIEmbeddings
 from qdrant_client import QdrantClient
 
+# Qdrant client 1.12+ removed `.search()` in favor of `.query_points()`.
+# Monkey-patch to maintain compatibility with older langchain-community versions
+# that still call `client.search()` internally.
+if not hasattr(QdrantClient, "search"):
+    def _search_compat(self, collection_name, query_vector, limit=10, **kwargs):
+        from qdrant_client.http import models as rest
+        return self.query_points(
+            collection_name=collection_name,
+            query=rest.NearestQuery(nearest=query_vector),
+            limit=limit,
+            **kwargs,
+        )
+    QdrantClient.search = _search_compat
+    logging.getLogger(__name__).info(
+        "Patched QdrantClient.search() → query_points() for qdrant-client >=1.12 compatibility"
+    )
+
 from langchain_llm_toolkit.document_loader import DocumentLoader
+from langchain_llm_toolkit.hybrid_retriever import BM25
 from langchain_llm_toolkit.llm_integration import LLMIntegration
 from langchain_llm_toolkit.prompt_templates import PromptTemplateType, RAGPromptBuilder
 from langchain_llm_toolkit.text_splitter import TextSplitter
@@ -72,7 +90,7 @@ class OllamaEmbeddingsWrapper(Embeddings):
         try:
             import ollama
 
-            self._client = ollama.Client(host=base_url)
+            self._client = ollama.Client(host=base_url, timeout=120)
         except ImportError:
             raise ImportError("请安装 ollama: pip install ollama") from None
 
@@ -127,6 +145,7 @@ class RAGSystem:
         """
         self.document_loader = DocumentLoader()
         self.text_splitter = TextSplitter()
+        self.bm25: BM25 | None = None
         self.llm_integration = LLMIntegration(timeout=timeout)
         self.llm_integration.set_model(llm_model)
         self.vector_store: FAISS | Qdrant | None = None
@@ -182,6 +201,11 @@ class RAGSystem:
             self.vector_store = self._create_qdrant_store(split_docs)
         else:
             self.vector_store = self._create_faiss_store(split_docs)
+
+        # Fit BM25 for hybrid search
+        self.bm25 = BM25()
+        self.bm25.fit(split_docs)
+        logger.info(f"BM25 index built: {len(split_docs)} docs, avg len {self.bm25.avgdl:.0f}")
 
         return self.vector_store
 
@@ -242,6 +266,78 @@ class RAGSystem:
         self.vector_store.add_documents(split_docs)
 
         return self.vector_store
+
+    def _rebuild_bm25(self):
+        """Rebuild BM25 index from loaded vector store documents."""
+        try:
+            if hasattr(self.vector_store, "docstore"):
+                docs = list(self.vector_store.docstore._dict.values())
+                self.bm25 = BM25()
+                self.bm25.fit(docs)
+                logger.info(f"BM25 rebuilt: {len(docs)} docs")
+        except Exception as e:
+            logger.warning("Failed to rebuild BM25: %s", e)
+            self.bm25 = None
+
+    def retrieve_hybrid(
+        self,
+        query: str,
+        k: int = 5,
+        bm25_weight: float = 0.3,
+    ) -> list[Document]:
+        """Hybrid retrieval: BM25 keyword + FAISS semantic fusion.
+
+        Args:
+            query: Search query.
+            k: Number of documents to return.
+            bm25_weight: Weight for BM25 scores (0-1). 0.3 = 30% BM25, 70% semantic.
+
+        Returns:
+            List of retrieved documents.
+        """
+        if not self.vector_store:
+            raise ValueError("Vector store not initialized")
+
+        # Semantic search
+        semantic_docs = self.retrieve_documents(query, k=k * 2)
+
+        if self.bm25 is None:
+            return semantic_docs[:k]
+
+        # BM25 search
+        bm25_results = self.bm25.search(query, k=k * 2)
+
+        # Score normalization and fusion
+        sem_scores: dict[str, float] = {}
+        bm25_scores: dict[str, float] = {}
+
+        for i, doc in enumerate(semantic_docs):
+            sem_scores[doc.page_content[:200]] = 1.0 - (i / max(len(semantic_docs), 1))
+
+        max_bm25 = max((s for _, s in bm25_results), default=1.0)
+        for doc, score in bm25_results:
+            if max_bm25 > 0:
+                bm25_scores[doc.page_content[:200]] = score / max_bm25
+
+        # Combine: all unique docs with weighted scores
+        all_docs: dict[str, tuple[Document, float]] = {}
+        for doc, _ in bm25_results:
+            key = doc.page_content[:200]
+            all_docs[key] = (doc, 0)
+
+        for doc in semantic_docs:
+            key = doc.page_content[:200]
+            if key not in all_docs:
+                all_docs[key] = (doc, 0)
+
+        sem_w = 1.0 - bm25_weight
+        for key, (doc, _) in all_docs.items():
+            score = bm25_weight * bm25_scores.get(key, 0) + sem_w * sem_scores.get(key, 0)
+            all_docs[key] = (doc, score)
+
+        # Sort by combined score and return top k
+        sorted_docs = sorted(all_docs.values(), key=lambda x: x[1], reverse=True)
+        return [doc for doc, _ in sorted_docs[:k]]
 
     def retrieve_documents(
         self,
@@ -532,6 +628,10 @@ class RAGSystem:
                 allow_dangerous_deserialization=True,
             )
             logger.info(f"FAISS 向量存储已从 {load_path} 加载")
+
+            # Rebuild BM25 from loaded documents
+            self._rebuild_bm25()
+
         else:
             if self.qdrant_url:
                 client = QdrantClient(
