@@ -90,7 +90,8 @@ class OllamaEmbeddingsWrapper(Embeddings):
         try:
             import ollama
 
-            self._client = ollama.Client(host=base_url, timeout=120)
+            import httpx
+            self._client = ollama.Client(host=base_url, timeout=httpx.Timeout(120.0, connect=10.0))
         except ImportError:
             raise ImportError("请安装 ollama: pip install ollama") from None
 
