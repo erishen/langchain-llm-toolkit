@@ -45,8 +45,8 @@ if "initialized" not in st.session_state:
     st.session_state.messages = []
     st.session_state.rag_system = None
     st.session_state.mode = "chat"
-    st.session_state.vector_store_type = "qdrant"
-    st.session_state.embedding_model = "snowflake-arctic-embed2"
+    st.session_state.vector_store_type = "faiss"
+    st.session_state.embedding_model = "nomic-embed-text"
     st.session_state.use_streaming = True
     st.session_state.use_hybrid = False
     st.session_state.current_conversation_id = None
