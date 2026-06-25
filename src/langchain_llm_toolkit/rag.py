@@ -4,7 +4,11 @@ import os
 from datetime import datetime, timedelta
 from typing import ClassVar
 
-from langchain_community.vectorstores import FAISS, Qdrant
+from langchain_community.vectorstores import FAISS
+try:
+    from langchain_community.vectorstores import Qdrant
+except ImportError:
+    from langchain_qdrant import Qdrant
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_openai import OpenAIEmbeddings
