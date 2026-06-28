@@ -7,6 +7,7 @@ from datetime import datetime
 import streamlit as st
 
 from langchain_llm_toolkit.auth import AuthManager
+from langchain_llm_toolkit.config.settings import settings
 from langchain_llm_toolkit.conversation import ConversationManager
 from langchain_llm_toolkit.conversation_store import Conversation, ConversationStore
 from langchain_llm_toolkit.hybrid_retriever import HybridRAGSystem
@@ -117,6 +118,7 @@ def render_sidebar():
             "Ollama - deepseek-r1": "ollama/deepseek-r1:7b",
             "Ollama - deepseek-v3": "ollama/deepseek-v3",
             "Ollama - qwen3-coder (编码最强)": "ollama/qwen3-coder",
+            "Agnes - 2.0 Flash": "agnes-2.0-flash",
             "OpenAI - GPT-5.5 (最新)": "gpt-5.5",
             "Anthropic - Claude Opus 4.7 (编码+Agent)": "claude-opus-4-7",
             "Anthropic - Claude Sonnet 4.6 (写作)": "claude-sonnet-4-6",
@@ -125,7 +127,8 @@ def render_sidebar():
             "DeepSeek - R2 (推理)": "deepseek-reasoner",
             "Alibaba - Qwen 3.6 Plus (开源编码)": "qwen-3.6-plus",
         }
-        selected_model = st.selectbox("模型", list(model_options.keys()), index=0)
+        default_model_key = next((k for k, v in model_options.items() if v == settings.DEFAULT_MODEL), list(model_options.keys())[0])
+        selected_model = st.selectbox("模型", list(model_options.keys()), index=list(model_options.keys()).index(default_model_key))
         model = model_options[selected_model]
         st.session_state.conversation_manager.set_model(model)
 
