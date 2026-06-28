@@ -757,7 +757,8 @@ class RAGSystem:
             except Exception as e:
                 return {"error": str(e)}
         else:
-            return {"type": "FAISS", "info": "FAISS 不支持集合信息查询"}
+            count = self.vector_store.index.ntotal if self.vector_store is not None else 0
+            return {"type": "FAISS", "points_count": count, "info": "FAISS"}
 
     def search_by_metadata(
         self,
@@ -1020,6 +1021,8 @@ class RAGSystem:
 
     def get_document_count(self) -> int:
         """获取文档数量"""
+        if self.vector_store_type == "faiss" and self.vector_store is not None:
+            return self.vector_store.index.ntotal
         info = self.get_collection_info()
         return info.get("points_count", 0)
 

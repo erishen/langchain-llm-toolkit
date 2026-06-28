@@ -38,6 +38,8 @@ PROVIDER_MAP: dict[str, str] = {
     "claude": "anthropic",
     "gemini": "gemini",
     "gpt": "openai",
+    "agnese": "openai",
+    "agnes": "openai",
 }
 
 def _resolve_provider(model: str) -> str:
@@ -217,6 +219,14 @@ class LLMIntegration:
         result: dict = response.json()
         return str(result.get("response", "")).strip()
 
+    def _get_litellm_kwargs(self) -> dict:
+        kwargs = {}
+        if settings.OPENAI_API_KEY:
+            kwargs["api_key"] = settings.OPENAI_API_KEY
+        if settings.OPENAI_API_BASE:
+            kwargs["api_base"] = settings.OPENAI_API_BASE
+        return kwargs
+
     def _generate_litellm(self, prompt: str, timeout: int) -> str:
         """使用 LiteLLM 生成文本"""
         litellm = _get_litellm()
@@ -228,6 +238,7 @@ class LLMIntegration:
             temperature=self.temperature,
             max_tokens=1000,
             timeout=timeout,
+            **self._get_litellm_kwargs(),
         )
 
         # 处理不同模型的响应格式
@@ -366,6 +377,7 @@ class LLMIntegration:
             temperature=self.temperature,
             max_tokens=1000,
             timeout=timeout,
+            **self._get_litellm_kwargs(),
         )
         content = response.choices[0].message.content
         return str(content).strip() if content else ""

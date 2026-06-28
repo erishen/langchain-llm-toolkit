@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     HUGGINGFACE_API_KEY: str | None = None
     LANGSMITH_API_KEY: str | None = None
 
+    # OpenAI-compatible API Base URL (e.g. Agnes, DeepSeek)
+    OPENAI_API_BASE: str | None = None
+
     # Model Settings
     DEFAULT_MODEL: str = "deepseek-chat"
     DEFAULT_TEMPERATURE: float = 0.7

@@ -69,7 +69,11 @@ def chat(
 
     while True:
         try:
-            user_input = typer.prompt("\nUser", type=str)
+            try:
+                user_input = input("\nUser: ")
+            except (KeyboardInterrupt, EOFError):
+                typer.echo("\n再见！")
+                break
 
             if user_input.lower() == "exit":
                 typer.echo("再见！")
@@ -91,9 +95,6 @@ def chat(
             response = conversation_manager.converse(user_input)
             typer.echo(f"Assistant: {response}")
 
-        except KeyboardInterrupt:
-            typer.echo("\n再见！")
-            break
         except Exception as e:
             typer.echo(f"错误: {e!s}", err=True)
 
