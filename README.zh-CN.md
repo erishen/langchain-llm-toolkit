@@ -280,3 +280,10 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 ## 贡献
 
 欢迎贡献！请查看 [CONTRIBUTING.md](docs/CONTRIBUTING.md) 了解详情。
+
+---
+
+## 相关文章
+
+- 中文: [混合检索架构](https://erishen.cn/hybrid-retrieval-architecture/)
+- English: [Hybrid Retrieval Architecture](https://erishen.cn/hybrid-retrieval-architecture-en/)

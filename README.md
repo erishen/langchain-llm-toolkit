@@ -273,6 +273,13 @@ Current test coverage: **38%**
 | cache.py | 64% |
 | performance.py | 64% |
 
+---
+
+## Related Articles
+
+- English: [Hybrid Retrieval Architecture](https://erishen.cn/hybrid-retrieval-architecture-en/)
+- 中文: [混合检索架构](https://erishen.cn/hybrid-retrieval-architecture/)
+
 ## License
 
 MIT License - See [LICENSE](LICENSE) file for details.
