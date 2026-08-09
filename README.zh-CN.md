@@ -284,6 +284,4 @@ MIT License - 详见 [LICENSE](LICENSE) 文件
 ---
 
 ## 相关文章
-
-- 中文: [混合检索架构](https://erishen.cn/hybrid-retrieval-architecture/)
-- English: [Hybrid Retrieval Architecture](https://erishen.cn/hybrid-retrieval-architecture-en/)
+- [混合检索架构：当关键词遇上语义理解](https://erishen.cn/hybrid-retrieval-architecture/)

@@ -276,9 +276,7 @@ Current test coverage: **38%**
 ---
 
 ## Related Articles
-
-- English: [Hybrid Retrieval Architecture](https://erishen.cn/hybrid-retrieval-architecture-en/)
-- 中文: [混合检索架构](https://erishen.cn/hybrid-retrieval-architecture/)
+- [Hybrid Retrieval Architecture: When Keywords Meet Semantic Understanding](https://erishen.cn/hybrid-retrieval-architecture-en/)
 
 ## License
 
