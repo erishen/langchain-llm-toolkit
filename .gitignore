@@ -72,3 +72,4 @@ vector_store/
 qdrant_storage/
 *.faiss
 *.pkl
+.serena
