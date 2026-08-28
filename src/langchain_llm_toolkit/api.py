@@ -65,7 +65,7 @@ async def llm_toolkit_exception_handler(request: Request, exc: LLMToolkitError):
         status_code = status.HTTP_401_UNAUTHORIZED
     elif isinstance(exc, RateLimitExceededError):
         status_code = status.HTTP_429_TOO_MANY_REQUESTS
-    elif isinstance(exc, (APIConnectionError, APITimeoutError)):
+    elif isinstance(exc, APIConnectionError | APITimeoutError):
         status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
     return JSONResponse(
