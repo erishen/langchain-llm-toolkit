@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Minimal RAG query server using only stdlib."""
 import html
-import json
 import os
 import sys
 import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 # Add langchain-llm-toolkit to path
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
@@ -40,8 +39,9 @@ RESULT_TMPL = '<div class="result"><div class="meta">📁 {cat} | {src}</div><pr
 
 
 def search_knowledge(query, k=5):
-    from langchain_llm_toolkit.rag import RAGSystem
     from langchain_ollama import OllamaEmbeddings
+
+    from langchain_llm_toolkit.rag import RAGSystem
 
     vs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vector_store")
     rag = RAGSystem(vector_store_type="faiss", embedding_type="ollama", embedding_model="nomic-embed-text:latest")

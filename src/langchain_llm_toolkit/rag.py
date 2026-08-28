@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import ClassVar
 
 from langchain_community.vectorstores import FAISS
+
 try:
     from langchain_community.vectorstores import Qdrant
 except ImportError:
@@ -92,9 +93,8 @@ class OllamaEmbeddingsWrapper(Embeddings):
         self.num_ctx = num_ctx
         self._use_options = model in self.MODELS_NEED_NUM_CTX
         try:
-            import ollama
-
             import httpx
+            import ollama
             self._client = ollama.Client(host=base_url, timeout=httpx.Timeout(120.0, connect=10.0))
         except ImportError:
             raise ImportError("请安装 ollama: pip install ollama") from None

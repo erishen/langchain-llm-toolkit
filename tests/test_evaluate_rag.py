@@ -1,6 +1,6 @@
 """Tests for evaluate_rag module."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
 from langchain_core.documents import Document

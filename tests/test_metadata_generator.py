@@ -1,6 +1,6 @@
 """Tests for metadata_generator module."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 from langchain_core.documents import Document
