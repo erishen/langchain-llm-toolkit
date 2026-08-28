@@ -42,6 +42,7 @@ PROVIDER_MAP: dict[str, str] = {
     "agnes": "openai",
 }
 
+
 def _resolve_provider(model: str) -> str:
     if "/" in model:
         return model

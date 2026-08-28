@@ -107,9 +107,7 @@ class TestExtractTags:
 
     def test_max_five_tags(self, gen):
         """Should return at most 5 tags."""
-        tags = gen._extract_tags_from_content(
-            "Python TypeScript JavaScript React Vue AI LLM RAG ML 机器学习"
-        )
+        tags = gen._extract_tags_from_content("Python TypeScript JavaScript React Vue AI LLM RAG ML 机器学习")
         assert len(tags) <= 5
 
     def test_fallback_tag(self, gen):

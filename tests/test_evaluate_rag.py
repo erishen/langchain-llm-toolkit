@@ -44,9 +44,7 @@ class TestEvaluateRetrieval:
     def test_all_docs_match(self):
         """Test when all documents match expected keywords."""
         mock_rag = Mock()
-        mock_rag.retrieve_documents.return_value = _make_docs(
-            "Python programming", "Java language", "TypeScript docs"
-        )
+        mock_rag.retrieve_documents.return_value = _make_docs("Python programming", "Java language", "TypeScript docs")
 
         test_cases = [
             {"query": "programming", "expected_keywords": ["Python", "Java", "TypeScript"]},
@@ -87,9 +85,7 @@ class TestEvaluateRetrieval:
     def test_mrr_calculation(self):
         """Test MRR calculation - first ranked doc gets higher score."""
         mock_rag = Mock()
-        mock_rag.retrieve_documents.return_value = _make_docs(
-            "Ruby code", "Python code", "Java stuff"
-        )
+        mock_rag.retrieve_documents.return_value = _make_docs("Ruby code", "Python code", "Java stuff")
 
         test_cases = [
             {"query": "Python?", "expected_keywords": ["Python"]},
@@ -115,9 +111,7 @@ class TestEvaluateRetrieval:
     def test_multiple_test_cases(self):
         """Test averaging across multiple test cases."""
         mock_rag = Mock()
-        mock_rag.retrieve_documents.return_value = _make_docs(
-            "Python guide", "Java tutorial", "C++ reference"
-        )
+        mock_rag.retrieve_documents.return_value = _make_docs("Python guide", "Java tutorial", "C++ reference")
 
         test_cases = [
             {"query": "q1", "expected_keywords": ["Python", "Ruby"]},
@@ -205,9 +199,7 @@ class TestEvaluateGeneration:
         ]
 
         evaluate_generation(mock_rag, test_cases, use_rerank=True)
-        mock_rag.generate_answer.assert_called_once_with(
-            "?", k=5, use_rerank=True
-        )
+        mock_rag.generate_answer.assert_called_once_with("?", k=5, use_rerank=True)
 
     def test_no_expected_keywords(self):
         """Test with no expected keywords."""

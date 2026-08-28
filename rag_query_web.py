@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Minimal RAG query server using only stdlib."""
+
 import html
 import os
 import sys

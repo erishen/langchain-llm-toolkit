@@ -19,14 +19,17 @@ from qdrant_client import QdrantClient
 # Monkey-patch to maintain compatibility with older langchain-community versions
 # that still call `client.search()` internally.
 if not hasattr(QdrantClient, "search"):
+
     def _search_compat(self, collection_name, query_vector, limit=10, **kwargs):
         from qdrant_client.http import models as rest
+
         return self.query_points(
             collection_name=collection_name,
             query=rest.NearestQuery(nearest=query_vector),
             limit=limit,
             **kwargs,
         )
+
     QdrantClient.search = _search_compat
     logging.getLogger(__name__).info(
         "Patched QdrantClient.search() → query_points() for qdrant-client >=1.12 compatibility"
@@ -95,6 +98,7 @@ class OllamaEmbeddingsWrapper(Embeddings):
         try:
             import httpx
             import ollama
+
             self._client = ollama.Client(host=base_url, timeout=httpx.Timeout(120.0, connect=10.0))
         except ImportError:
             raise ImportError("请安装 ollama: pip install ollama") from None

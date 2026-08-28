@@ -127,8 +127,12 @@ def render_sidebar():
             "DeepSeek - R2 (推理)": "deepseek-reasoner",
             "Alibaba - Qwen 3.6 Plus (开源编码)": "qwen-3.6-plus",
         }
-        default_model_key = next((k for k, v in model_options.items() if v == settings.DEFAULT_MODEL), next(iter(model_options)))
-        selected_model = st.selectbox("模型", list(model_options.keys()), index=list(model_options.keys()).index(default_model_key))
+        default_model_key = next(
+            (k for k, v in model_options.items() if v == settings.DEFAULT_MODEL), next(iter(model_options))
+        )
+        selected_model = st.selectbox(
+            "模型", list(model_options.keys()), index=list(model_options.keys()).index(default_model_key)
+        )
         model = model_options[selected_model]
         st.session_state.conversation_manager.set_model(model)
 
