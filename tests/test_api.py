@@ -4,12 +4,16 @@ import pytest
 from fastapi.testclient import TestClient
 
 from langchain_llm_toolkit.api import app
+from langchain_llm_toolkit.auth import TokenData, get_current_user
 
 
 @pytest.fixture
 def client():
-    """创建测试客户端"""
-    return TestClient(app)
+    """创建测试客户端（跳过鉴权：受保护端点依赖 get_current_user，直接覆写）"""
+    test_user = TokenData(user_id="test-user", username="tester", scopes=["*"])
+    app.dependency_overrides[get_current_user] = lambda: test_user
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
 
 class TestHealthEndpoints:
@@ -74,7 +78,7 @@ class TestGenerateEndpoints:
         assert response.status_code == 200
         data = response.json()
         assert data["response"] == "默认参数响应"
-        assert data["model"] == "deepseek-chat"
+        assert data["model"] == "ollama/gemma3"
 
     def test_generate_text_empty_prompt(self, client):
         """测试空提示词"""
@@ -119,7 +123,7 @@ class TestGenerateEndpoints:
 
         response = client.post(
             "/api/v1/generate/stream",
-            json={"prompt": "测试流式", "model": "deepseek-chat"},
+            json={"prompt": "测试流式", "model": "ollama/qwen3-coder"},
         )
 
         assert response.status_code == 200
@@ -383,7 +387,7 @@ class TestStreamingEndpoints:
 
         response = client.post(
             "/api/v1/generate/stream",
-            json={"prompt": "测试", "model": "deepseek-chat"},
+            json={"prompt": "测试", "model": "ollama/qwen3-coder"},
         )
 
         assert response.status_code == 200
@@ -410,7 +414,7 @@ class TestStreamingEndpoints:
             "/api/v1/chat/stream",
             json={
                 "messages": [{"role": "user", "content": "你好"}],
-                "model": "deepseek-chat",
+                "model": "ollama/qwen3-coder",
             },
         )
 

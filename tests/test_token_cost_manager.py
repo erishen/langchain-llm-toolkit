@@ -96,7 +96,7 @@ class TestCostEstimator:
         cost = estimator.estimate_cost(
             input_tokens=1000,
             output_tokens=500,
-            model="gpt-4o",
+            model="gpt-5.5",
         )
         assert cost > 0
 
@@ -134,7 +134,7 @@ class TestTokenCostManager:
         """测试获取报告"""
         manager = TokenCostManager()
         manager.record_usage(
-            model="gpt-4o",
+            model="gpt-5.5",
             input_tokens=100,
             output_tokens=50,
         )

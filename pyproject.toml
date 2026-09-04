@@ -22,7 +22,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "investkit-utils",
     "langchain>=0.3.0,<1.0.0",
     "langchain-core>=0.3.0,<1.0.0",
     "langchain-community>=0.3.0,<1.0.0",
@@ -102,8 +101,4 @@ python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
-
-[tool.uv.sources]
-investkit-utils = { workspace = true }
-
 
