@@ -66,10 +66,12 @@
 ```python
 # ✅ 从环境变量读取
 import os
+
 api_key = os.getenv("OPENAI_API_KEY")
 
 # ✅ 使用配置文件
 from config import settings
+
 api_key = settings.OPENAI_API_KEY
 ```
 

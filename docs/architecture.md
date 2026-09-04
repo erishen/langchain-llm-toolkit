@@ -84,10 +84,10 @@ RAG 是系统最核心的模块，由 `RAGSystem` 统一编排，内部组合了
 ```python
 def retrieve_hybrid(query: str, k: int = 5, bm25_weight: float = 0.3):
     # 1. 语义搜索：FAISS 余弦相似度 → Top K
-    semantic_docs = vector_store.similarity_search(query, k=k*2)
+    semantic_docs = vector_store.similarity_search(query, k=k * 2)
 
     # 2. 关键词搜索：BM25 分词匹配 → Top K
-    bm25_docs = bm25.search(query, k=k*2)
+    bm25_docs = bm25.search(query, k=k * 2)
 
     # 3. 加权融合：score = bm25_weight * bm25_score + (1-bm25_weight) * semantic_score
     merged = weighted_fusion(semantic_docs, bm25_docs, alpha=bm25_weight)

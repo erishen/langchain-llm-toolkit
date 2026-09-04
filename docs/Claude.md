@@ -82,9 +82,7 @@ agent = ReActAgent(
 agent.register_tool("calculator", CalculatorTool())
 
 # 运行任务
-response = agent.run(
-    "Calculate the area of a circle with radius 5, then multiply by 3"
-)
+response = agent.run("Calculate the area of a circle with radius 5, then multiply by 3")
 print(response.content)
 ```
 
@@ -96,10 +94,10 @@ print(response.content)
 from langchain_llm_toolkit import LLMIntegration
 
 llm = LLMIntegration(
-    timeout=60,           # 超时时间（秒）
-    max_retries=3,        # 最大重试次数
-    enable_cache=True,    # 启用缓存
-    cache_ttl=3600,       # 缓存过期时间（秒）
+    timeout=60,  # 超时时间（秒）
+    max_retries=3,  # 最大重试次数
+    enable_cache=True,  # 启用缓存
+    cache_ttl=3600,  # 缓存过期时间（秒）
 )
 
 llm.set_model("claude-3-opus-20240229")
@@ -158,8 +156,8 @@ llm.set_model("claude-3-opus-20240229")
 from langchain_llm_toolkit import LLMIntegration
 
 llm = LLMIntegration(
-    rate_limit_requests=50,   # 每分钟请求数
-    rate_limit_window=60,     # 时间窗口（秒）
+    rate_limit_requests=50,  # 每分钟请求数
+    rate_limit_window=60,  # 时间窗口（秒）
 )
 ```
 

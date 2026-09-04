@@ -61,9 +61,7 @@ planner = TaskPlanner()
 agent = ReActAgent()
 
 # 创建任务计划
-plan = planner.create_plan(
-    "Research Python web frameworks and write a comparison report"
-)
+plan = planner.create_plan("Research Python web frameworks and write a comparison report")
 
 # 查看子任务
 for task in plan.subtasks:
@@ -153,9 +151,10 @@ result = tool.run(format="full")  # full, date, time 或自定义格式
 ```python
 from langchain_llm_toolkit.agent import Tool, ToolParameter
 
+
 class GreetingTool(Tool):
     """问候工具"""
-    
+
     name = "greeting"
     description = "Generate a greeting message"
     parameters = [
@@ -173,7 +172,7 @@ class GreetingTool(Tool):
             default="en",
         ),
     ]
-    
+
     def run(self, name: str, language: str = "en") -> str:
         if language == "zh":
             return f"你好，{name}！"
@@ -185,9 +184,11 @@ class GreetingTool(Tool):
 ```python
 from langchain_llm_toolkit.agent import FunctionTool
 
+
 def calculate_area(length: float, width: float) -> float:
     """Calculate rectangle area"""
     return length * width
+
 
 tool = FunctionTool(calculate_area)
 result = tool.run(length=10, width=5)
@@ -197,6 +198,7 @@ result = tool.run(length=10, width=5)
 
 ```python
 from langchain_llm_toolkit.agent import register_function
+
 
 @register_function
 def translate(text: str, target_lang: str = "en") -> str:
@@ -245,7 +247,7 @@ agent = ReActAgent(
     llm=llm,
     name="CustomAgent",
     max_iterations=15,  # 最大迭代次数
-    verbose=True,       # 详细输出
+    verbose=True,  # 详细输出
 )
 ```
 
@@ -259,10 +261,7 @@ from langchain_llm_toolkit.agent import TaskPlanner, TaskPlan
 planner = TaskPlanner(max_subtasks=10)
 
 # 创建计划
-plan = planner.create_plan(
-    task="Build a web scraper",
-    context="Using Python and BeautifulSoup"
-)
+plan = planner.create_plan(task="Build a web scraper", context="Using Python and BeautifulSoup")
 
 # 查看进度
 progress = plan.get_progress()

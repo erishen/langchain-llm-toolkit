@@ -106,6 +106,7 @@
 ```python
 # 直接调用 - 3 行代码
 from llm_integration import LLMIntegration
+
 llm = LLMIntegration()
 response = llm.generate("你好")
 ```

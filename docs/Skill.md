@@ -19,20 +19,21 @@ Skill 是一组相关工具和功能的集合，可以被 Agent 动态加载和�
 from langchain_llm_toolkit.agent import Tool
 from typing import List
 
+
 class Skill:
     """技能基类"""
-    
+
     name: str = ""
     description: str = ""
-    
+
     def get_tools(self) -> List[Tool]:
         """返回技能包含的工具列表"""
         return []
-    
+
     def initialize(self) -> None:
         """初始化技能"""
         pass
-    
+
     def cleanup(self) -> None:
         """清理资源"""
         pass
@@ -47,12 +48,13 @@ from langchain_llm_toolkit.agent import Skill, Tool, ToolParameter
 from typing import List
 import math
 
+
 class MathSkill(Skill):
     """数学计算技能"""
-    
+
     name = "math"
     description = "提供数学计算功能，包括基础运算、几何计算等"
-    
+
     def get_tools(self) -> List[Tool]:
         return [
             CalculatorTool(),
@@ -60,9 +62,10 @@ class MathSkill(Skill):
             StatisticsTool(),
         ]
 
+
 class CalculatorTool(Tool):
     """高级计算器"""
-    
+
     name = "advanced_calculator"
     description = "执行复杂数学计算"
     parameters = [
@@ -73,23 +76,27 @@ class CalculatorTool(Tool):
             required=True,
         ),
     ]
-    
+
     def run(self, expression: str) -> str:
         try:
             # 安全评估
             allowed = {
-                'sqrt': math.sqrt, 'pow': math.pow,
-                'sin': math.sin, 'cos': math.cos,
-                'pi': math.pi, 'e': math.e,
+                "sqrt": math.sqrt,
+                "pow": math.pow,
+                "sin": math.sin,
+                "cos": math.cos,
+                "pi": math.pi,
+                "e": math.e,
             }
             result = eval(expression, {"__builtins__": {}}, allowed)
             return f"结果: {result}"
         except Exception as e:
             return f"错误: {str(e)}"
 
+
 class GeometryTool(Tool):
     """几何计算工具"""
-    
+
     name = "geometry"
     description = "计算几何图形属性"
     parameters = [
@@ -106,11 +113,11 @@ class GeometryTool(Tool):
             required=True,
         ),
     ]
-    
+
     def run(self, shape: str, dimensions: dict) -> str:
         if shape == "circle":
             r = dimensions.get("radius", 0)
-            area = math.pi * r ** 2
+            area = math.pi * r**2
             circumference = 2 * math.pi * r
             return f"圆面积: {area:.2f}, 周长: {circumference:.2f}"
         # ... 其他图形
@@ -124,15 +131,16 @@ import os
 from langchain_llm_toolkit.agent import Skill, Tool, ToolParameter
 from typing import List
 
+
 class FileSkill(Skill):
     """文件操作技能"""
-    
+
     name = "file_operations"
     description = "提供文件读写、目录管理等功能"
-    
+
     def __init__(self, base_path: str = "."):
         self.base_path = base_path
-    
+
     def get_tools(self) -> List[Tool]:
         return [
             FileReadTool(self.base_path),
@@ -140,12 +148,13 @@ class FileSkill(Skill):
             DirectoryTool(self.base_path),
         ]
 
+
 class FileReadTool(Tool):
     """文件读取工具"""
-    
+
     name = "read_file"
     description = "读取文件内容"
-    
+
     def __init__(self, base_path: str):
         self.base_path = base_path
         self.parameters = [
@@ -156,11 +165,11 @@ class FileReadTool(Tool):
                 required=True,
             ),
         ]
-    
+
     def run(self, filename: str) -> str:
         filepath = os.path.join(self.base_path, filename)
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 return f.read()
         except Exception as e:
             return f"读取失败: {str(e)}"
@@ -173,46 +182,47 @@ class FileReadTool(Tool):
 ```python
 from langchain_llm_toolkit.agent import ToolRegistry
 
+
 class SkillRegistry:
     """技能注册表"""
-    
+
     def __init__(self):
         self._skills = {}
         self._tool_registry = ToolRegistry()
-    
+
     def register(self, skill: Skill) -> None:
         """注册技能"""
         self._skills[skill.name] = skill
-        
+
         # 注册技能的工具
         for tool in skill.get_tools():
             self._tool_registry.register(tool)
-        
+
         # 初始化技能
         skill.initialize()
-    
+
     def unregister(self, name: str) -> None:
         """注销技能"""
         if name in self._skills:
             skill = self._skills[name]
-            
+
             # 清理资源
             skill.cleanup()
-            
+
             # 注销工具
             for tool in skill.get_tools():
                 self._tool_registry.unregister(tool.name)
-            
+
             del self._skills[name]
-    
+
     def get_skill(self, name: str) -> Skill:
         """获取技能"""
         return self._skills.get(name)
-    
+
     def list_skills(self) -> List[str]:
         """列出所有技能"""
         return list(self._skills.keys())
-    
+
     def get_tool_registry(self) -> ToolRegistry:
         """获取工具注册表"""
         return self._tool_registry
@@ -318,32 +328,33 @@ class DataScienceSkill(Skill):
 import json
 from typing import Dict, Type
 
+
 class SkillLoader:
     """技能加载器"""
-    
+
     SKILL_MAP: Dict[str, Type[Skill]] = {
         "math": MathSkill,
         "file": FileSkill,
         "web": WebSkill,
         "data": DataSkill,
     }
-    
+
     @classmethod
     def load_from_config(cls, config_path: str) -> List[Skill]:
         """从配置文件加载技能"""
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             config = json.load(f)
-        
+
         skills = []
         for skill_config in config.get("skills", []):
             name = skill_config["name"]
             params = skill_config.get("params", {})
-            
+
             if name in cls.SKILL_MAP:
                 skill_class = cls.SKILL_MAP[name]
                 skill = skill_class(**params)
                 skills.append(skill)
-        
+
         return skills
 ```
 
@@ -379,7 +390,10 @@ class SkillLoader:
 ```python
 # 好的设计
 class MathSkill(Skill): ...
+
+
 class FileSkill(Skill): ...
+
 
 # 避免过于宽泛
 class UtilitySkill(Skill):  # 不推荐
@@ -415,9 +429,9 @@ class DatabaseSkill(Skill):
         except ConnectionError as e:
             logger.error(f"数据库连接失败: {e}")
             raise
-    
+
     def cleanup(self) -> None:
-        if hasattr(self, 'connection'):
+        if hasattr(self, "connection"):
             self.connection.close()
 ```
 
