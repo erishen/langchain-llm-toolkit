@@ -319,6 +319,37 @@ async def rag_hybrid_query(request: RAGQueryRequest, alpha: float = 0.3):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
 
 
+@app.post("/api/v1/rag/search", response_model=RAGQueryResponse, tags=["RAG"])
+async def rag_search(request: RAGQueryRequest, current_user: TokenData = Depends(get_current_user)):
+    """纯语义检索（不过 LLM）：返回与 query 最相关的文档片段。
+
+    供外部 agent（如 computer-use 循环里的调用方）调用——调用方自己
+    是 LLM，只需要上下文片段，不需要再等一次生成。
+    """
+    try:
+        rag_system = get_rag_system()
+        if rag_system.vector_store is None:
+            # Qdrant local mode holds a single-instance file lock; opening a
+            # second client on the same folder raises "already accessed". Load
+            # once and reuse the in-memory store for subsequent requests.
+            try:
+                rag_system.load_vector_store("vector_store")
+            except Exception:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Vector store not found. Please upload documents first.",
+                ) from None
+        assert rag_system.vector_store is not None
+        docs = rag_system.vector_store.similarity_search(request.query, k=request.k)
+        sources = [SourceDocument(content=doc.page_content, metadata=doc.metadata) for doc in docs]
+        return RAGQueryResponse(answer="", sources=sources)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in rag search: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
+
+
 @app.post("/api/v1/rag/upload", response_model=RAGUploadResponse, tags=["RAG"])
 async def rag_upload(file: UploadFile = File(...)):
     try:
