@@ -236,7 +236,11 @@ class RAGSystem:
         sample_embedding = self.embeddings.embed_query("test")
         vector_size = len(sample_embedding)
 
-        client.recreate_collection(
+        # create_collection is the current API; the deprecated
+        # recreate_collection passes strict_mode_config/metadata=None which
+        # newer pydantic rest_models reject (extra_forbidden).
+        client.delete_collection(collection_name=self.qdrant_collection_name)
+        client.create_collection(
             collection_name=self.qdrant_collection_name,
             vectors_config=rest.VectorParams(
                 size=vector_size,
