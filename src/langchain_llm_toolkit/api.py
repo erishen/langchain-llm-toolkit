@@ -347,7 +347,10 @@ async def rag_search(request: RAGQueryRequest, current_user: TokenData = Depends
         raise
     except Exception as e:
         logger.error(f"Error in rag search: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)) from e
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal search error",
+        ) from e
 
 
 @app.post("/api/v1/rag/upload", response_model=RAGUploadResponse, tags=["RAG"])

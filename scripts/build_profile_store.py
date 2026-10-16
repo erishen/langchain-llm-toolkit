@@ -40,7 +40,7 @@ def main() -> None:
             docs.append(
                 Document(
                     page_content=text,
-                    metadata={"source": str(f), "category": sub, "file": f.name},
+                    metadata={"source": str(f.relative_to(DOCS_ROOT)), "category": sub, "file": f.name},
                 )
             )
     print(f"collected {len(docs)} markdown docs from {len(INCLUDE_DIRS)} dirs")
