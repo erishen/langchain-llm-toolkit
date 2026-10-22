@@ -1,0 +1,51 @@
+services:
+  profile-rag:
+    build:
+      context: ../..
+      dockerfile: apps/langchain-llm-toolkit/Dockerfile
+    image: profile-rag:latest
+    container_name: profile-rag
+    init: true
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Shanghai
+      - RAG_QDRANT_PATH=/app/apps/langchain-llm-toolkit/qdrant_storage
+      - RAG_FAISS_PATH=/app/apps/langchain-llm-toolkit/vector_store
+      - RAG_COLLECTION_NAME=langchain_documents
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - INTERNAL_API_KEY=${INTERNAL_API_KEY:-}
+    volumes:
+      - ./qdrant_storage:/app/apps/langchain-llm-toolkit/qdrant_storage
+      - ./vector_store:/app/apps/langchain-llm-toolkit/vector_store
+    ports:
+      - "127.0.0.1:18002:8001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - sh
+      - -c
+      - |
+        if [ -z "$$INTERNAL_API_KEY" ]; then
+          echo "INTERNAL_API_KEY is required (use ax-agent PROFILE_RAG_KEY)" >&2
+          exit 1
+        fi
+        exec uvicorn langchain_llm_toolkit.api:app --host 0.0.0.0 --port 8001
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8001/health',timeout=3)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

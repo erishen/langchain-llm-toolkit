@@ -7,24 +7,26 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+PORT="${PROFILE_API_PORT:-18002}"
+
 if [ -z "${INTERNAL_API_KEY:-}" ]; then
   echo "INTERNAL_API_KEY is not set; refusing to start with an implicit default." >&2
   exit 1
 fi
 
-if curl -s -m 2 http://127.0.0.1:8001/health >/dev/null 2>&1; then
-  echo "profile RAG API already running on 8001"
+if curl -s -m 2 http://127.0.0.1:${PORT}/health >/dev/null 2>&1; then
+  echo "profile RAG API already running on ${PORT}"
   exit 0
 fi
 
 nohup uv run --package langchain-llm-toolkit \
-  uvicorn langchain_llm_toolkit.api:app --host 127.0.0.1 --port 8001 \
+  uvicorn langchain_llm_toolkit.api:app --host 127.0.0.1 --port "${PORT}" \
   > /tmp/toolkit-api.log 2>&1 &
 
 for i in $(seq 1 25); do
   sleep 2
-  if curl -s -m 2 http://127.0.0.1:8001/health | grep -q healthy; then
-    echo "profile RAG API up on http://127.0.0.1:8001"
+  if curl -s -m 2 http://127.0.0.1:${PORT}/health | grep -q healthy; then
+    echo "profile RAG API up on http://127.0.0.1:${PORT}"
     exit 0
   fi
 done
