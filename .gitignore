@@ -73,3 +73,6 @@ qdrant_storage/
 *.faiss
 *.pkl
 .serena
+
+# qdrant 数据备份（灌库合并前快照，2026-10-24）
+qdrant_storage.bak-*/
