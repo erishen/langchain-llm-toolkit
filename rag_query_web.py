@@ -45,8 +45,8 @@ def search_knowledge(query, k=5):
     from langchain_llm_toolkit.rag import RAGSystem
 
     vs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vector_store")
-    rag = RAGSystem(vector_store_type="faiss", embedding_type="ollama", embedding_model="nomic-embed-text:latest")
-    rag.embeddings = OllamaEmbeddings(model="nomic-embed-text:latest", base_url="http://localhost:11434")
+    rag = RAGSystem(vector_store_type="faiss", embedding_type="ollama", embedding_model="snowflake-arctic-embed2:latest")
+    rag.embeddings = OllamaEmbeddings(model="snowflake-arctic-embed2:latest", base_url="http://localhost:11434")
     rag.faiss_persist_dir = vs
     rag.load_vector_store()
     return rag.retrieve_hybrid(query, k=k, bm25_weight=0.3)
