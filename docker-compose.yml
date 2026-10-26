@@ -14,6 +14,9 @@ services:
       - RAG_FAISS_PATH=/app/apps/langchain-llm-toolkit/vector_store
       - RAG_COLLECTION_NAME=langchain_documents
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      # RAG 答案生成用的 Ollama 对话模型；宿主需已 pull，否则 /api/generate 404。
+      # 宿主现有: llama3.1:8b / nomic-embed-text / snowflake-arctic-embed2
+      - LLM_MODEL=${LLM_MODEL:-ollama/llama3.1:8b}
       - INTERNAL_API_KEY=${INTERNAL_API_KEY:-}
     volumes:
       - ./qdrant_storage:/app/apps/langchain-llm-toolkit/qdrant_storage

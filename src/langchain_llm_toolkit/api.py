@@ -87,7 +87,9 @@ auth_manager = None
 def get_rag_system():
     global rag_system_instance
     if rag_system_instance is None:
-        rag_system_instance = RAGSystem()
+        # LLM 模型可经 LLM_MODEL 环境变量覆盖（如 ollama/llama3.1:8b），
+        # 默认 ollama/gemma4 需宿主 Ollama 已 pull 该模型，否则 /api/generate 404
+        rag_system_instance = RAGSystem(llm_model=os.environ.get("LLM_MODEL", "ollama/gemma4"))
     return rag_system_instance
 
 

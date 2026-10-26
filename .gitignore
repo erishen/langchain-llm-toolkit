@@ -76,3 +76,6 @@ qdrant_storage/
 
 # qdrant 数据备份（灌库合并前快照，2026-10-24）
 qdrant_storage.bak-*/
+
+# docker buildx 本地缓存（BUILDX_CONFIG 指向此处）
+.buildx/

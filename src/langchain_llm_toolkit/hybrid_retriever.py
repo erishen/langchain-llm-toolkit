@@ -326,8 +326,11 @@ class HybridRAGSystem:
         if not self.rag.vector_store:
             raise ValueError("RAG 系统的向量存储未初始化")
 
-        if hasattr(self.rag.vector_store, "similarity_search"):
-            docs = self.rag.vector_store.similarity_search("", k=1000)
+        # 用 rag.iter_all_documents() 全量枚举（Qdrant scroll / FAISS docstore），
+        # 不走 similarity_search("")：空查询经 ollama 会得到 0 维向量，
+        # Qdrant 本地模式会报 shapes not aligned
+        docs = self.rag.iter_all_documents(limit=1000)
+        if docs:
             self.retriever.fit(docs)
             self._fitted = True
 

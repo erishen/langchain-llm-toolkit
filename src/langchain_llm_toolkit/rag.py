@@ -194,6 +194,29 @@ class RAGSystem:
             logger.info("Using OpenAI embeddings")
         return self.embeddings
 
+    @staticmethod
+    def _dedupe_documents(documents: list[Document]) -> tuple[list[Document], int]:
+        """按 chunk 内容哈希去重（系统性规则）。
+
+        同一文件从不同路径多次导入（如 investment/guide.md 与
+        investment/raw/guide.md、换根目录重导的 投资备忘录.md）会产生
+        内容完全相同的 chunk，重复项会稀释检索排序。这里以
+        sha1(page_content) 为键保留首现，重复项整条丢弃。
+        返回 (去重后的文档列表, 丢弃的条数)。
+        """
+        seen: set[str] = set()
+        unique: list[Document] = []
+        for doc in documents:
+            key = hashlib.sha1(doc.page_content.encode("utf-8")).hexdigest()
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(doc)
+        dropped = len(documents) - len(unique)
+        if dropped:
+            logger.info(f"内容去重: {len(documents)} → {len(unique)} (丢弃 {dropped} 条重复 chunk)")
+        return unique, dropped
+
     def create_vector_store(self, documents: list[Document]):
         """创建向量存储"""
         if not self.embeddings:
@@ -201,6 +224,9 @@ class RAGSystem:
 
         # 确保 embeddings 已初始化
         assert self.embeddings is not None, "Embeddings must be initialized"
+
+        # 分割前先按内容去重，避免同文多路径导入造成的检索稀释
+        documents, _ = self._dedupe_documents(documents)
 
         # 分割文档
         split_docs = self.text_splitter.split_documents(documents)
@@ -222,7 +248,11 @@ class RAGSystem:
         """创建 Qdrant 向量存储"""
         assert self.embeddings is not None, "Embeddings must be initialized"
 
-        if self.qdrant_url:
+        # 复用已有 client：Qdrant 本地模式为排他锁，已加载状态下重建集合
+        # 必须用同一个 client，否则触发 "already accessed by another instance"
+        if isinstance(self.vector_store, Qdrant):
+            client = self.vector_store.client
+        elif self.qdrant_url:
             client = QdrantClient(
                 url=self.qdrant_url,
                 api_key=self.qdrant_api_key,
@@ -285,12 +315,50 @@ class RAGSystem:
         try:
             if hasattr(self.vector_store, "docstore"):
                 docs = list(self.vector_store.docstore._dict.values())
+            elif isinstance(self.vector_store, Qdrant):
+                docs = self._scroll_qdrant_documents()
+            else:
+                docs = []
+            if docs:
                 self.bm25 = BM25()
                 self.bm25.fit(docs)
                 logger.info(f"BM25 rebuilt: {len(docs)} docs")
+            else:
+                logger.warning("BM25 rebuild skipped: no documents retrieved from vector store")
+                self.bm25 = None
         except Exception as e:
             logger.warning("Failed to rebuild BM25: %s", e)
             self.bm25 = None
+
+    def _scroll_qdrant_documents(self) -> list[Document]:
+        """从 Qdrant 集合全量滚动取出所有点，重建 Document 列表。
+
+        langchain 的 Qdrant 向量库把 chunk 存在 payload 的
+        page_content / metadata 键下（CONTENT/METADATA 键名）。
+        """
+        assert self.vector_store is not None
+        client = self.vector_store.client
+        collection = self.qdrant_collection_name
+        docs: list[Document] = []
+        offset = None
+        while True:
+            points, offset = client.scroll(
+                collection_name=collection,
+                limit=256,
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+            for p in points:
+                payload = p.payload or {}
+                content = payload.get("page_content") or payload.get("content") or ""
+                metadata = payload.get("metadata") or {}
+                if content:
+                    docs.append(Document(page_content=content, metadata=metadata))
+            if offset is None:
+                break
+        logger.info(f"Qdrant scroll: {len(docs)} documents from '{collection}'")
+        return docs
 
     def retrieve_hybrid(
         self,
@@ -351,6 +419,24 @@ class RAGSystem:
         # Sort by combined score and return top k
         sorted_docs = sorted(all_docs.values(), key=lambda x: x[1], reverse=True)
         return [doc for doc, _ in sorted_docs[:k]]
+
+    def iter_all_documents(self, limit: int = 10000) -> list[Document]:
+        """枚举向量存储中的全部文档（不经过 embedding）。
+
+        注意：不能用 similarity_search("") 枚举——ollama 对空串返回 0 维
+        向量，Qdrant 本地模式的 numpy 矩阵乘会报
+        "shapes (N,1024) and (0,) not aligned"。Qdrant 走 scroll，
+        FAISS 直接读 docstore。
+        """
+        if not self.vector_store:
+            raise ValueError("向量存储未初始化，请先调用 create_vector_store")
+
+        if isinstance(self.vector_store, Qdrant):
+            return self._scroll_qdrant_documents()[:limit]
+        if hasattr(self.vector_store, "docstore"):
+            return list(self.vector_store.docstore._dict.values())[:limit]
+        # 兜底：其他实现的旧路径
+        return self.vector_store.similarity_search("", k=limit)
 
     def retrieve_documents(
         self,
@@ -633,6 +719,12 @@ class RAGSystem:
 
         assert self.embeddings is not None, "Embeddings must be initialized"
 
+        # 幂等守卫：Qdrant 本地模式（path=）为排他锁，二次 load 会开第二个
+        # client 触发 "already accessed by another instance" 冲突；已加载则直接复用
+        if self.vector_store is not None:
+            logger.debug("向量存储已加载，跳过重复 load")
+            return self.vector_store
+
         if self.vector_store_type == "faiss":
             load_path = file_path or self.faiss_persist_dir
             self.vector_store = FAISS.load_local(
@@ -664,6 +756,10 @@ class RAGSystem:
                 collection_name=self.qdrant_collection_name,
                 embeddings=self.embeddings,
             )
+
+            # Qdrant 分支同样重建 BM25（此前缺失导致 qdrant 模式下混合检索的
+            # BM25 一直为 None，hybrid 退化成纯向量检索）
+            self._rebuild_bm25()
 
         return self.vector_store
 
