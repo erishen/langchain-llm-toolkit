@@ -72,7 +72,7 @@ jobs:
       run: uv sync
 
     - name: Run security check
-      run: uv run bandit *.py models/*.py config/*.py -ll
+      run: uv run bandit rag_query_web.py scripts src -ll
       continue-on-error: true
 
   build:

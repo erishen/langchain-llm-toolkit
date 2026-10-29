@@ -64,7 +64,7 @@ def main() -> int:
         return (1 if (PREFER_NO_RAW and "/raw/" in src) else 0, len(src), src)
 
     unique_docs, dup_groups = [], 0
-    for key, docs in groups.items():
+    for docs in groups.values():
         if len(docs) > 1:
             dup_groups += 1
             srcs = sorted({str((d.metadata or {}).get("source", "?")) for d in docs})
